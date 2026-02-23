@@ -20,6 +20,9 @@ public class User extends BaseEntity {
     @Column(nullable = false, unique = true)
     private String keycloakId;
 
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private UserSettings settings;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<ProblemList> problemLists = new ArrayList<>();
 }
