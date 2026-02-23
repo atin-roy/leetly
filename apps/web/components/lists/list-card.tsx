@@ -1,0 +1,57 @@
+"use client"
+
+import Link from "next/link"
+import { Trash2 } from "lucide-react"
+import { toast } from "sonner"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useDeleteList } from "@/hooks/use-lists"
+import type { ProblemListDto } from "@/lib/types"
+
+export function ListCard({ list }: { list: ProblemListDto }) {
+  const deleteMutation = useDeleteList()
+
+  async function handleDelete() {
+    if (!confirm(`Delete list "${list.name}"?`)) return
+    try {
+      await deleteMutation.mutateAsync(list.id)
+      toast.success("List deleted")
+    } catch {
+      toast.error("Failed to delete list")
+    }
+  }
+
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-base">
+            <Link href={`/lists/${list.id}`} className="hover:underline">
+              {list.name}
+            </Link>
+          </CardTitle>
+          <div className="flex items-center gap-2">
+            {list.isDefault && <Badge variant="secondary">Default</Badge>}
+            {!list.isDefault && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-destructive"
+                onClick={handleDelete}
+                disabled={deleteMutation.isPending}
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
+            )}
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <p className="text-sm text-muted-foreground">
+          {list.problems.length} problem{list.problems.length !== 1 ? "s" : ""}
+        </p>
+      </CardContent>
+    </Card>
+  )
+}
