@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -21,6 +22,17 @@ public class StatsService {
     private final UserStatsRepository userStatsRepository;
     private final DailyStatRepository dailyStatRepository;
     private final ObjectMapper objectMapper;
+
+    @Transactional(readOnly = true)
+    public UserStats getByUser(User user) {
+        return userStatsRepository.findByUser(user)
+                .orElseThrow(() -> new RuntimeException("UserStats not found for user: " + user.getId()));
+    }
+
+    @Transactional(readOnly = true)
+    public List<DailyStat> getDailyStatsBetween(User user, LocalDate from, LocalDate to) {
+        return dailyStatRepository.findByUserAndDateBetween(user, from, to);
+    }
 
     public void updateOnAttempt(User user, Attempt attempt, boolean isFirstSolve) {
         UserStats stats = userStatsRepository.findByUser(user)
