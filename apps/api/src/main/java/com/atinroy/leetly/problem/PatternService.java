@@ -1,5 +1,6 @@
 package com.atinroy.leetly.problem;
 
+import com.atinroy.leetly.common.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,7 +23,7 @@ public class PatternService {
     @Transactional(readOnly = true)
     public Pattern findById(long id) {
         return patternRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Pattern not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Pattern not found: " + id));
     }
 
     @Transactional(readOnly = true)

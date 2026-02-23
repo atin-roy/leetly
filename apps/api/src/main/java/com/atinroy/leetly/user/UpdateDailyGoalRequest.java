@@ -1,3 +1,5 @@
 package com.atinroy.leetly.user;
 
-public record UpdateDailyGoalRequest(int dailyGoal) {}
+import jakarta.validation.constraints.Min;
+
+public record UpdateDailyGoalRequest(@Min(1) int dailyGoal) {}

@@ -1,5 +1,6 @@
 package com.atinroy.leetly.problem;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -26,12 +27,12 @@ public class TopicController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public TopicDto create(@RequestBody CreateTopicRequest request) {
+    public TopicDto create(@Valid @RequestBody CreateTopicRequest request) {
         return topicMapper.toDto(topicService.create(request.name(), request.description()));
     }
 
     @PutMapping("/{id}")
-    public TopicDto update(@PathVariable long id, @RequestBody CreateTopicRequest request) {
+    public TopicDto update(@PathVariable long id, @Valid @RequestBody CreateTopicRequest request) {
         return topicMapper.toDto(topicService.update(id, request.name(), request.description()));
     }
 

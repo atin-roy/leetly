@@ -8,18 +8,6 @@ spring:
         jwt:
           issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8080/realms/leetly}
 
-app:
-  keycloak:
-    client-id: ${KEYCLOAK_CLIENT_ID:leetly-api}
-
-springdoc:
-  swagger-ui:
-    path: /swagger-ui.html
-    try-it-out-enabled: true
-    operations-sorter: alpha
-  api-docs:
-    path: /v3/api-docs
-
   # Database Connection (Uses Environment Variables)
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/leetly}
@@ -44,6 +32,18 @@ springdoc:
   flyway:
     # Tells Flyway to look for scripts in db/migration on startup
     enabled: true
+
+app:
+  keycloak:
+    client-id: ${KEYCLOAK_CLIENT_ID:leetly-api}
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    try-it-out-enabled: true
+    operations-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
 
 ---
 # --- DEVELOPMENT PROFILE ---

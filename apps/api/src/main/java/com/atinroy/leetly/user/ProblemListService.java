@@ -1,5 +1,7 @@
 package com.atinroy.leetly.user;
 
+import com.atinroy.leetly.common.ConflictException;
+import com.atinroy.leetly.common.ResourceNotFoundException;
 import com.atinroy.leetly.problem.Problem;
 import com.atinroy.leetly.problem.ProblemService;
 import lombok.RequiredArgsConstructor;
@@ -24,13 +26,19 @@ public class ProblemListService {
     @Transactional(readOnly = true)
     public ProblemList getDefaultList(User user) {
         return problemListRepository.findByUserAndIsDefaultTrue(user)
-                .orElseThrow(() -> new RuntimeException("Default problem list not found for user: " + user.getId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Default problem list not found for user: " + user.getId()));
     }
 
     @Transactional(readOnly = true)
     public ProblemList findById(long id) {
         return problemListRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("ProblemList not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("ProblemList not found: " + id));
+    }
+
+    @Transactional(readOnly = true)
+    public ProblemList findByIdAndUser(long id, User user) {
+        return problemListRepository.findByIdAndUser(id, user)
+                .orElseThrow(() -> new ResourceNotFoundException("ProblemList not found: " + id));
     }
 
     public ProblemList create(User user, String name) {
@@ -41,16 +49,16 @@ public class ProblemListService {
         return problemListRepository.save(list);
     }
 
-    public void delete(long id) {
-        ProblemList list = findById(id);
+    public void delete(long id, User user) {
+        ProblemList list = findByIdAndUser(id, user);
         if (list.isDefault()) {
-            throw new RuntimeException("Cannot delete the default problem list");
+            throw new ConflictException("Cannot delete the default problem list");
         }
         problemListRepository.delete(list);
     }
 
-    public ProblemList addProblem(long listId, long problemId) {
-        ProblemList list = findById(listId);
+    public ProblemList addProblem(long listId, long problemId, User user) {
+        ProblemList list = findByIdAndUser(listId, user);
         Problem problem = problemService.findById(problemId);
         if (!list.getProblems().contains(problem)) {
             list.getProblems().add(problem);
@@ -58,8 +66,8 @@ public class ProblemListService {
         return problemListRepository.save(list);
     }
 
-    public ProblemList removeProblem(long listId, long problemId) {
-        ProblemList list = findById(listId);
+    public ProblemList removeProblem(long listId, long problemId, User user) {
+        ProblemList list = findByIdAndUser(listId, user);
         list.getProblems().removeIf(p -> p.getId().equals(problemId));
         return problemListRepository.save(list);
     }

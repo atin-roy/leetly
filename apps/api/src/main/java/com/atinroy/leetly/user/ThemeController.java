@@ -1,5 +1,6 @@
 package com.atinroy.leetly.user;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -26,12 +27,12 @@ public class ThemeController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ThemeDto create(@RequestBody CreateThemeRequest request) {
+    public ThemeDto create(@Valid @RequestBody CreateThemeRequest request) {
         return themeMapper.toDto(themeService.create(request.name(), request.properties()));
     }
 
     @PutMapping("/{id}")
-    public ThemeDto update(@PathVariable long id, @RequestBody CreateThemeRequest request) {
+    public ThemeDto update(@PathVariable long id, @Valid @RequestBody CreateThemeRequest request) {
         return themeMapper.toDto(themeService.update(id, request.name(), request.properties()));
     }
 

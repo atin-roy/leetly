@@ -1,3 +1,6 @@
 package com.atinroy.leetly.note;
 
-public record CreateNoteRequest(Long problemId, NoteTag tag, String title, String content) {}
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
+public record CreateNoteRequest(Long problemId, @NotNull NoteTag tag, @NotBlank String title, String content) {}

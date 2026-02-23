@@ -1,6 +1,11 @@
 package com.atinroy.leetly.note;
 
+import com.atinroy.leetly.common.PagedResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,15 +20,19 @@ public class NoteController {
     private final NoteMapper noteMapper;
 
     @GetMapping
-    public List<NoteDto> findAll(@RequestParam(required = false) Long problemId,
-                                 @RequestParam(required = false) NoteTag tag) {
+    public PagedResponse<NoteDto> findAll(
+            @RequestParam(required = false) Long problemId,
+            @RequestParam(required = false) NoteTag tag,
+            @PageableDefault(size = 20, sort = "dateTime", direction = Sort.Direction.DESC) Pageable pageable) {
         if (problemId != null) {
-            return noteService.findByProblem(problemId).stream().map(noteMapper::toDto).toList();
+            List<NoteDto> notes = noteService.findByProblem(problemId).stream().map(noteMapper::toDto).toList();
+            return new PagedResponse<>(notes, 0, notes.size(), notes.size(), 1);
         }
         if (tag != null) {
-            return noteService.findByTag(tag).stream().map(noteMapper::toDto).toList();
+            List<NoteDto> notes = noteService.findByTag(tag).stream().map(noteMapper::toDto).toList();
+            return new PagedResponse<>(notes, 0, notes.size(), notes.size(), 1);
         }
-        return noteService.findAll().stream().map(noteMapper::toDto).toList();
+        return PagedResponse.of(noteService.findAll(pageable).map(noteMapper::toDto));
     }
 
     @GetMapping("/{id}")
@@ -33,12 +42,12 @@ public class NoteController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public NoteDto create(@RequestBody CreateNoteRequest request) {
+    public NoteDto create(@Valid @RequestBody CreateNoteRequest request) {
         return noteMapper.toDto(noteService.create(request.problemId(), request.tag(), request.title(), request.content()));
     }
 
     @PutMapping("/{id}")
-    public NoteDto update(@PathVariable long id, @RequestBody UpdateNoteRequest request) {
+    public NoteDto update(@PathVariable long id, @Valid @RequestBody UpdateNoteRequest request) {
         return noteMapper.toDto(noteService.update(id, request.tag(), request.title(), request.content()));
     }
 

@@ -1,8 +1,11 @@
 package com.atinroy.leetly.note;
 
+import com.atinroy.leetly.common.ResourceNotFoundException;
 import com.atinroy.leetly.problem.Problem;
 import com.atinroy.leetly.problem.ProblemService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,14 +21,14 @@ public class NoteService {
     private final ProblemService problemService;
 
     @Transactional(readOnly = true)
-    public List<Note> findAll() {
-        return noteRepository.findAll();
+    public Page<Note> findAll(Pageable pageable) {
+        return noteRepository.findAll(pageable);
     }
 
     @Transactional(readOnly = true)
     public Note findById(long id) {
         return noteRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Note not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Note not found: " + id));
     }
 
     @Transactional(readOnly = true)

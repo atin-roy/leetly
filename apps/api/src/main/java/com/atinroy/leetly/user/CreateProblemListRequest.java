@@ -1,3 +1,5 @@
 package com.atinroy.leetly.user;
 
-public record CreateProblemListRequest(String name) {}
+import jakarta.validation.constraints.NotBlank;
+
+public record CreateProblemListRequest(@NotBlank String name) {}

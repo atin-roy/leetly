@@ -1,5 +1,6 @@
 package com.atinroy.leetly.user;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -22,21 +23,21 @@ public class UserSettingsController {
 
     @PatchMapping("/language")
     public UserSettingsDto updateLanguage(@AuthenticationPrincipal Jwt jwt,
-                                          @RequestBody UpdateLanguageRequest request) {
+                                          @Valid @RequestBody UpdateLanguageRequest request) {
         User user = userService.getOrCreate(jwt.getSubject());
         return userSettingsMapper.toDto(userSettingsService.updateLanguage(user, request.language()));
     }
 
     @PatchMapping("/daily-goal")
     public UserSettingsDto updateDailyGoal(@AuthenticationPrincipal Jwt jwt,
-                                           @RequestBody UpdateDailyGoalRequest request) {
+                                           @Valid @RequestBody UpdateDailyGoalRequest request) {
         User user = userService.getOrCreate(jwt.getSubject());
         return userSettingsMapper.toDto(userSettingsService.updateDailyGoal(user, request.dailyGoal()));
     }
 
     @PatchMapping("/timezone")
     public UserSettingsDto updateTimezone(@AuthenticationPrincipal Jwt jwt,
-                                          @RequestBody UpdateTimezoneRequest request) {
+                                          @Valid @RequestBody UpdateTimezoneRequest request) {
         User user = userService.getOrCreate(jwt.getSubject());
         return userSettingsMapper.toDto(userSettingsService.updateTimezone(user, request.timezone()));
     }

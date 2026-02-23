@@ -1,3 +1,5 @@
 package com.atinroy.leetly.problem;
 
-public record CreateTopicRequest(String name, String description) {}
+import jakarta.validation.constraints.NotBlank;
+
+public record CreateTopicRequest(@NotBlank String name, String description) {}

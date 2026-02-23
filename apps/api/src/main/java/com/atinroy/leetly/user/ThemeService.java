@@ -1,5 +1,7 @@
 package com.atinroy.leetly.user;
 
+import com.atinroy.leetly.common.JsonUtils;
+import com.atinroy.leetly.common.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,10 +23,11 @@ public class ThemeService {
     @Transactional(readOnly = true)
     public Theme findById(long id) {
         return themeRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Theme not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Theme not found: " + id));
     }
 
     public Theme create(String name, String properties) {
+        JsonUtils.assertValidJson(properties);
         Theme theme = new Theme();
         theme.setName(name);
         theme.setProperties(properties);
@@ -32,6 +35,7 @@ public class ThemeService {
     }
 
     public Theme update(long id, String name, String properties) {
+        JsonUtils.assertValidJson(properties);
         Theme theme = findById(id);
         theme.setName(name);
         theme.setProperties(properties);

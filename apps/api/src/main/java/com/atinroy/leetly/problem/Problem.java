@@ -3,6 +3,7 @@ package com.atinroy.leetly.problem;
 import com.atinroy.leetly.common.BaseEntity;
 import com.atinroy.leetly.note.Note;
 import jakarta.persistence.*;
+import org.hibernate.annotations.BatchSize;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -36,6 +37,7 @@ public class Problem extends BaseEntity {
     private ProblemStatus status;
 
     @OneToMany(mappedBy = "problem", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @BatchSize(size = 20)
     private List<Attempt> attempts = new ArrayList<>();
 
     @OneToMany(mappedBy = "problem", fetch = FetchType.LAZY)

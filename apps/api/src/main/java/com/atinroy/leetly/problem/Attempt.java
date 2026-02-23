@@ -1,7 +1,9 @@
 package com.atinroy.leetly.problem;
 
 import com.atinroy.leetly.common.BaseEntity;
+import com.atinroy.leetly.user.User;
 import jakarta.persistence.*;
+import org.hibernate.annotations.BatchSize;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -17,6 +19,10 @@ public class Attempt extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "problem_id", nullable = false)
     private Problem problem;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @Column(nullable = false)
     private int attemptNumber;
@@ -39,6 +45,7 @@ public class Attempt extends BaseEntity {
     @CollectionTable(name = "attempt_mistakes", joinColumns = @JoinColumn(name = "attempt_id"))
     @Column(name = "mistake", nullable = false)
     @Enumerated(EnumType.STRING)
+    @BatchSize(size = 20)
     private List<Mistake> mistakes = new ArrayList<>();
 
     @Column

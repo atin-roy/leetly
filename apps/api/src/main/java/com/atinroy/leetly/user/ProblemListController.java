@@ -1,5 +1,6 @@
 package com.atinroy.leetly.user;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -27,34 +28,42 @@ public class ProblemListController {
 
     @GetMapping("/{id}")
     @Transactional(readOnly = true)
-    public ProblemListDto findById(@PathVariable long id) {
-        return problemListMapper.toDto(problemListService.findById(id));
+    public ProblemListDto findById(@AuthenticationPrincipal Jwt jwt, @PathVariable long id) {
+        User user = userService.getOrCreate(jwt.getSubject());
+        return problemListMapper.toDto(problemListService.findByIdAndUser(id, user));
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @Transactional
     public ProblemListDto create(@AuthenticationPrincipal Jwt jwt,
-                                 @RequestBody CreateProblemListRequest request) {
+                                 @Valid @RequestBody CreateProblemListRequest request) {
         User user = userService.getOrCreate(jwt.getSubject());
         return problemListMapper.toDto(problemListService.create(user, request.name()));
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable long id) {
-        problemListService.delete(id);
+    public void delete(@AuthenticationPrincipal Jwt jwt, @PathVariable long id) {
+        User user = userService.getOrCreate(jwt.getSubject());
+        problemListService.delete(id, user);
     }
 
     @PostMapping("/{id}/problems/{problemId}")
     @Transactional
-    public ProblemListDto addProblem(@PathVariable long id, @PathVariable long problemId) {
-        return problemListMapper.toDto(problemListService.addProblem(id, problemId));
+    public ProblemListDto addProblem(@AuthenticationPrincipal Jwt jwt,
+                                     @PathVariable long id,
+                                     @PathVariable long problemId) {
+        User user = userService.getOrCreate(jwt.getSubject());
+        return problemListMapper.toDto(problemListService.addProblem(id, problemId, user));
     }
 
     @DeleteMapping("/{id}/problems/{problemId}")
     @Transactional
-    public ProblemListDto removeProblem(@PathVariable long id, @PathVariable long problemId) {
-        return problemListMapper.toDto(problemListService.removeProblem(id, problemId));
+    public ProblemListDto removeProblem(@AuthenticationPrincipal Jwt jwt,
+                                        @PathVariable long id,
+                                        @PathVariable long problemId) {
+        User user = userService.getOrCreate(jwt.getSubject());
+        return problemListMapper.toDto(problemListService.removeProblem(id, problemId, user));
     }
 }

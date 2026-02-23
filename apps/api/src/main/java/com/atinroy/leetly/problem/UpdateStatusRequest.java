@@ -1,3 +1,5 @@
 package com.atinroy.leetly.problem;
 
-public record UpdateStatusRequest(ProblemStatus status) {}
+import jakarta.validation.constraints.NotNull;
+
+public record UpdateStatusRequest(@NotNull ProblemStatus status) {}

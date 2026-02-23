@@ -1,5 +1,6 @@
 package com.atinroy.leetly.user;
 
+import com.atinroy.leetly.common.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,7 +18,7 @@ public class UserService {
     @Transactional(readOnly = true)
     public User findByKeycloakId(String keycloakId) {
         return userRepository.findByKeycloakId(keycloakId)
-                .orElseThrow(() -> new RuntimeException("User not found: " + keycloakId));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + keycloakId));
     }
 
     public User getOrCreate(String keycloakId) {

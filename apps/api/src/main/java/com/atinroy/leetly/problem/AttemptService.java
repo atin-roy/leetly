@@ -1,5 +1,6 @@
 package com.atinroy.leetly.problem;
 
+import com.atinroy.leetly.common.ResourceNotFoundException;
 import com.atinroy.leetly.user.StatsService;
 import com.atinroy.leetly.user.User;
 import lombok.RequiredArgsConstructor;
@@ -18,26 +19,29 @@ public class AttemptService {
     private final StatsService statsService;
 
     @Transactional(readOnly = true)
-    public List<Attempt> findByProblem(long problemId) {
+    public List<Attempt> findByProblem(long problemId, User user) {
         Problem problem = problemRepository.findById(problemId)
-                .orElseThrow(() -> new RuntimeException("Problem not found: " + problemId));
-        return attemptRepository.findByProblem(problem);
+                .orElseThrow(() -> new ResourceNotFoundException("Problem not found: " + problemId));
+        return attemptRepository.findByProblemAndUser(problem, user);
     }
 
     @Transactional(readOnly = true)
-    public Attempt findById(long id) {
-        return attemptRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Attempt not found: " + id));
+    public Attempt findByIdAndProblem(long id, long problemId, User user) {
+        return attemptRepository.findByIdAndProblemIdAndUser(id, problemId, user)
+                .orElseThrow(() -> new ResourceNotFoundException("Attempt not found: " + id));
     }
 
     public Attempt logAttempt(long problemId, User user, LogAttemptRequest request) {
-        Problem problem = problemRepository.findById(problemId)
-                .orElseThrow(() -> new RuntimeException("Problem not found: " + problemId));
+        // Pessimistic lock prevents two concurrent requests from reading the same
+        // attempt count and assigning duplicate attempt numbers for the same user/problem.
+        Problem problem = problemRepository.findByIdForUpdate(problemId)
+                .orElseThrow(() -> new ResourceNotFoundException("Problem not found: " + problemId));
 
-        int attemptNumber = (int) attemptRepository.countByProblem(problem) + 1;
+        int attemptNumber = (int) attemptRepository.countByProblemAndUser(problem, user) + 1;
 
         Attempt attempt = new Attempt();
         attempt.setProblem(problem);
+        attempt.setUser(user);
         attempt.setAttemptNumber(attemptNumber);
         attempt.setLanguage(request.language());
         attempt.setCode(request.code());
@@ -50,31 +54,30 @@ public class AttemptService {
         attempt.setLearned(request.learned());
         attempt.setTakeaways(request.takeaways());
         attempt.setNotes(request.notes());
-        attempt = attemptRepository.save(attempt);
+        Attempt savedAttempt = attemptRepository.save(attempt);
 
-        boolean wasUnseen = problem.getStatus() == ProblemStatus.UNSEEN;
         boolean isAccepted = request.outcome() == Outcome.ACCEPTED;
-        boolean wasSolved = problem.getStatus() == ProblemStatus.SOLVED
-                || problem.getStatus() == ProblemStatus.SOLVED_WITH_HELP
-                || problem.getStatus() == ProblemStatus.MASTERED;
+        boolean noOtherAccepted = attemptRepository
+                .findByProblemAndUserAndOutcome(problem, user, Outcome.ACCEPTED)
+                .stream().filter(a -> !a.getId().equals(savedAttempt.getId())).findAny().isEmpty();
+        boolean isFirstSolve = isAccepted && noOtherAccepted;
 
-        boolean isFirstSolve = false;
-        if (isAccepted && !wasSolved) {
+        if (isFirstSolve) {
             problem.setStatus(ProblemStatus.SOLVED);
-            isFirstSolve = true;
             problemRepository.save(problem);
-        } else if (!isAccepted && wasUnseen) {
+        } else if (!isAccepted && problem.getStatus() == ProblemStatus.UNSEEN) {
             problem.setStatus(ProblemStatus.ATTEMPTED);
             problemRepository.save(problem);
         }
 
-        statsService.updateOnAttempt(user, attempt, isFirstSolve);
+        statsService.updateOnAttempt(user, savedAttempt, isFirstSolve);
 
-        return attempt;
+        return savedAttempt;
     }
 
-    public Attempt update(long id, LogAttemptRequest request) {
-        Attempt attempt = findById(id);
+    public Attempt update(long id, long problemId, User user, LogAttemptRequest request) {
+        Attempt attempt = findByIdAndProblem(id, problemId, user);
+        statsService.adjustOnAttemptUpdate(user, attempt, request);
         attempt.setLanguage(request.language());
         attempt.setCode(request.code());
         attempt.setOutcome(request.outcome());
@@ -89,7 +92,9 @@ public class AttemptService {
         return attemptRepository.save(attempt);
     }
 
-    public void delete(long id) {
-        attemptRepository.deleteById(id);
+    public void delete(long id, long problemId, User user) {
+        Attempt attempt = findByIdAndProblem(id, problemId, user);
+        statsService.adjustOnAttemptDelete(user, attempt, attemptRepository);
+        attemptRepository.delete(attempt);
     }
 }

@@ -1,5 +1,6 @@
 package com.atinroy.leetly.problem;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -29,13 +30,13 @@ public class PatternController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public PatternDto create(@RequestBody CreatePatternRequest request) {
+    public PatternDto create(@Valid @RequestBody CreatePatternRequest request) {
         return patternMapper.toDto(
                 patternService.create(request.name(), request.description(), request.topicId(), request.namedAlgorithm()));
     }
 
     @PutMapping("/{id}")
-    public PatternDto update(@PathVariable long id, @RequestBody CreatePatternRequest request) {
+    public PatternDto update(@PathVariable long id, @Valid @RequestBody CreatePatternRequest request) {
         return patternMapper.toDto(
                 patternService.update(id, request.name(), request.description(), request.topicId(), request.namedAlgorithm()));
     }

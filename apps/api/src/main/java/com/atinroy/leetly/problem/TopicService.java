@@ -1,5 +1,6 @@
 package com.atinroy.leetly.problem;
 
+import com.atinroy.leetly.common.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,7 +22,7 @@ public class TopicService {
     @Transactional(readOnly = true)
     public Topic findById(long id) {
         return topicRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Topic not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Topic not found: " + id));
     }
 
     public Topic create(String name, String description) {

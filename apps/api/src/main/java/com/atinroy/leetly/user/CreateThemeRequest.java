@@ -1,3 +1,5 @@
 package com.atinroy.leetly.user;
 
-public record CreateThemeRequest(String name, String properties) {}
+import jakarta.validation.constraints.NotBlank;
+
+public record CreateThemeRequest(@NotBlank String name, String properties) {}

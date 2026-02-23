@@ -1,3 +1,6 @@
 package com.atinroy.leetly.note;
 
-public record UpdateNoteRequest(NoteTag tag, String title, String content) {}
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
+public record UpdateNoteRequest(@NotNull NoteTag tag, @NotBlank String title, String content) {}

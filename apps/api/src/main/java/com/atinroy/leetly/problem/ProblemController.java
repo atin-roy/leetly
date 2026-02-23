@@ -1,11 +1,14 @@
 package com.atinroy.leetly.problem;
 
+import com.atinroy.leetly.common.PagedResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/problems")
@@ -16,24 +19,24 @@ public class ProblemController {
     private final ProblemMapper problemMapper;
 
     @GetMapping
-    public List<ProblemSummaryDto> findAll() {
-        return problemService.findAll().stream().map(problemMapper::toSummaryDto).toList();
+    public PagedResponse<ProblemSummaryDto> findAll(
+            @PageableDefault(size = 20, sort = "leetcodeId", direction = Sort.Direction.ASC) Pageable pageable) {
+        return PagedResponse.of(problemService.findAll(pageable).map(problemMapper::toSummaryDto));
     }
 
     @GetMapping("/{id}")
-    @Transactional(readOnly = true)
     public ProblemDetailDto findById(@PathVariable long id) {
-        return problemMapper.toDetailDto(problemService.findById(id));
+        return problemMapper.toDetailDto(problemService.findDetailById(id));
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ProblemSummaryDto create(@RequestBody CreateProblemRequest request) {
+    public ProblemSummaryDto create(@Valid @RequestBody CreateProblemRequest request) {
         return problemMapper.toSummaryDto(problemService.create(request));
     }
 
     @PutMapping("/{id}")
-    public ProblemSummaryDto update(@PathVariable long id, @RequestBody CreateProblemRequest request) {
+    public ProblemSummaryDto update(@PathVariable long id, @Valid @RequestBody CreateProblemRequest request) {
         return problemMapper.toSummaryDto(problemService.update(id, request));
     }
 
@@ -44,7 +47,7 @@ public class ProblemController {
     }
 
     @PatchMapping("/{id}/status")
-    public ProblemSummaryDto updateStatus(@PathVariable long id, @RequestBody UpdateStatusRequest request) {
+    public ProblemSummaryDto updateStatus(@PathVariable long id, @Valid @RequestBody UpdateStatusRequest request) {
         return problemMapper.toSummaryDto(problemService.updateStatus(id, request.status()));
     }
 
@@ -56,7 +59,7 @@ public class ProblemController {
 
     @DeleteMapping("/{id}/topics")
     @Transactional
-    public ProblemDetailDto removeTopics(@PathVariable long id, @RequestBody RemoveTopicsRequest request) {
+    public ProblemDetailDto removeTopics(@PathVariable long id, @Valid @RequestBody RemoveTopicsRequest request) {
         return problemMapper.toDetailDto(problemService.removeTopics(id, request.topicIds()));
     }
 

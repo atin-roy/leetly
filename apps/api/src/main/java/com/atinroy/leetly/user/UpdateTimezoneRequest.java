@@ -1,3 +1,5 @@
 package com.atinroy.leetly.user;
 
-public record UpdateTimezoneRequest(String timezone) {}
+import jakarta.validation.constraints.NotBlank;
+
+public record UpdateTimezoneRequest(@NotBlank String timezone) {}

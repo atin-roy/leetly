@@ -1,6 +1,9 @@
 package com.atinroy.leetly.problem;
 
+import com.atinroy.leetly.common.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,14 +19,20 @@ public class ProblemService {
     private final PatternService patternService;
 
     @Transactional(readOnly = true)
-    public List<Problem> findAll() {
-        return problemRepository.findAll();
+    public Page<Problem> findAll(Pageable pageable) {
+        return problemRepository.findAll(pageable);
     }
 
     @Transactional(readOnly = true)
     public Problem findById(long id) {
         return problemRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Problem not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Problem not found: " + id));
+    }
+
+    @Transactional(readOnly = true)
+    public Problem findDetailById(long id) {
+        return problemRepository.findDetailById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Problem not found: " + id));
     }
 
     public Problem create(CreateProblemRequest request) {

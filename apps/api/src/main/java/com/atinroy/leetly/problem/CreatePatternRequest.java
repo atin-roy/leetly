@@ -1,3 +1,5 @@
 package com.atinroy.leetly.problem;
 
-public record CreatePatternRequest(String name, String description, Long topicId, boolean namedAlgorithm) {}
+import jakarta.validation.constraints.NotBlank;
+
+public record CreatePatternRequest(@NotBlank String name, String description, Long topicId, boolean namedAlgorithm) {}

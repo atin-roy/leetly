@@ -1,5 +1,6 @@
 package com.atinroy.leetly.user;
 
+import com.atinroy.leetly.common.ResourceNotFoundException;
 import com.atinroy.leetly.problem.Language;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,7 +17,7 @@ public class UserSettingsService {
     @Transactional(readOnly = true)
     public UserSettings getByUser(User user) {
         return userSettingsRepository.findByUser(user)
-                .orElseThrow(() -> new RuntimeException("UserSettings not found for user: " + user.getId()));
+                .orElseThrow(() -> new ResourceNotFoundException("UserSettings not found for user: " + user.getId()));
     }
 
     public UserSettings updateLanguage(User user, Language language) {
