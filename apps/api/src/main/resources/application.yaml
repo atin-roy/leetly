@@ -1,0 +1,52 @@
+spring:
+  application:
+    name: leetly
+
+  # Database Connection (Uses Environment Variables)
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/leetly}
+    username: ${SPRING_DATASOURCE_USERNAME:leetly}
+    password: ${SPRING_DATASOURCE_PASSWORD:leetly}
+
+  # JPA / Hibernate Settings
+  jpa:
+    # Closes DB connection immediately after Service layer (Better Performance)
+    open-in-view: false
+    hibernate:
+      # Hibernate only checks the DB; it won't change it (Flyway's job)
+      ddl-auto: validate
+    properties:
+      hibernate:
+        # Makes SQL logs pretty and readable
+        format_sql: true
+    # Basic SQL logging toggle
+    show-sql: true
+
+  # Migration Tool (Table Creation)
+  flyway:
+    # Tells Flyway to look for scripts in db/migration on startup
+    enabled: true
+
+---
+# --- DEVELOPMENT PROFILE ---
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+logging:
+  level:
+    # Verbose SQL logging: shows full query details for debugging
+    org.hibernate.SQL: debug
+
+---
+# --- PRODUCTION PROFILE ---
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+logging:
+  level:
+    # Silent SQL logging: only logs errors/warnings to keep logs clean
+    org.hibernate.SQL: info
