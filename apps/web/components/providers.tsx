@@ -6,6 +6,7 @@ import { SessionProvider } from "next-auth/react"
 import { useState } from "react"
 import { Toaster } from "sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
+import { ThemeInitializer } from "@/components/theme-initializer"
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -23,6 +24,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <SessionProvider>
       <QueryClientProvider client={queryClient}>
+        <ThemeInitializer />
         <TooltipProvider>
           {children}
         </TooltipProvider>
