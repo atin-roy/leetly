@@ -7,6 +7,12 @@ import { z } from "zod"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import {
   Form,
   FormControl,
   FormField,
@@ -22,12 +28,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet"
 import { Textarea } from "@/components/ui/textarea"
 import { useLogAttempt, useUpdateAttempt } from "@/hooks/use-attempts"
 import type { AttemptDto } from "@/lib/types"
@@ -127,20 +127,26 @@ export function AttemptForm({ open, onOpenChange, problemId, attempt }: Props) {
         toast.success("Attempt logged")
       }
       onOpenChange(false)
-    } catch (e) {
+    } catch {
       toast.error(isEdit ? "Failed to update attempt" : "Failed to log attempt")
     }
   }
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-xl overflow-y-auto">
-        <SheetHeader>
-          <SheetTitle>{isEdit ? "Edit Attempt" : "Log Attempt"}</SheetTitle>
-        </SheetHeader>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-5xl h-[85vh] flex flex-col gap-0 p-0 overflow-hidden">
+        {/* Header */}
+        <DialogHeader className="shrink-0 px-6 py-5 border-b">
+          <DialogTitle>{isEdit ? "Edit Attempt" : "Log Attempt"}</DialogTitle>
+        </DialogHeader>
+
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="mt-4 space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="flex flex-col flex-1 min-h-0"
+          >
+            {/* Top bar: Language + Outcome + Duration + Time + Space */}
+            <div className="shrink-0 grid grid-cols-5 gap-4 px-6 py-4 border-b">
               <FormField
                 control={form.control}
                 name="language"
@@ -155,9 +161,7 @@ export function AttemptForm({ open, onOpenChange, problemId, attempt }: Props) {
                       </FormControl>
                       <SelectContent>
                         {LANGUAGES.map((l) => (
-                          <SelectItem key={l} value={l}>
-                            {l}
-                          </SelectItem>
+                          <SelectItem key={l} value={l}>{l}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -165,7 +169,6 @@ export function AttemptForm({ open, onOpenChange, problemId, attempt }: Props) {
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name="outcome"
@@ -180,9 +183,7 @@ export function AttemptForm({ open, onOpenChange, problemId, attempt }: Props) {
                       </FormControl>
                       <SelectContent>
                         {OUTCOMES.map(({ value, label }) => (
-                          <SelectItem key={value} value={value}>
-                            {label}
-                          </SelectItem>
+                          <SelectItem key={value} value={value}>{label}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -190,28 +191,6 @@ export function AttemptForm({ open, onOpenChange, problemId, attempt }: Props) {
                   </FormItem>
                 )}
               />
-            </div>
-
-            <FormField
-              control={form.control}
-              name="code"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Code</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      {...field}
-                      rows={8}
-                      placeholder="Paste your solution here..."
-                      className="font-mono text-sm"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="grid grid-cols-3 gap-4">
               <FormField
                 control={form.control}
                 name="durationMinutes"
@@ -224,9 +203,7 @@ export function AttemptForm({ open, onOpenChange, problemId, attempt }: Props) {
                         placeholder="30"
                         value={field.value ?? ""}
                         onChange={(e) =>
-                          field.onChange(
-                            e.target.value === "" ? undefined : e.target.valueAsNumber,
-                          )
+                          field.onChange(e.target.value === "" ? undefined : e.target.valueAsNumber)
                         }
                         onBlur={field.onBlur}
                         name={field.name}
@@ -262,51 +239,73 @@ export function AttemptForm({ open, onOpenChange, problemId, attempt }: Props) {
               />
             </div>
 
-            <FormField
-              control={form.control}
-              name="learned"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>What I learned</FormLabel>
-                  <FormControl>
-                    <Textarea {...field} rows={2} placeholder="Key insights..." />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+            {/* Body: Code (left) + Reflections (right) */}
+            <div className="flex-1 min-h-0 grid grid-cols-[3fr_2fr] divide-x">
+              {/* Code */}
+              <div className="flex flex-col gap-1.5 p-6">
+                <FormField
+                  control={form.control}
+                  name="code"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col flex-1 min-h-0">
+                      <FormLabel>Code</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          {...field}
+                          placeholder="Paste your solution here..."
+                          className="flex-1 resize-none font-mono text-sm"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
-            <FormField
-              control={form.control}
-              name="takeaways"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Takeaways</FormLabel>
-                  <FormControl>
-                    <Textarea {...field} rows={2} placeholder="Patterns to remember..." />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+              {/* Reflections */}
+              <div className="flex flex-col gap-4 p-6 overflow-y-auto">
+                <FormField
+                  control={form.control}
+                  name="learned"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>What I learned</FormLabel>
+                      <FormControl>
+                        <Textarea {...field} rows={4} placeholder="Key insights..." />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="takeaways"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Takeaways</FormLabel>
+                      <FormControl>
+                        <Textarea {...field} rows={4} placeholder="Patterns to remember..." />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="notes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Notes</FormLabel>
+                      <FormControl>
+                        <Textarea {...field} rows={4} placeholder="Additional notes..." />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
 
-            <FormField
-              control={form.control}
-              name="notes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Notes</FormLabel>
-                  <FormControl>
-                    <Textarea {...field} rows={2} placeholder="Additional notes..." />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-
-            <div className="flex justify-end gap-2 pt-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-              >
+            {/* Footer */}
+            <div className="shrink-0 flex justify-end gap-2 px-6 py-4 border-t">
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
               <Button
@@ -318,7 +317,7 @@ export function AttemptForm({ open, onOpenChange, problemId, attempt }: Props) {
             </div>
           </form>
         </Form>
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   )
 }

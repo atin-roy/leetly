@@ -1,6 +1,6 @@
 "use client"
 
-import { CheckCircle2, Flame, Trophy, Zap } from "lucide-react"
+import { CheckCircle2, Flame, Sun, Trophy, Zap } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 // TODO: replace with real data from useUserStats()
@@ -11,6 +11,7 @@ const DUMMY = {
   hardSolved: 15,
   currentStreak: 7,
   longestStreak: 23,
+  solvedToday: 3,
   solvedThisWeek: 8,
   solvedThisMonth: 31,
   totalMastered: 43,
@@ -35,10 +36,17 @@ export function StatsCards() {
       color: "text-orange-500",
     },
     {
-      title: "This Week",
-      value: s.solvedThisWeek,
+      title: "Solved Today",
+      value: s.solvedToday,
+      icon: Sun,
+      sub: `${s.solvedThisWeek} this week`,
+      color: "text-sky-500",
+    },
+    {
+      title: "This Month",
+      value: s.solvedThisMonth,
       icon: Zap,
-      sub: `${s.solvedThisMonth} this month`,
+      sub: `${s.solvedThisWeek} this week`,
       color: "text-blue-500",
     },
     {
@@ -51,7 +59,7 @@ export function StatsCards() {
   ]
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
       {cards.map(({ title, value, icon: Icon, sub, color }) => (
         <Card key={title}>
           <CardHeader className="flex flex-row items-center justify-between pb-2">

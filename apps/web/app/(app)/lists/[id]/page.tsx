@@ -1,5 +1,6 @@
 "use client"
 
+import { use } from "react"
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -11,9 +12,10 @@ import { useProblemList } from "@/hooks/use-lists"
 export default function ListDetailPage({
   params,
 }: {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }) {
-  const id = Number(params.id)
+  const { id: rawId } = use(params)
+  const id = Number(rawId)
   const { data: list, isLoading } = useProblemList(id)
 
   if (isLoading) {

@@ -51,7 +51,7 @@ export function ActivityBar() {
   const totalWidth = DATA.length * (BAR_W + BAR_GAP) - BAR_GAP
 
   return (
-    <div ref={scrollRef} className="overflow-x-auto">
+    <div ref={scrollRef} className="overflow-x-auto [&::-webkit-scrollbar]:hidden [scrollbar-width:none]">
       <div style={{ width: totalWidth, minWidth: "100%" }}>
         {/* Bars */}
         <div
