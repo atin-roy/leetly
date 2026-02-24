@@ -16,7 +16,9 @@ import type {
   TopicDto,
   UpdateAttemptRequest,
   UpdateNoteRequest,
+  UpdateProfileRequest,
   UpdateSettingsRequest,
+  UserProfileDto,
   UserSettingsDto,
   UserStatsDto,
 } from "./types"
@@ -259,4 +261,20 @@ export function updateUserSettings(
 
 export function getThemes(token: string | undefined): Promise<ThemeDto[]> {
   return apiFetch("/themes", token)
+}
+
+// ─── Profile ──────────────────────────────────────────────────────────────────
+
+export function getUserProfile(token: string | undefined): Promise<UserProfileDto> {
+  return apiFetch("/me/profile", token)
+}
+
+export function updateUserProfile(
+  token: string | undefined,
+  body: UpdateProfileRequest,
+): Promise<UserProfileDto> {
+  return apiFetch("/me/profile", token, {
+    method: "PUT",
+    body: JSON.stringify(body),
+  })
 }

@@ -223,6 +223,24 @@ export interface UpdateSettingsRequest {
   themeId?: number
 }
 
+export interface UserProfileDto {
+  displayName: string | null
+  bio: string | null
+  progressPublic: boolean
+  streakPublic: boolean
+  listsPublic: boolean
+  notesPublic: boolean
+}
+
+export interface UpdateProfileRequest {
+  displayName: string | null
+  bio: string | null
+  progressPublic: boolean
+  streakPublic: boolean
+  listsPublic: boolean
+  notesPublic: boolean
+}
+
 // ─── Filter Types ─────────────────────────────────────────────────────────────
 
 export interface ProblemFilters {

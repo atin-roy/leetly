@@ -14,6 +14,7 @@ public class UserService {
     private final UserSettingsRepository userSettingsRepository;
     private final UserStatsRepository userStatsRepository;
     private final ProblemListRepository problemListRepository;
+    private final UserProfileRepository userProfileRepository;
 
     @Transactional(readOnly = true)
     public User findByKeycloakId(String keycloakId) {
@@ -44,6 +45,10 @@ public class UserService {
         defaultList.setName("My Problems");
         defaultList.setDefault(true);
         problemListRepository.save(defaultList);
+
+        UserProfile profile = new UserProfile();
+        profile.setUser(user);
+        userProfileRepository.save(profile);
 
         return user;
     }
