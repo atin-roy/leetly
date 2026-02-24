@@ -71,8 +71,8 @@ export default async function Home() {
       {/* Navigation */}
       <nav className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
-          <div className="flex items-center gap-2 font-semibold">
-            <BookOpen className="h-5 w-5" />
+          <div className="flex items-center gap-2.5 font-bold text-xl tracking-tight">
+            <BookOpen className="h-6 w-6" />
             Leetly
           </div>
           <div className="flex items-center gap-2">

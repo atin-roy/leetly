@@ -35,10 +35,10 @@ export function Header() {
 
       <div className="flex flex-1 items-center justify-center">
         <Link href="/" className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
-            <BookOpen className="h-4 w-4" />
+          <div className="flex h-9 w-9 items-center justify-center rounded-md bg-primary text-primary-foreground">
+            <BookOpen className="h-5 w-5" />
           </div>
-          <span className="font-semibold text-sm">Leetly</span>
+          <span className="font-bold text-xl tracking-tight">Leetly</span>
         </Link>
       </div>
 
