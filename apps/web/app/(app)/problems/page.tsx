@@ -7,7 +7,8 @@ import { Card, CardContent } from "@/components/ui/card"
 import { ProblemFilters } from "@/components/problems/problem-filters"
 import { ProblemTable } from "@/components/problems/problem-table"
 import { AddProblemDialog } from "@/components/problems/add-problem-dialog"
-import type { ProblemFilters as Filters, ProblemSummaryDto } from "@/lib/types"
+import { NoteEditorDialog } from "@/components/notes/note-editor-dialog"
+import type { NoteDto, NoteTag, ProblemFilters as Filters, ProblemSummaryDto } from "@/lib/types"
 
 // TODO: replace with real data from useProblems()
 const DUMMY_PROBLEMS: ProblemSummaryDto[] = [
@@ -44,6 +45,9 @@ const DEFAULT_FILTERS: Filters = { page: 0, size: PAGE_SIZE }
 export default function ProblemsPage() {
   const [problems, setProblems] = useState<ProblemSummaryDto[]>(DUMMY_PROBLEMS)
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS)
+  const [problemNotes, setProblemNotes] = useState<Record<number, NoteDto>>({})
+  const [noteDialogOpen, setNoteDialogOpen] = useState(false)
+  const [selectedProblem, setSelectedProblem] = useState<ProblemSummaryDto | undefined>()
 
   function handleChange(partial: Partial<Filters>) {
     setFilters((f) => ({ ...f, ...partial }))
@@ -90,6 +94,29 @@ export default function ProblemsPage() {
     setProblems((prev) => [...prev, { ...p, id: Date.now(), status: "UNSEEN" }])
   }
 
+  function handleNoteClick(problem: ProblemSummaryDto) {
+    setSelectedProblem(problem)
+    setNoteDialogOpen(true)
+  }
+
+  function handleNoteSave({ tag, title, content }: { tag: NoteTag; title: string; content: string }) {
+    if (!selectedProblem || !title.trim() || !content.trim()) return
+    const existing = problemNotes[selectedProblem.id]
+    setProblemNotes((prev) => ({
+      ...prev,
+      [selectedProblem.id]: existing
+        ? { ...existing, tag, title, content }
+        : {
+            id: Date.now(),
+            problemId: selectedProblem.id,
+            dateTime: new Date().toISOString(),
+            tag,
+            title,
+            content,
+          },
+    }))
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -108,7 +135,7 @@ export default function ProblemsPage() {
 
       <Card>
         <CardContent className="p-0">
-          <ProblemTable problems={paged} />
+          <ProblemTable problems={paged} onNoteClick={handleNoteClick} />
         </CardContent>
       </Card>
 
@@ -139,6 +166,15 @@ export default function ProblemsPage() {
           </div>
         </div>
       )}
+
+      <NoteEditorDialog
+        open={noteDialogOpen}
+        onOpenChange={setNoteDialogOpen}
+        note={selectedProblem ? problemNotes[selectedProblem.id] : undefined}
+        initialMode={selectedProblem && problemNotes[selectedProblem.id] ? "view" : "edit"}
+        defaultTitle={selectedProblem?.title}
+        onSave={handleNoteSave}
+      />
     </div>
   )
 }

@@ -125,6 +125,7 @@ interface Props {
   onOpenChange: (open: boolean) => void
   note?: NoteDto
   initialMode?: "view" | "edit"
+  defaultTitle?: string
   onSave: (values: { tag: NoteTag; title: string; content: string }) => void
 }
 
@@ -133,13 +134,14 @@ export function NoteEditorDialog({
   onOpenChange,
   note,
   initialMode,
+  defaultTitle,
   onSave,
 }: Props) {
   const [mode, setMode] = useState<"view" | "edit">(
     note ? (initialMode ?? "view") : "edit"
   )
   const [tag, setTag] = useState<NoteTag>(note?.tag ?? "GENERAL")
-  const [title, setTitle] = useState(note?.title ?? "")
+  const [title, setTitle] = useState(note?.title ?? defaultTitle ?? "")
   const [content, setContent] = useState(note?.content ?? "")
   const [showPreview, setShowPreview] = useState(true)
 
@@ -147,11 +149,11 @@ export function NoteEditorDialog({
     if (open) {
       setMode(note ? (initialMode ?? "view") : "edit")
       setTag(note?.tag ?? "GENERAL")
-      setTitle(note?.title ?? "")
+      setTitle(note?.title ?? defaultTitle ?? "")
       setContent(note?.content ?? "")
       setShowPreview(true)
     }
-  }, [open, note, initialMode])
+  }, [open, note, initialMode, defaultTitle])
 
   function handleSave() {
     if (!title.trim() || !content.trim()) return

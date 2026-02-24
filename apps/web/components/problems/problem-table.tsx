@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { ExternalLink } from "lucide-react"
+import { ChevronRight, ExternalLink } from "lucide-react"
 import {
   Table,
   TableBody,
@@ -19,9 +19,10 @@ import type { ProblemSummaryDto } from "@/lib/types"
 interface Props {
   problems?: ProblemSummaryDto[]
   isLoading?: boolean
+  onNoteClick?: (problem: ProblemSummaryDto) => void
 }
 
-export function ProblemTable({ problems, isLoading }: Props) {
+export function ProblemTable({ problems, isLoading, onNoteClick }: Props) {
   if (isLoading) {
     return (
       <Table>
@@ -70,17 +71,16 @@ export function ProblemTable({ problems, isLoading }: Props) {
       </TableHeader>
       <TableBody>
         {problems.map((p) => (
-          <TableRow key={p.id}>
+          <TableRow
+            key={p.id}
+            className={onNoteClick ? "cursor-pointer" : undefined}
+            onClick={() => onNoteClick?.(p)}
+          >
             <TableCell className="font-mono text-sm text-muted-foreground">
               {p.leetcodeId}
             </TableCell>
             <TableCell>
-              <Link
-                href={`/problems/${p.id}`}
-                className="font-medium hover:underline"
-              >
-                {p.title}
-              </Link>
+              <span className="font-medium">{p.title}</span>
             </TableCell>
             <TableCell>
               <DifficultyBadge difficulty={p.difficulty} />
@@ -89,14 +89,24 @@ export function ProblemTable({ problems, isLoading }: Props) {
               <StatusBadge status={p.status} />
             </TableCell>
             <TableCell>
-              <a
-                href={p.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <ExternalLink className="h-4 w-4" />
-              </a>
+              <div className="flex items-center gap-2">
+                <Link
+                  href={`/problems/${p.id}`}
+                  className="text-muted-foreground hover:text-foreground"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Link>
+                <a
+                  href={p.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-muted-foreground hover:text-foreground"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <ExternalLink className="h-4 w-4" />
+                </a>
+              </div>
             </TableCell>
           </TableRow>
         ))}
