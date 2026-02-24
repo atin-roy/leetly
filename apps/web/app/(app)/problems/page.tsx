@@ -135,7 +135,11 @@ export default function ProblemsPage() {
 
       <Card>
         <CardContent className="p-0">
-          <ProblemTable problems={paged} onNoteClick={handleNoteClick} />
+          <ProblemTable
+            problems={paged}
+            onNoteClick={handleNoteClick}
+            notedProblemIds={new Set(Object.keys(problemNotes).map(Number))}
+          />
         </CardContent>
       </Card>
 

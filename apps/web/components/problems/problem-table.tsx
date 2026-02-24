@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { ChevronRight, ExternalLink } from "lucide-react"
+import { ExternalLink, StickyNote } from "lucide-react"
 import {
   Table,
   TableBody,
@@ -10,7 +10,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { DifficultyBadge } from "./difficulty-badge"
 import { StatusBadge } from "./status-badge"
@@ -20,9 +19,10 @@ interface Props {
   problems?: ProblemSummaryDto[]
   isLoading?: boolean
   onNoteClick?: (problem: ProblemSummaryDto) => void
+  notedProblemIds?: Set<number>
 }
 
-export function ProblemTable({ problems, isLoading, onNoteClick }: Props) {
+export function ProblemTable({ problems, isLoading, onNoteClick, notedProblemIds }: Props) {
   if (isLoading) {
     return (
       <Table>
@@ -30,15 +30,16 @@ export function ProblemTable({ problems, isLoading, onNoteClick }: Props) {
           <TableRow>
             <TableHead className="w-16">#</TableHead>
             <TableHead>Title</TableHead>
-            <TableHead className="w-28">Difficulty</TableHead>
-            <TableHead className="w-40">Status</TableHead>
-            <TableHead className="w-16" />
+            <TableHead className="w-24 text-center">LeetCode</TableHead>
+            <TableHead className="w-20 text-center">Note</TableHead>
+            <TableHead className="w-28 text-center">Difficulty</TableHead>
+            <TableHead className="w-40 text-center">Status</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {Array.from({ length: 10 }).map((_, i) => (
             <TableRow key={i}>
-              {Array.from({ length: 5 }).map((_, j) => (
+              {Array.from({ length: 6 }).map((_, j) => (
                 <TableCell key={j}>
                   <Skeleton className="h-4 w-full" />
                 </TableCell>
@@ -64,52 +65,57 @@ export function ProblemTable({ problems, isLoading, onNoteClick }: Props) {
         <TableRow>
           <TableHead className="w-16">#</TableHead>
           <TableHead>Title</TableHead>
-          <TableHead className="w-28">Difficulty</TableHead>
-          <TableHead className="w-40">Status</TableHead>
-          <TableHead className="w-16" />
+          <TableHead className="w-24 text-center">LeetCode</TableHead>
+          <TableHead className="w-20 text-center">Note</TableHead>
+          <TableHead className="w-28 text-center">Difficulty</TableHead>
+          <TableHead className="w-40 text-center">Status</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
-        {problems.map((p) => (
-          <TableRow
-            key={p.id}
-            className={onNoteClick ? "cursor-pointer" : undefined}
-            onClick={() => onNoteClick?.(p)}
-          >
+        {problems.map((p) => {
+          const hasNote = notedProblemIds?.has(p.id) ?? false
+          return (
+          <TableRow key={p.id}>
             <TableCell className="font-mono text-sm text-muted-foreground">
               {p.leetcodeId}
             </TableCell>
             <TableCell>
-              <span className="font-medium">{p.title}</span>
+              <Link
+                href={`/problems/${p.id}`}
+                className="font-medium hover:underline"
+              >
+                {p.title}
+              </Link>
             </TableCell>
-            <TableCell>
+            <TableCell className="text-center">
+              <a
+                href={p.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex text-muted-foreground hover:text-foreground"
+              >
+                <ExternalLink className="h-4 w-4" />
+              </a>
+            </TableCell>
+            <TableCell className="text-center">
+              <button
+                onClick={() => onNoteClick?.(p)}
+                className={hasNote ? "inline-flex text-primary hover:text-primary/70" : "inline-flex text-muted-foreground hover:text-foreground disabled:opacity-30"}
+                disabled={!onNoteClick}
+                title={hasNote ? "Edit note" : "Add note"}
+              >
+                <StickyNote className={`h-4 w-4 ${hasNote ? "fill-primary/20" : ""}`} />
+              </button>
+            </TableCell>
+            <TableCell className="text-center">
               <DifficultyBadge difficulty={p.difficulty} />
             </TableCell>
-            <TableCell>
+            <TableCell className="text-center">
               <StatusBadge status={p.status} />
             </TableCell>
-            <TableCell>
-              <div className="flex items-center gap-2">
-                <Link
-                  href={`/problems/${p.id}`}
-                  className="text-muted-foreground hover:text-foreground"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Link>
-                <a
-                  href={p.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-muted-foreground hover:text-foreground"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <ExternalLink className="h-4 w-4" />
-                </a>
-              </div>
-            </TableCell>
           </TableRow>
-        ))}
+          )
+        })}
       </TableBody>
     </Table>
   )
