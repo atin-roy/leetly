@@ -1,6 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ActivityCalendar } from "@/components/stats/activity-calendar"
-import { ProgressCard, StatsCards } from "@/components/stats/stats-cards"
+import { StatsCards } from "@/components/stats/stats-cards"
+import { DifficultyBreakdown } from "@/components/stats/difficulty-breakdown"
+import { ActivityBar } from "@/components/stats/activity-calendar"
+import { MistakesChart } from "@/components/stats/mistakes-chart"
+import { PatternBreakdown } from "@/components/stats/pattern-breakdown"
 
 export default function DashboardPage() {
   return (
@@ -9,19 +12,22 @@ export default function DashboardPage() {
 
       <StatsCards />
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">
-              Activity (last 6 months)
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ActivityCalendar />
-          </CardContent>
-        </Card>
+      <DifficultyBreakdown />
 
-        <ProgressCard />
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm font-medium">
+            Activity (last 90 days)
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ActivityBar />
+        </CardContent>
+      </Card>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <MistakesChart />
+        <PatternBreakdown />
       </div>
     </div>
   )

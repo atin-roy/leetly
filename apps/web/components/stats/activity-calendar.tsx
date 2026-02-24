@@ -1,79 +1,115 @@
 "use client"
 
-import { addDays, format, startOfWeek, subDays } from "date-fns"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { Skeleton } from "@/components/ui/skeleton"
-import { useDailyStats } from "@/hooks/use-stats"
+import { useEffect, useRef } from "react"
+import { format, subDays } from "date-fns"
+import { cn } from "@/lib/utils"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
-const WEEKS = 26
+const DAYS = 90
+const BAR_W = 10
+const BAR_GAP = 3
+const CHART_H = 120
 
-function getIntensity(count: number): string {
-  if (count === 0) return "bg-muted"
-  if (count === 1) return "bg-primary/30"
-  if (count <= 3) return "bg-primary/60"
-  return "bg-primary"
+// TODO: replace with real data from useDailyStats(DAYS)
+const SEED = [
+  0, 2, 0, 1, 3, 0, 0, 2, 1, 0, 4, 2, 0, 3, 1, 0, 0, 2, 5, 1, 0, 3, 0, 2, 1,
+  0, 0, 4, 2, 1, 8, 0, 2, 1, 0, 3, 0, 1, 2, 0, 0, 3, 1, 2, 0, 0, 1, 3, 0, 2,
+  1, 0, 4, 0, 1, 2, 3, 0, 0, 2, 1, 0, 3, 2, 0, 1, 0, 2, 0, 1, 3, 1, 0, 2, 0,
+  4, 1, 0, 2, 3, 0, 1, 2, 0, 0, 3, 1, 2, 0, 0,
+]
+
+function buildData() {
+  const today = new Date()
+  return Array.from({ length: DAYS }, (_, i) => {
+    const date = subDays(today, DAYS - 1 - i)
+    return {
+      date: format(date, "yyyy-MM-dd"),
+      label: format(date, "MMM d"),
+      monthLabel: format(date, "MMM"),
+      dayOfMonth: date.getDate(),
+      count: SEED[i] ?? 0,
+    }
+  })
 }
 
-export function ActivityCalendar() {
-  const { data: daily, isLoading } = useDailyStats(WEEKS * 7)
+const DATA = buildData()
 
-  if (isLoading) {
-    return (
-      <div className="flex gap-1">
-        {Array.from({ length: WEEKS }).map((_, i) => (
-          <div key={i} className="flex flex-col gap-1">
-            {Array.from({ length: 7 }).map((_, j) => (
-              <Skeleton key={j} className="h-3 w-3 rounded-sm" />
-            ))}
-          </div>
-        ))}
-      </div>
-    )
-  }
+export function ActivityBar() {
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const maxCount = Math.max(...DATA.map((d) => d.count), 1)
 
-  const statsMap = new Map(daily?.map((d) => [d.date, d]) ?? [])
-
-  const today = new Date()
-  const startDate = startOfWeek(subDays(today, WEEKS * 7 - 1), { weekStartsOn: 0 })
-
-  const weeks: Array<Array<{ date: Date; count: number }>> = []
-  let current = startDate
-
-  for (let w = 0; w < WEEKS; w++) {
-    const week: Array<{ date: Date; count: number }> = []
-    for (let d = 0; d < 7; d++) {
-      const dateStr = format(current, "yyyy-MM-dd")
-      const stat = statsMap.get(dateStr)
-      week.push({ date: current, count: stat?.solved ?? 0 })
-      current = addDays(current, 1)
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollLeft = scrollRef.current.scrollWidth
     }
-    weeks.push(week)
-  }
+  }, [])
+
+  const totalWidth = DATA.length * (BAR_W + BAR_GAP) - BAR_GAP
 
   return (
-    <TooltipProvider delayDuration={0}>
-      <div className="overflow-x-auto">
-        <div className="flex gap-1">
-          {weeks.map((week, wi) => (
-            <div key={wi} className="flex flex-col gap-1">
-              {week.map(({ date, count }) => (
-                <Tooltip key={format(date, "yyyy-MM-dd")}>
-                  <TooltipTrigger asChild>
+    <div ref={scrollRef} className="overflow-x-auto">
+      <div style={{ width: totalWidth, minWidth: "100%" }}>
+        {/* Bars */}
+        <div
+          className="flex items-end gap-[3px]"
+          style={{ height: CHART_H }}
+        >
+          {DATA.map((d) => {
+            const barH =
+              d.count === 0 ? 2 : Math.max((d.count / maxCount) * CHART_H, 4)
+            return (
+              <Tooltip key={d.date}>
+                <TooltipTrigger asChild>
+                  <div
+                    className="flex-none cursor-default"
+                    style={{
+                      width: BAR_W,
+                      height: "100%",
+                      display: "flex",
+                      alignItems: "flex-end",
+                    }}
+                  >
                     <div
-                      className={`h-3 w-3 rounded-sm ${getIntensity(count)} cursor-default`}
+                      className={cn(
+                        "w-full rounded-[2px] transition-opacity hover:opacity-80",
+                        d.count === 0
+                          ? "bg-muted"
+                          : d.count <= 2
+                            ? "bg-primary/40"
+                            : d.count <= 5
+                              ? "bg-primary/70"
+                              : "bg-primary"
+                      )}
+                      style={{ height: barH }}
                     />
-                  </TooltipTrigger>
-                  <TooltipContent side="top">
-                    <p className="text-xs">
-                      {format(date, "MMM d")} – {count} solved
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              ))}
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="text-xs">
+                  <p className="font-medium">{d.label}</p>
+                  <p className="text-muted-foreground">{d.count} solved</p>
+                </TooltipContent>
+              </Tooltip>
+            )
+          })}
+        </div>
+
+        {/* Month labels */}
+        <div className="mt-1.5 flex gap-[3px]">
+          {DATA.map((d) => (
+            <div
+              key={d.date}
+              className="flex-none text-[10px] leading-none text-muted-foreground"
+              style={{ width: BAR_W }}
+            >
+              {d.dayOfMonth === 1 ? d.monthLabel : ""}
             </div>
           ))}
         </div>
       </div>
-    </TooltipProvider>
+    </div>
   )
 }

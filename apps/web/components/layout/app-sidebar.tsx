@@ -26,7 +26,7 @@ export function AppSidebar() {
   return (
     <aside className="flex h-screen w-56 flex-col border-r bg-background">
       <div className="flex h-14 items-center border-b px-4">
-        <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
+        <Link href="/" className="flex items-center gap-2 font-semibold">
           <BookOpen className="h-5 w-5 text-primary" />
           <span>Leetly</span>
         </Link>
