@@ -39,7 +39,7 @@ const DUMMY_PROBLEMS: ProblemSummaryDto[] = [
   { id: 25, leetcodeId: 295, title: "Find Median from Data Stream", url: "https://leetcode.com/problems/find-median-from-data-stream/", difficulty: "HARD", status: "ATTEMPTED" },
 ]
 
-const PAGE_SIZE = 25
+const PAGE_SIZE = 20
 const DEFAULT_FILTERS: Filters = { page: 0, size: PAGE_SIZE }
 
 export default function ProblemsPage() {
@@ -90,8 +90,19 @@ export default function ProblemsPage() {
   const totalPages = Math.ceil(sorted.length / PAGE_SIZE)
   const paged = sorted.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
 
-  function handleAdd(p: Omit<ProblemSummaryDto, "id" | "status">) {
-    setProblems((prev) => [...prev, { ...p, id: Date.now(), status: "UNSEEN" }])
+  const existingProblems = new Map(problems.map((p) => [p.leetcodeId, p.id]))
+
+  function handleAdd(p: Omit<ProblemSummaryDto, "id" | "status">): ProblemSummaryDto {
+    if (existingProblems.has(p.leetcodeId)) {
+      throw new Error(`Problem #${p.leetcodeId} is already in your list`)
+    }
+    const created: ProblemSummaryDto = { ...p, id: Date.now(), status: "UNSEEN" }
+    setProblems((prev) => [created, ...prev])
+    return created
+  }
+
+  function handleDelete(problem: ProblemSummaryDto) {
+    setProblems((prev) => prev.filter((p) => p.id !== problem.id))
   }
 
   function handleNoteClick(problem: ProblemSummaryDto) {
@@ -123,7 +134,7 @@ export default function ProblemsPage() {
         <h1 className="text-2xl font-semibold tracking-tight">Problems</h1>
         <div className="flex items-center gap-3">
           <p className="text-sm text-muted-foreground">{sorted.length} problems</p>
-          <AddProblemDialog onAdd={handleAdd} />
+          <AddProblemDialog onAdd={handleAdd} existingProblems={existingProblems} />
         </div>
       </div>
 
@@ -133,11 +144,13 @@ export default function ProblemsPage() {
         onReset={handleReset}
       />
 
-      <Card>
+      <Card className="py-0">
         <CardContent className="p-0">
           <ProblemTable
             problems={paged}
+            pageSize={PAGE_SIZE}
             onNoteClick={handleNoteClick}
+            onDelete={handleDelete}
             notedProblemIds={new Set(Object.keys(problemNotes).map(Number))}
           />
         </CardContent>
