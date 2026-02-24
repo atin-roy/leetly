@@ -53,6 +53,11 @@ export default function ProblemsPage() {
     setFilters(DEFAULT_FILTERS)
   }
 
+  const DIFFICULTY_ORDER: Record<string, number> = { EASY: 0, MEDIUM: 1, HARD: 2 }
+  const STATUS_ORDER: Record<string, number> = {
+    UNSEEN: 0, ATTEMPTED: 1, SOLVED_WITH_HELP: 2, SOLVED: 3, MASTERED: 4,
+  }
+
   // TODO: replace with server-side pagination/filtering from useProblems()
   const filtered = problems.filter((p) => {
     if (filters.difficulty && p.difficulty !== filters.difficulty) return false
@@ -61,9 +66,25 @@ export default function ProblemsPage() {
     return true
   })
 
+  const sorted = filters.sort
+    ? [...filtered].sort((a, b) => {
+        switch (filters.sort) {
+          case "id_asc":  return a.leetcodeId - b.leetcodeId
+          case "id_desc": return b.leetcodeId - a.leetcodeId
+          case "name_asc":  return a.title.localeCompare(b.title)
+          case "name_desc": return b.title.localeCompare(a.title)
+          case "difficulty_asc":  return DIFFICULTY_ORDER[a.difficulty] - DIFFICULTY_ORDER[b.difficulty]
+          case "difficulty_desc": return DIFFICULTY_ORDER[b.difficulty] - DIFFICULTY_ORDER[a.difficulty]
+          case "status_asc":  return STATUS_ORDER[a.status] - STATUS_ORDER[b.status]
+          case "status_desc": return STATUS_ORDER[b.status] - STATUS_ORDER[a.status]
+          default: return 0
+        }
+      })
+    : filtered
+
   const page = filters.page ?? 0
-  const totalPages = Math.ceil(filtered.length / PAGE_SIZE)
-  const paged = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
+  const totalPages = Math.ceil(sorted.length / PAGE_SIZE)
+  const paged = sorted.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
 
   function handleAdd(p: Omit<ProblemSummaryDto, "id" | "status">) {
     setProblems((prev) => [...prev, { ...p, id: Date.now(), status: "UNSEEN" }])
@@ -74,7 +95,7 @@ export default function ProblemsPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold tracking-tight">Problems</h1>
         <div className="flex items-center gap-3">
-          <p className="text-sm text-muted-foreground">{filtered.length} problems</p>
+          <p className="text-sm text-muted-foreground">{sorted.length} problems</p>
           <AddProblemDialog onAdd={handleAdd} />
         </div>
       </div>

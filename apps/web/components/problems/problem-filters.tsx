@@ -33,6 +33,17 @@ const STATUSES: { value: ProblemStatus; label: string }[] = [
   { value: "MASTERED", label: "Mastered" },
 ]
 
+const SORT_OPTIONS: { value: string; label: string }[] = [
+  { value: "id_asc", label: "ID ↑" },
+  { value: "id_desc", label: "ID ↓" },
+  { value: "name_asc", label: "Name A → Z" },
+  { value: "name_desc", label: "Name Z → A" },
+  { value: "difficulty_asc", label: "Difficulty: Easy first" },
+  { value: "difficulty_desc", label: "Difficulty: Hard first" },
+  { value: "status_asc", label: "Status: Unseen first" },
+  { value: "status_desc", label: "Status: Mastered first" },
+]
+
 export function ProblemFilters({ filters, onChange, onReset }: Props) {
   const { data: topics } = useTopics()
   const { data: patterns } = usePatterns()
@@ -42,7 +53,8 @@ export function ProblemFilters({ filters, onChange, onReset }: Props) {
     filters.status ||
     filters.topicId ||
     filters.patternId ||
-    filters.search
+    filters.search ||
+    filters.sort
 
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -62,11 +74,11 @@ export function ProblemFilters({ filters, onChange, onReset }: Props) {
           onChange({ difficulty: v === "all" ? undefined : (v as Difficulty), page: 0 })
         }
       >
-        <SelectTrigger className="w-32">
+        <SelectTrigger className="w-36">
           <SelectValue placeholder="Difficulty" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">All</SelectItem>
+          <SelectItem value="all">All Difficulties</SelectItem>
           {DIFFICULTIES.map(({ value, label }) => (
             <SelectItem key={value} value={value}>
               {label}
@@ -85,7 +97,7 @@ export function ProblemFilters({ filters, onChange, onReset }: Props) {
           <SelectValue placeholder="Status" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">All</SelectItem>
+          <SelectItem value="all">All Statuses</SelectItem>
           {STATUSES.map(({ value, label }) => (
             <SelectItem key={value} value={value}>
               {label}
@@ -127,6 +139,25 @@ export function ProblemFilters({ filters, onChange, onReset }: Props) {
           {patterns?.map((p) => (
             <SelectItem key={p.id} value={String(p.id)}>
               {p.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      <Select
+        value={filters.sort ?? "none"}
+        onValueChange={(v) =>
+          onChange({ sort: v === "none" ? undefined : v, page: 0 })
+        }
+      >
+        <SelectTrigger className="w-44">
+          <SelectValue placeholder="Sort by" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="none">Sort by Default</SelectItem>
+          {SORT_OPTIONS.map(({ value, label }) => (
+            <SelectItem key={value} value={value}>
+              {label}
             </SelectItem>
           ))}
         </SelectContent>

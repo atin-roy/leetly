@@ -2,10 +2,11 @@
 
 import { useState } from "react"
 import { format } from "date-fns"
-import { ChevronLeft, ChevronRight, Pencil, Plus, Trash2 } from "lucide-react"
+import { ChevronLeft, ChevronRight, Pencil, Plus, Search, Trash2 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
 import {
   Select,
   SelectContent,
@@ -251,7 +252,7 @@ function NoteCard({
 }) {
   return (
     <Card
-      className="cursor-pointer transition-shadow hover:shadow-md"
+      className="group cursor-pointer transition-shadow hover:shadow-md"
       onClick={onClick}
     >
       <CardHeader className="pb-2">
@@ -268,7 +269,7 @@ function NoteCard({
             </div>
           </div>
           <div
-            className="flex shrink-0 items-center gap-1"
+            className="flex shrink-0 items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
             onClick={(e) => e.stopPropagation()}
           >
             <Button variant="ghost" size="sm" onClick={onEdit}>
@@ -325,6 +326,7 @@ export default function NotesPage() {
   // TODO: replace with server-side filtering from useNotes()
   const filtered = notes.filter((n) => {
     if (filters.tag && n.tag !== filters.tag) return false
+    if (filters.search && !n.title.toLowerCase().includes(filters.search.toLowerCase())) return false
     return true
   })
 
@@ -371,6 +373,17 @@ export default function NotesPage() {
       </div>
 
       <div className="flex items-center gap-2">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+          <Input
+            placeholder="Search notes..."
+            value={filters.search ?? ""}
+            onChange={(e) =>
+              handleChange({ search: e.target.value || undefined, page: 0 })
+            }
+            className="pl-8"
+          />
+        </div>
         <Select
           value={filters.tag ?? "all"}
           onValueChange={(v) =>
