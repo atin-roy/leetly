@@ -8,47 +8,51 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { Skeleton } from "@/components/ui/skeleton"
+import { useDailyStats } from "@/hooks/use-stats"
 
 const DAYS = 90
 const BAR_W = 10
 const BAR_GAP = 3
 const CHART_H = 120
 
-// TODO: replace with real data from useDailyStats(DAYS)
-const SEED = [
-  0, 2, 0, 1, 3, 0, 0, 2, 1, 0, 4, 2, 0, 3, 1, 0, 0, 2, 5, 1, 0, 3, 0, 2, 1,
-  0, 0, 4, 2, 1, 8, 0, 2, 1, 0, 3, 0, 1, 2, 0, 0, 3, 1, 2, 0, 0, 1, 3, 0, 2,
-  1, 0, 4, 0, 1, 2, 3, 0, 0, 2, 1, 0, 3, 2, 0, 1, 0, 2, 0, 1, 3, 1, 0, 2, 0,
-  4, 1, 0, 2, 3, 0, 1, 2, 0, 0, 3, 1, 2, 0, 0,
-]
-
-function buildData() {
-  const today = new Date()
-  return Array.from({ length: DAYS }, (_, i) => {
-    const date = subDays(today, DAYS - 1 - i)
-    return {
-      date: format(date, "yyyy-MM-dd"),
-      label: format(date, "MMM d"),
-      monthLabel: format(date, "MMM"),
-      dayOfMonth: date.getDate(),
-      count: SEED[i] ?? 0,
-    }
-  })
-}
-
-const DATA = buildData()
-
 export function ActivityBar() {
   const scrollRef = useRef<HTMLDivElement>(null)
-  const maxCount = Math.max(...DATA.map((d) => d.count), 1)
+  const { data: dailyStats, isLoading } = useDailyStats(DAYS)
 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollLeft = scrollRef.current.scrollWidth
     }
-  }, [])
+  }, [dailyStats])
 
-  const totalWidth = DATA.length * (BAR_W + BAR_GAP) - BAR_GAP
+  if (isLoading) {
+    return <Skeleton className="h-[140px] w-full" />
+  }
+
+  // Build a date map for quick lookups
+  const countsMap = new Map<string, number>()
+  if (dailyStats) {
+    for (const stat of dailyStats) {
+      countsMap.set(stat.date, stat.solved)
+    }
+  }
+
+  const today = new Date()
+  const data = Array.from({ length: DAYS }, (_, i) => {
+    const date = subDays(today, DAYS - 1 - i)
+    const dateStr = format(date, "yyyy-MM-dd")
+    return {
+      date: dateStr,
+      label: format(date, "MMM d"),
+      monthLabel: format(date, "MMM"),
+      dayOfMonth: date.getDate(),
+      count: countsMap.get(dateStr) ?? 0,
+    }
+  })
+
+  const maxCount = Math.max(...data.map((d) => d.count), 1)
+  const totalWidth = data.length * (BAR_W + BAR_GAP) - BAR_GAP
 
   return (
     <div ref={scrollRef} className="overflow-x-auto [&::-webkit-scrollbar]:hidden [scrollbar-width:none]">
@@ -58,7 +62,7 @@ export function ActivityBar() {
           className="flex items-end gap-[3px]"
           style={{ height: CHART_H }}
         >
-          {DATA.map((d) => {
+          {data.map((d) => {
             const barH =
               d.count === 0 ? 2 : Math.max((d.count / maxCount) * CHART_H, 4)
             return (
@@ -99,7 +103,7 @@ export function ActivityBar() {
 
         {/* Month labels */}
         <div className="mt-1.5 flex gap-[3px]">
-          {DATA.map((d) => (
+          {data.map((d) => (
             <div
               key={d.date}
               className="flex-none text-[10px] leading-none text-muted-foreground"

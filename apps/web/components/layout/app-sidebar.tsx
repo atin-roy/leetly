@@ -2,12 +2,14 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { signOut } from "next-auth/react"
 import {
   BarChart3,
   ChevronLeft,
   ChevronRight,
   Code2,
   List,
+  LogOut,
   Settings,
   StickyNote,
   User,
@@ -61,7 +63,18 @@ export function AppSidebar() {
         </ul>
       </nav>
 
-      <div className="border-t p-3">
+      <div className="border-t p-3 space-y-1">
+        <button
+          onClick={() => signOut({ callbackUrl: "/" })}
+          title={collapsed ? "Sign out" : undefined}
+          className={cn(
+            "flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive",
+            collapsed && "justify-center px-2",
+          )}
+        >
+          <LogOut className="h-4 w-4 shrink-0" />
+          {!collapsed && <span>Sign Out</span>}
+        </button>
         <button
           onClick={toggle}
           title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
@@ -83,3 +96,4 @@ export function AppSidebar() {
     </aside>
   )
 }
+

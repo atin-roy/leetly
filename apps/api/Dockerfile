@@ -24,4 +24,5 @@ EXPOSE 8080
 ENTRYPOINT ["java", \
   "-XX:MaxRAMPercentage=75.0", \
   "-Djava.security.egd=file:/dev/./urandom", \
+  "-Dspring.profiles.active=prod", \
   "-jar", "app.jar"]

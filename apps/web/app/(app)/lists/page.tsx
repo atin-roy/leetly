@@ -28,60 +28,12 @@ import { ListCard } from "@/components/lists/list-card"
 import { useCreateList, useProblemLists } from "@/hooks/use-lists"
 import type { ProblemListDto } from "@/lib/types"
 
-// TODO: remove dummy data once backend is connected
-const DUMMY_LISTS: ProblemListDto[] = [
-  {
-    id: 1,
-    name: "All Problems",
-    isDefault: true,
-    problems: Array.from({ length: 47 }, (_, i) => ({
-      id: i + 1,
-      leetcodeId: i + 1,
-      title: `Problem ${i + 1}`,
-      url: `https://leetcode.com/problems/problem-${i + 1}`,
-      difficulty: (["EASY", "MEDIUM", "HARD"] as const)[i % 3],
-      status: (["SOLVED", "ATTEMPTED", "UNSEEN"] as const)[i % 3],
-    })),
-  },
-  {
-    id: 2,
-    name: "Blind 75",
-    isDefault: false,
-    problems: Array.from({ length: 75 }, (_, i) => ({
-      id: i + 100,
-      leetcodeId: i + 100,
-      title: `Problem ${i + 100}`,
-      url: `https://leetcode.com/problems/problem-${i + 100}`,
-      difficulty: (["EASY", "MEDIUM", "HARD"] as const)[i % 3],
-      status: "UNSEEN" as const,
-    })),
-  },
-  {
-    id: 3,
-    name: "Graph Practice",
-    isDefault: false,
-    problems: Array.from({ length: 12 }, (_, i) => ({
-      id: i + 200,
-      leetcodeId: i + 200,
-      title: `Graph Problem ${i + 1}`,
-      url: `https://leetcode.com/problems/graph-${i + 1}`,
-      difficulty: (["MEDIUM", "HARD"] as const)[i % 2],
-      status: (["SOLVED_WITH_HELP", "ATTEMPTED"] as const)[i % 2],
-    })),
-  },
-  {
-    id: 4,
-    name: "Dynamic Programming",
-    isDefault: false,
-    problems: [],
-  },
-]
+
 
 const schema = z.object({ name: z.string().min(1, "Name is required") })
 
 export default function ListsPage() {
-  const { data: listsData, isLoading } = useProblemLists()
-  const lists = listsData ?? DUMMY_LISTS
+  const { data: lists, isLoading } = useProblemLists()
   const createMutation = useCreateList()
   const [open, setOpen] = useState(false)
 

@@ -2,11 +2,12 @@
 
 import { useEffect } from "react"
 import { useSession } from "next-auth/react"
+import { signOut } from "next-auth/react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { toast } from "sonner"
-import { User } from "lucide-react"
+import { LogOut, User } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
@@ -34,7 +35,7 @@ import {
 } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
-import { useSettings, useUpdateSettings } from "@/hooks/use-settings"
+import { useSettings, useUpdateLanguage, useUpdateDailyGoal, useUpdateTimezone } from "@/hooks/use-settings"
 import { useTheme } from "@/hooks/use-theme"
 import { THEMES } from "@/lib/themes"
 import { cn } from "@/lib/utils"
@@ -158,7 +159,10 @@ function ProfileSection() {
 
 function PreferencesForm() {
   const { data: settings, isLoading } = useSettings()
-  const updateMutation = useUpdateSettings()
+  const languageMutation = useUpdateLanguage()
+  const goalMutation = useUpdateDailyGoal()
+  const timezoneMutation = useUpdateTimezone()
+  const isSaving = languageMutation.isPending || goalMutation.isPending || timezoneMutation.isPending
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -181,11 +185,17 @@ function PreferencesForm() {
 
   async function onSubmit(values: FormValues) {
     try {
-      await updateMutation.mutateAsync({
-        preferredLanguage: values.preferredLanguage,
-        dailyGoal: values.dailyGoal,
-        timezone: values.timezone,
-      })
+      const promises: Promise<unknown>[] = []
+      if (values.preferredLanguage !== settings?.preferredLanguage) {
+        promises.push(languageMutation.mutateAsync(values.preferredLanguage))
+      }
+      if (values.dailyGoal !== settings?.dailyGoal) {
+        promises.push(goalMutation.mutateAsync(values.dailyGoal))
+      }
+      if (values.timezone !== settings?.timezone) {
+        promises.push(timezoneMutation.mutateAsync(values.timezone))
+      }
+      await Promise.all(promises)
       toast.success("Settings saved")
     } catch {
       toast.error("Failed to save settings")
@@ -283,8 +293,8 @@ function PreferencesForm() {
             <Separator />
 
             <div className="flex justify-end">
-              <Button type="submit" disabled={updateMutation.isPending}>
-                {updateMutation.isPending ? "Saving…" : "Save Changes"}
+              <Button type="submit" disabled={isSaving}>
+                {isSaving ? "Saving…" : "Save Changes"}
               </Button>
             </div>
           </form>
@@ -325,7 +335,7 @@ function ThemeSwatch({ t, active }: { t: (typeof THEMES)[number]; active: boolea
 }
 
 function AppearanceCard() {
-  const { theme, setTheme } = useTheme()
+  const { themeId, setTheme } = useTheme()
 
   return (
     <Card>
@@ -342,7 +352,7 @@ function AppearanceCard() {
               onClick={() => setTheme(t.id)}
               className="flex flex-col items-center gap-2 rounded-xl p-1.5 transition-all hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >
-              <ThemeSwatch t={t} active={theme === t.id} />
+              <ThemeSwatch t={t} active={themeId === t.id} />
               <div className="flex flex-col items-center gap-0.5">
                 <span className="text-xs font-medium">{t.name}</span>
                 <span className="text-[10px] text-muted-foreground">{t.description}</span>
@@ -364,6 +374,18 @@ export default function SettingsPage() {
       <ProfileSection />
       <AppearanceCard />
       <PreferencesForm />
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Account</CardTitle>
+          <CardDescription>Sign out of your Leetly account.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button variant="destructive" onClick={() => signOut({ callbackUrl: "/" })}>
+            <LogOut className="mr-2 h-4 w-4" />
+            Sign Out
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   )
 }

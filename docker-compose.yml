@@ -1,0 +1,36 @@
+services:
+  api:
+    image: ghcr.io/atin-roy/leetly-api:latest
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: ${KEYCLOAK_ISSUER_URI}
+      APP_KEYCLOAK_CLIENT_ID: ${KEYCLOAK_API_CLIENT_ID}
+    networks:
+      - leetly
+
+  web:
+    image: ghcr.io/atin-roy/leetly-web:latest
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+      AUTH_SECRET: ${AUTH_SECRET}
+      AUTH_URL: ${AUTH_URL}
+      AUTH_KEYCLOAK_ID: ${KEYCLOAK_WEB_CLIENT_ID}
+      AUTH_KEYCLOAK_SECRET: ${KEYCLOAK_CLIENT_SECRET}
+      AUTH_KEYCLOAK_ISSUER: ${KEYCLOAK_ISSUER_URI}
+    depends_on:
+      - api
+    networks:
+      - leetly
+
+networks:
+  leetly:
+    driver: bridge

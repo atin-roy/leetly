@@ -3,6 +3,7 @@ import type {
   CreateListRequest,
   CreateNoteRequest,
   DailyStatDto,
+  Language,
   LogAttemptRequest,
   NoteDto,
   NoteFilters,
@@ -17,7 +18,6 @@ import type {
   UpdateAttemptRequest,
   UpdateNoteRequest,
   UpdateProfileRequest,
-  UpdateSettingsRequest,
   UserProfileDto,
   UserSettingsDto,
   UserStatsDto,
@@ -62,24 +62,24 @@ export function getProblems(
   if (filters?.size != null) params.set("size", String(filters.size))
   if (filters?.sort) params.set("sort", filters.sort)
   const qs = params.toString()
-  return apiFetch(`/problems${qs ? `?${qs}` : ""}`, token)
+  return apiFetch(`/api/problems${qs ? `?${qs}` : ""}`, token)
 }
 
 export function getProblem(
   token: string | undefined,
   id: number,
 ): Promise<ProblemDetailDto> {
-  return apiFetch(`/problems/${id}`, token)
+  return apiFetch(`/api/problems/${id}`, token)
 }
 
 // ─── Topics & Patterns ────────────────────────────────────────────────────────
 
 export function getTopics(token: string | undefined): Promise<TopicDto[]> {
-  return apiFetch("/topics", token)
+  return apiFetch("/api/topics", token)
 }
 
 export function getPatterns(token: string | undefined): Promise<PatternDto[]> {
-  return apiFetch("/patterns", token)
+  return apiFetch("/api/patterns", token)
 }
 
 // ─── Attempts ────────────────────────────────────────────────────────────────
@@ -88,7 +88,7 @@ export function getAttempts(
   token: string | undefined,
   problemId: number,
 ): Promise<AttemptDto[]> {
-  return apiFetch(`/problems/${problemId}/attempts`, token)
+  return apiFetch(`/api/problems/${problemId}/attempts`, token)
 }
 
 export function logAttempt(
@@ -96,7 +96,7 @@ export function logAttempt(
   problemId: number,
   body: LogAttemptRequest,
 ): Promise<AttemptDto> {
-  return apiFetch(`/problems/${problemId}/attempts`, token, {
+  return apiFetch(`/api/problems/${problemId}/attempts`, token, {
     method: "POST",
     body: JSON.stringify(body),
   })
@@ -108,7 +108,7 @@ export function updateAttempt(
   attemptId: number,
   body: UpdateAttemptRequest,
 ): Promise<AttemptDto> {
-  return apiFetch(`/problems/${problemId}/attempts/${attemptId}`, token, {
+  return apiFetch(`/api/problems/${problemId}/attempts/${attemptId}`, token, {
     method: "PATCH",
     body: JSON.stringify(body),
   })
@@ -119,7 +119,7 @@ export function deleteAttempt(
   problemId: number,
   attemptId: number,
 ): Promise<void> {
-  return apiFetch(`/problems/${problemId}/attempts/${attemptId}`, token, {
+  return apiFetch(`/api/problems/${problemId}/attempts/${attemptId}`, token, {
     method: "DELETE",
   })
 }
@@ -127,7 +127,7 @@ export function deleteAttempt(
 // ─── Stats ────────────────────────────────────────────────────────────────────
 
 export function getUserStats(token: string | undefined): Promise<UserStatsDto> {
-  return apiFetch("/me/stats", token)
+  return apiFetch("/api/me/stats", token)
 }
 
 export function getDailyStats(
@@ -135,7 +135,7 @@ export function getDailyStats(
   days?: number,
 ): Promise<DailyStatDto[]> {
   const qs = days ? `?days=${days}` : ""
-  return apiFetch(`/me/stats/daily${qs}`, token)
+  return apiFetch(`/api/me/stats/daily${qs}`, token)
 }
 
 // ─── Problem Lists ────────────────────────────────────────────────────────────
@@ -143,21 +143,21 @@ export function getDailyStats(
 export function getProblemLists(
   token: string | undefined,
 ): Promise<ProblemListDto[]> {
-  return apiFetch("/me/lists", token)
+  return apiFetch("/api/me/lists", token)
 }
 
 export function getProblemList(
   token: string | undefined,
   id: number,
 ): Promise<ProblemListDto> {
-  return apiFetch(`/me/lists/${id}`, token)
+  return apiFetch(`/api/me/lists/${id}`, token)
 }
 
 export function createProblemList(
   token: string | undefined,
   body: CreateListRequest,
 ): Promise<ProblemListDto> {
-  return apiFetch("/me/lists", token, {
+  return apiFetch("/api/me/lists", token, {
     method: "POST",
     body: JSON.stringify(body),
   })
@@ -167,7 +167,7 @@ export function deleteProblemList(
   token: string | undefined,
   id: number,
 ): Promise<void> {
-  return apiFetch(`/me/lists/${id}`, token, { method: "DELETE" })
+  return apiFetch(`/api/me/lists/${id}`, token, { method: "DELETE" })
 }
 
 export function addProblemToList(
@@ -175,7 +175,7 @@ export function addProblemToList(
   listId: number,
   problemId: number,
 ): Promise<void> {
-  return apiFetch(`/me/lists/${listId}/problems/${problemId}`, token, {
+  return apiFetch(`/api/me/lists/${listId}/problems/${problemId}`, token, {
     method: "POST",
   })
 }
@@ -185,7 +185,7 @@ export function removeProblemFromList(
   listId: number,
   problemId: number,
 ): Promise<void> {
-  return apiFetch(`/me/lists/${listId}/problems/${problemId}`, token, {
+  return apiFetch(`/api/me/lists/${listId}/problems/${problemId}`, token, {
     method: "DELETE",
   })
 }
@@ -203,21 +203,21 @@ export function getNotes(
   if (filters?.page != null) params.set("page", String(filters.page))
   if (filters?.size != null) params.set("size", String(filters.size))
   const qs = params.toString()
-  return apiFetch(`/notes${qs ? `?${qs}` : ""}`, token)
+  return apiFetch(`/api/notes${qs ? `?${qs}` : ""}`, token)
 }
 
 export function getNote(
   token: string | undefined,
   id: number,
 ): Promise<NoteDto> {
-  return apiFetch(`/notes/${id}`, token)
+  return apiFetch(`/api/notes/${id}`, token)
 }
 
 export function createNote(
   token: string | undefined,
   body: CreateNoteRequest,
 ): Promise<NoteDto> {
-  return apiFetch("/notes", token, {
+  return apiFetch("/api/notes", token, {
     method: "POST",
     body: JSON.stringify(body),
   })
@@ -228,7 +228,7 @@ export function updateNote(
   id: number,
   body: UpdateNoteRequest,
 ): Promise<NoteDto> {
-  return apiFetch(`/notes/${id}`, token, {
+  return apiFetch(`/api/notes/${id}`, token, {
     method: "PATCH",
     body: JSON.stringify(body),
   })
@@ -238,7 +238,7 @@ export function deleteNote(
   token: string | undefined,
   id: number,
 ): Promise<void> {
-  return apiFetch(`/notes/${id}`, token, { method: "DELETE" })
+  return apiFetch(`/api/notes/${id}`, token, { method: "DELETE" })
 }
 
 // ─── Settings ─────────────────────────────────────────────────────────────────
@@ -246,34 +246,65 @@ export function deleteNote(
 export function getUserSettings(
   token: string | undefined,
 ): Promise<UserSettingsDto> {
-  return apiFetch("/me/settings", token)
+  return apiFetch("/api/me/settings", token)
 }
 
-export function updateUserSettings(
+export function updateUserLanguage(
   token: string | undefined,
-  body: UpdateSettingsRequest,
+  language: Language,
 ): Promise<UserSettingsDto> {
-  return apiFetch("/me/settings", token, {
+  return apiFetch("/api/me/settings/language", token, {
     method: "PATCH",
-    body: JSON.stringify(body),
+    body: JSON.stringify({ language }),
   })
 }
 
+export function updateUserDailyGoal(
+  token: string | undefined,
+  dailyGoal: number,
+): Promise<UserSettingsDto> {
+  return apiFetch("/api/me/settings/daily-goal", token, {
+    method: "PATCH",
+    body: JSON.stringify({ dailyGoal }),
+  })
+}
+
+export function updateUserTimezone(
+  token: string | undefined,
+  timezone: string,
+): Promise<UserSettingsDto> {
+  return apiFetch("/api/me/settings/timezone", token, {
+    method: "PATCH",
+    body: JSON.stringify({ timezone }),
+  })
+}
+
+export function updateUserTheme(
+  token: string | undefined,
+  themeId: number | null,
+): Promise<UserSettingsDto> {
+  return apiFetch("/api/me/settings/theme", token, {
+    method: "PATCH",
+    body: JSON.stringify({ themeId }),
+  })
+}
+
+
 export function getThemes(token: string | undefined): Promise<ThemeDto[]> {
-  return apiFetch("/themes", token)
+  return apiFetch("/api/themes", token)
 }
 
 // ─── Profile ──────────────────────────────────────────────────────────────────
 
 export function getUserProfile(token: string | undefined): Promise<UserProfileDto> {
-  return apiFetch("/me/profile", token)
+  return apiFetch("/api/me/profile", token)
 }
 
 export function updateUserProfile(
   token: string | undefined,
   body: UpdateProfileRequest,
 ): Promise<UserProfileDto> {
-  return apiFetch("/me/profile", token, {
+  return apiFetch("/api/me/profile", token, {
     method: "PUT",
     body: JSON.stringify(body),
   })

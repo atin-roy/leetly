@@ -1,6 +1,6 @@
 "use client"
 
-import { use, useState } from "react"
+import { useEffect, use, useState } from "react"
 import Link from "next/link"
 import { format } from "date-fns"
 import { ArrowLeft, Check, Copy, ExternalLink, Plus, StickyNote, Trash2, X } from "lucide-react"
@@ -33,58 +33,7 @@ import type {
   TopicDto,
 } from "@/lib/types"
 
-// TODO: remove once real API is wired up
-const DUMMY_PROBLEMS: Record<number, ProblemDetailDto> = {
-  1: {
-    id: 1,
-    leetcodeId: 1,
-    title: "Two Sum",
-    url: "https://leetcode.com/problems/two-sum/",
-    difficulty: "EASY",
-    status: "MASTERED",
-    topics: [
-      { id: 1, name: "Array", description: "Linear collection of elements." },
-      { id: 2, name: "Hash Table", description: "Key-value lookup structure." },
-    ],
-    patterns: [
-      { id: 1, name: "Hash Map Lookup", description: "Store complements in a map for O(1) lookup.", topicId: 2, topicName: "Hash Table", namedAlgorithm: false },
-      { id: 2, name: "Two Pass vs One Pass", description: "Solve in a single iteration by checking as you build.", topicId: 1, topicName: "Array", namedAlgorithm: false },
-    ],
-    relatedProblems: [
-      { id: 9, leetcodeId: 15, title: "3Sum", url: "https://leetcode.com/problems/3sum/", difficulty: "MEDIUM", status: "SOLVED" },
-      { id: 15, leetcodeId: 167, title: "Two Sum II", url: "https://leetcode.com/problems/two-sum-ii-input-array-is-sorted/", difficulty: "MEDIUM", status: "UNSEEN" },
-    ],
-    attempts: [
-      {
-        id: 1, problemId: 1, attemptNumber: 1, language: "PYTHON", outcome: "WRONG_ANSWER",
-        durationMinutes: 12, timeComplexity: "O(n²)", spaceComplexity: "O(1)", aiReview: null,
-        learned: "Brute force works but is too slow for large inputs.", takeaways: null,
-        notes: "Nested loop — check every pair.",
-        mistakes: [{ id: 1, type: "LOGIC", description: "Did not handle duplicate indices correctly." }],
-        createdDate: "2025-11-10T14:30:00Z",
-        code: `def twoSum(nums, target):
-    for i in range(len(nums)):
-        for j in range(i + 1, len(nums)):
-            if nums[i] + nums[j] == target:
-                return [i, j]`,
-      },
-      {
-        id: 2, problemId: 1, attemptNumber: 2, language: "PYTHON", outcome: "ACCEPTED",
-        durationMinutes: 8, timeComplexity: "O(n)", spaceComplexity: "O(n)", aiReview: null,
-        learned: "Use a hash map to store (value → index) as you iterate. Check complement on each step.",
-        takeaways: "One-pass hash map is the canonical O(n) solution for two-sum-style problems.",
-        notes: null, mistakes: [], createdDate: "2025-11-12T09:15:00Z",
-        code: `def twoSum(nums, target):
-    seen = {}
-    for i, num in enumerate(nums):
-        complement = target - num
-        if complement in seen:
-            return [seen[complement], i]
-        seen[num] = i`,
-      },
-    ],
-  },
-}
+
 
 const STATUSES: { value: ProblemStatus; label: string }[] = [
   { value: "UNSEEN", label: "Unseen" },
@@ -271,8 +220,7 @@ export default function ProblemDetailPage({
 }) {
   const { id: rawId } = use(params)
   const id = Number(rawId)
-  const { data: apiProblem, isLoading } = useProblem(id)
-  const problem = apiProblem ?? DUMMY_PROBLEMS[id]
+  const { data: problem, isLoading } = useProblem(id)
 
   // Attempt form
   const [attemptFormOpen, setAttemptFormOpen] = useState(false)
@@ -282,11 +230,21 @@ export default function ProblemDetailPage({
   const [note, setNote] = useState<NoteDto | undefined>()
   const [noteDialogOpen, setNoteDialogOpen] = useState(false)
 
-  // Editable metadata (local state; replace with mutations when API is wired)
-  const [status, setStatus] = useState<ProblemStatus>(() => DUMMY_PROBLEMS[id]?.status ?? "UNSEEN")
-  const [topics, setTopics] = useState<TopicDto[]>(() => DUMMY_PROBLEMS[id]?.topics ?? [])
-  const [patterns, setPatterns] = useState<PatternDto[]>(() => DUMMY_PROBLEMS[id]?.patterns ?? [])
-  const [related, setRelated] = useState<ProblemSummaryDto[]>(() => DUMMY_PROBLEMS[id]?.relatedProblems ?? [])
+  // Editable metadata (local state initialized from API data)
+  const [status, setStatus] = useState<ProblemStatus>("UNSEEN")
+  const [topics, setTopics] = useState<TopicDto[]>([])
+  const [patterns, setPatterns] = useState<PatternDto[]>([])
+  const [related, setRelated] = useState<ProblemSummaryDto[]>([])
+
+  // Sync state from API data once loaded
+  useEffect(() => {
+    if (problem) {
+      setStatus(problem.status)
+      setTopics(problem.topics)
+      setPatterns(problem.patterns)
+      setRelated(problem.relatedProblems)
+    }
+  }, [problem])
 
   // Add input toggles
   const [addingTopic, setAddingTopic] = useState(false)

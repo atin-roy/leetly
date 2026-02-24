@@ -2,24 +2,24 @@
 
 import { CheckCircle2, Flame, Sun, Trophy, Zap } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-
-// TODO: replace with real data from useUserStats()
-const DUMMY = {
-  totalSolved: 127,
-  easySolved: 54,
-  mediumSolved: 58,
-  hardSolved: 15,
-  currentStreak: 7,
-  longestStreak: 23,
-  solvedToday: 3,
-  solvedThisWeek: 8,
-  solvedThisMonth: 31,
-  totalMastered: 43,
-  firstAttemptSolves: 28,
-}
+import { Skeleton } from "@/components/ui/skeleton"
+import { useUserStats } from "@/hooks/use-stats"
 
 export function StatsCards() {
-  const s = DUMMY
+  const { data: s, isLoading } = useUserStats()
+
+  if (isLoading) {
+    return (
+      <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Skeleton key={i} className="h-[106px] w-full" />
+        ))}
+      </div>
+    )
+  }
+
+  if (!s) return null
+
   const cards = [
     {
       title: "Total Solved",
@@ -36,10 +36,10 @@ export function StatsCards() {
       color: "text-orange-500",
     },
     {
-      title: "Solved Today",
-      value: s.solvedToday,
+      title: "This Week",
+      value: s.solvedThisWeek,
       icon: Sun,
-      sub: `${s.solvedThisWeek} this week`,
+      sub: `${s.solvedThisMonth} this month`,
       color: "text-sky-500",
     },
     {

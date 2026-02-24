@@ -19,6 +19,7 @@ import {
   ArrowRight,
   TrendingUp,
   Target,
+  UserPlus,
 } from "lucide-react"
 
 // Update this when the repo is public
@@ -87,9 +88,17 @@ export default async function Home() {
                 <Link href="/dashboard">Go to Dashboard</Link>
               </Button>
             ) : (
-              <Button size="sm" asChild>
-                <Link href="/api/auth/signin">Sign In</Link>
-              </Button>
+              <>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href="/api/auth/signin">Sign In</Link>
+                </Button>
+                <Button size="sm" asChild>
+                  <Link href="/api/auth/signin">
+                    <UserPlus className="mr-1.5 h-4 w-4" />
+                    Sign Up
+                  </Link>
+                </Button>
+              </>
             )}
           </div>
         </div>
