@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { SignInButton } from "@/components/sign-in-button"
 import {
   Card,
   CardContent,
@@ -89,15 +90,13 @@ export default async function Home() {
               </Button>
             ) : (
               <>
-                <Button variant="ghost" size="sm" asChild>
-                  <Link href="/api/auth/signin">Sign In</Link>
-                </Button>
-                <Button size="sm" asChild>
-                  <Link href="/api/auth/signin">
-                    <UserPlus className="mr-1.5 h-4 w-4" />
-                    Sign Up
-                  </Link>
-                </Button>
+                <SignInButton variant="ghost" size="sm">
+                  Sign In
+                </SignInButton>
+                <SignInButton size="sm">
+                  <UserPlus className="mr-1.5 h-4 w-4" />
+                  Sign Up
+                </SignInButton>
               </>
             )}
           </div>
@@ -119,11 +118,9 @@ export default async function Home() {
           tracking.
         </p>
         <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <Button size="lg" asChild>
-            <Link href="/api/auth/signin">
-              Get started free <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-          </Button>
+          <SignInButton size="lg">
+            Get started free <ArrowRight className="ml-2 h-4 w-4" />
+          </SignInButton>
           <Button variant="outline" size="lg" asChild>
             <Link href={GITHUB_URL} target="_blank" rel="noopener noreferrer">
               <Github className="mr-2 h-4 w-4" />
@@ -201,18 +198,30 @@ export default async function Home() {
           </div>
           <div className="flex items-center gap-4">
             <Link
+              href="/about"
+              className="transition-colors hover:text-foreground"
+            >
+              About
+            </Link>
+            <Link
+              href="/privacy"
+              className="transition-colors hover:text-foreground"
+            >
+              Privacy Policy
+            </Link>
+            <Link
+              href="/terms"
+              className="transition-colors hover:text-foreground"
+            >
+              Terms of Service
+            </Link>
+            <Link
               href={GITHUB_URL}
               target="_blank"
               rel="noopener noreferrer"
               className="transition-colors hover:text-foreground"
             >
               GitHub
-            </Link>
-            <Link
-              href="/api/auth/signin"
-              className="transition-colors hover:text-foreground"
-            >
-              Sign In
             </Link>
           </div>
         </div>
