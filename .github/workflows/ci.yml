@@ -159,14 +159,14 @@ jobs:
             # Only pull & restart the services that changed
             if [ "${{ needs.changes.outputs.api }}" = "true" ]; then
               echo "→ Pulling and restarting API..."
-              docker compose pull api
-              docker compose up -d --no-deps api
+              docker compose pull leetly-api
+              docker compose up -d --no-deps --force-recreate leetly-api
             fi
 
             if [ "${{ needs.changes.outputs.web }}" = "true" ]; then
               echo "→ Pulling and restarting Web..."
-              docker compose pull web
-              docker compose up -d --no-deps web
+              docker compose pull leetly-web
+              docker compose up -d --no-deps --force-recreate leetly-web
             fi
 
             docker image prune -f
