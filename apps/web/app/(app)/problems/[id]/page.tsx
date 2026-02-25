@@ -284,6 +284,7 @@ export default function ProblemDetailPage({
   const [newPatternName, setNewPatternName] = useState("")
   const [newPatternDescription, setNewPatternDescription] = useState("")
   const [newPatternTopicId, setNewPatternTopicId] = useState<string>("none")
+  const [relatedSearch, setRelatedSearch] = useState("")
 
   function handleLogAttempt() {
     setEditingAttempt(undefined)
@@ -320,6 +321,10 @@ export default function ProblemDetailPage({
       label: `#${p.leetcodeId} ${p.title}`,
       subtitle: p.difficulty,
     }))
+  const relatedQuery = relatedSearch.trim().toLowerCase()
+  const filteredRelatedOptions = relatedOptions.filter((option) =>
+    option.label.toLowerCase().includes(relatedQuery),
+  )
 
   async function handleAddTopic(topicId: number) {
     try {
@@ -643,7 +648,7 @@ export default function ProblemDetailPage({
                   placeholder="e.g. Backtracking"
                 />
               </div>
-              <div className="space-y-1">
+              <div className="space-y-1 sm:col-span-2">
                 <Label htmlFor="new-topic-description">Description</Label>
                 <Textarea
                   id="new-topic-description"
@@ -730,14 +735,38 @@ export default function ProblemDetailPage({
         <DialogContent className="sm:max-w-3xl">
           <DialogHeader>
             <DialogTitle>Add Related Problem</DialogTitle>
-            <DialogDescription>Select one problem from the grid to mark it as related.</DialogDescription>
+            <DialogDescription>Search and add a related problem.</DialogDescription>
           </DialogHeader>
-          <SelectorGrid
-            options={relatedOptions}
-            selectedIds={relatedIds}
-            onSelect={handleAddRelated}
-            isPending={addRelatedMutation.isPending}
-          />
+          <div className="space-y-3">
+            <Input
+              value={relatedSearch}
+              onChange={(e) => setRelatedSearch(e.target.value)}
+              placeholder="Search by title or LeetCode number..."
+            />
+            <div className="max-h-80 space-y-1 overflow-y-auto rounded-md border p-2">
+              {filteredRelatedOptions.length === 0 ? (
+                <p className="px-2 py-2 text-xs text-muted-foreground">No matching problems found.</p>
+              ) : (
+                filteredRelatedOptions.map((option) => {
+                  const selected = relatedIds.has(option.id)
+                  return (
+                    <button
+                      key={option.id}
+                      type="button"
+                      disabled={selected || addRelatedMutation.isPending}
+                      onClick={() => handleAddRelated(option.id)}
+                      className="flex w-full items-center justify-between rounded-md px-2 py-1.5 text-left text-xs transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <span className="truncate pr-2">{option.label}</span>
+                      <span className="shrink-0 text-[11px] text-muted-foreground">
+                        {selected ? "Added" : option.subtitle}
+                      </span>
+                    </button>
+                  )
+                })
+              )}
+            </div>
+          </div>
           <div className="flex items-center justify-between rounded-md border border-dashed p-3">
             <p className="text-xs text-muted-foreground">Need a problem that is not here yet?</p>
             <Button asChild variant="outline" size="sm">
