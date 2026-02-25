@@ -44,7 +44,7 @@ public class AttemptController {
         return attemptMapper.toDto(attemptService.logAttempt(problemId, user, request));
     }
 
-    @PutMapping("/{id}")
+    @PatchMapping("/{id}")
     public AttemptDto update(@PathVariable long problemId,
                              @PathVariable long id,
                              @Valid @RequestBody LogAttemptRequest request,
