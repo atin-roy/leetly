@@ -24,7 +24,7 @@ import {
 } from "lucide-react"
 
 // Update this when the repo is public
-const GITHUB_URL = "https://github.com/atinr4/leetly"
+const GITHUB_URL = "https://github.com/atin-roy/leetly"
 
 const features = [
   {

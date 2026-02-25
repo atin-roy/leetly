@@ -148,7 +148,7 @@ export default function AboutPage() {
                     </p>
                     <Button variant="outline" asChild>
                         <Link
-                            href="https://github.com/atinr4/leetly"
+                            href="https://github.com/atin-roy/leetly"
                             target="_blank"
                             rel="noopener noreferrer"
                         >
@@ -196,7 +196,7 @@ export default function AboutPage() {
                             Terms
                         </Link>
                         <Link
-                            href="https://github.com/atinr4/leetly"
+                            href="https://github.com/atin-roy/leetly"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="transition-colors hover:text-foreground"

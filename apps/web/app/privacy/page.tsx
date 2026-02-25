@@ -163,7 +163,7 @@ export default function PrivacyPage() {
                         If you have questions about this Privacy Policy or wish to exercise
                         your data rights, please open an issue on our{" "}
                         <Link
-                            href="https://github.com/atinr4/leetly"
+                            href="https://github.com/atin-roy/leetly"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-primary underline underline-offset-4 hover:text-primary/80"

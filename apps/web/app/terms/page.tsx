@@ -93,7 +93,7 @@ export default function TermsPage() {
                         Leetly is released under the MIT License. The source code is
                         available on{" "}
                         <Link
-                            href="https://github.com/atinr4/leetly"
+                            href="https://github.com/atin-roy/leetly"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-primary underline underline-offset-4 hover:text-primary/80"
@@ -154,7 +154,7 @@ export default function TermsPage() {
                         If you have questions about these Terms, please open an issue on
                         our{" "}
                         <Link
-                            href="https://github.com/atinr4/leetly"
+                            href="https://github.com/atin-roy/leetly"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-primary underline underline-offset-4 hover:text-primary/80"
