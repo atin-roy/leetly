@@ -37,7 +37,7 @@ app:
   keycloak:
     client-id: ${KEYCLOAK_CLIENT_ID:leetly-api}
   cors:
-    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:3000}
+    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:3000,https://leetly.atinroy.com}
 
 springdoc:
   swagger-ui:

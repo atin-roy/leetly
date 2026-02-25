@@ -21,13 +21,13 @@ import java.util.List;
 public class SecurityConfig {
 
     private final KeycloakJwtAuthenticationConverter keycloakJwtConverter;
-    private final List<String> allowedOrigins;
+    private final List<String> allowedOriginPatterns;
 
     public SecurityConfig(
             KeycloakJwtAuthenticationConverter keycloakJwtConverter,
-            @Value("${app.cors.allowed-origins:http://localhost:3000}") String allowedOrigins) {
+            @Value("${app.cors.allowed-origins:http://localhost:3000,https://leetly.atinroy.com}") String allowedOrigins) {
         this.keycloakJwtConverter = keycloakJwtConverter;
-        this.allowedOrigins = Arrays.stream(allowedOrigins.split(","))
+        this.allowedOriginPatterns = Arrays.stream(allowedOrigins.split(","))
                 .map(String::trim)
                 .filter(origin -> !origin.isEmpty())
                 .toList();
@@ -81,7 +81,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(allowedOrigins);
+        config.setAllowedOriginPatterns(allowedOriginPatterns);
         config.setAllowedMethods(List.of(
                 HttpMethod.GET.name(),
                 HttpMethod.POST.name(),
