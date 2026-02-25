@@ -151,7 +151,10 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             echo "${{ secrets.VPS_GHCR_TOKEN }}" | docker login ghcr.io -u ${{ secrets.VPS_GHCR_USER }} --password-stdin
-            cd /opt/leetly
+
+            # The infra compose at /srv/infra includes /srv/apps/leetly/docker-compose.yml
+            # so all service management is done from there.
+            cd /srv/infra
 
             # Only pull & restart the services that changed
             if [ "${{ needs.changes.outputs.api }}" = "true" ]; then
