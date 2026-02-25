@@ -158,7 +158,7 @@ function ProfileSection() {
 }
 
 function PreferencesForm() {
-  const { data: settings, isLoading } = useSettings()
+  const { data: settings, isPending } = useSettings()
   const languageMutation = useUpdateLanguage()
   const goalMutation = useUpdateDailyGoal()
   const timezoneMutation = useUpdateTimezone()
@@ -181,7 +181,8 @@ function PreferencesForm() {
         timezone: settings.timezone,
       })
     }
-  }, [settings, form])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settings])
 
   async function onSubmit(values: FormValues) {
     try {
@@ -202,7 +203,7 @@ function PreferencesForm() {
     }
   }
 
-  if (isLoading) {
+  if (isPending) {
     return <Skeleton className="h-64 w-full" />
   }
 
