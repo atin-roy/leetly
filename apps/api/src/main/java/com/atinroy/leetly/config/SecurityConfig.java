@@ -44,8 +44,6 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(
                                 HttpMethod.POST,
-                                "/api/topics/**",
-                                "/api/patterns/**",
                                 "/api/themes/**"
                         ).denyAll()
                         .requestMatchers(
