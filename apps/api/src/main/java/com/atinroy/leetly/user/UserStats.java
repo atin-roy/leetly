@@ -4,6 +4,8 @@ import com.atinroy.leetly.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDate;
 
@@ -75,5 +77,6 @@ public class UserStats extends BaseEntity {
 
     // Mistake breakdown — e.g. {"WRONG_PATTERN": 5, "OFF_BY_ONE": 3}
     @Column(columnDefinition = "jsonb")
+    @JdbcTypeCode(SqlTypes.JSON)
     private String mistakeBreakdown;
 }
