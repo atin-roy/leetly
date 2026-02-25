@@ -89,4 +89,33 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return session
     },
   },
+  events: {
+    async signOut(message) {
+      // End the Keycloak session so the user isn't auto-re-authenticated
+      if ("token" in message) {
+        const refreshToken = message.token?.["refreshToken"] as
+          | string
+          | undefined
+        if (refreshToken) {
+          const issuer = process.env.KEYCLOAK_ISSUER!
+          const logoutUrl = `${issuer}/protocol/openid-connect/logout`
+          try {
+            await fetch(logoutUrl, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+              },
+              body: new URLSearchParams({
+                client_id: process.env.KEYCLOAK_CLIENT_ID!,
+                client_secret: process.env.KEYCLOAK_CLIENT_SECRET!,
+                refresh_token: refreshToken,
+              }),
+            })
+          } catch (error) {
+            console.error("Error ending Keycloak session:", error)
+          }
+        }
+      }
+    },
+  },
 })
