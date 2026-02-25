@@ -25,6 +25,7 @@ public class ProblemController {
     }
 
     @GetMapping("/{id}")
+    @Transactional(readOnly = true)
     public ProblemDetailDto findById(@PathVariable long id) {
         return problemMapper.toDetailDto(problemService.findDetailById(id));
     }
