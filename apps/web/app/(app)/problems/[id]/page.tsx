@@ -303,9 +303,9 @@ export default function ProblemDetailPage({
     }
   }
 
-  const topicIds = new Set(problem.topics.map((t) => t.id))
-  const patternIds = new Set(problem.patterns.map((p) => p.id))
-  const relatedIds = new Set(problem.relatedProblems.map((r) => r.id))
+  const topicIds = new Set((problem?.topics ?? []).map((t) => t.id))
+  const patternIds = new Set((problem?.patterns ?? []).map((p) => p.id))
+  const relatedIds = new Set((problem?.relatedProblems ?? []).map((r) => r.id))
 
   const topicOptions = (allTopics ?? []).map((t: TopicDto) => ({ id: t.id, label: t.name }))
   const patternOptions = (allPatterns ?? []).map((p: PatternDto) => ({
