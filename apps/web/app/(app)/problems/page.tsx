@@ -9,7 +9,7 @@ import { ProblemFilters } from "@/components/problems/problem-filters"
 import { ProblemTable } from "@/components/problems/problem-table"
 import { AddProblemDialog } from "@/components/problems/add-problem-dialog"
 import { NoteEditorDialog } from "@/components/notes/note-editor-dialog"
-import { useProblems, useInvalidateProblem } from "@/hooks/use-problems"
+import { useCreateProblem, useProblems, useInvalidateProblem } from "@/hooks/use-problems"
 import { useCreateNote } from "@/hooks/use-notes"
 import type { NoteDto, NoteTag, ProblemFilters as Filters, ProblemSummaryDto } from "@/lib/types"
 
@@ -20,6 +20,7 @@ export default function ProblemsPage() {
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS)
   const { data: pagedResponse, isLoading } = useProblems(filters)
   const invalidate = useInvalidateProblem()
+  const createProblemMutation = useCreateProblem()
   const createNoteMutation = useCreateNote()
 
   const [problemNotes, setProblemNotes] = useState<Record<number, NoteDto>>({})
@@ -59,12 +60,8 @@ export default function ProblemsPage() {
     }
   }
 
-  function handleAdd(p: Omit<ProblemSummaryDto, "id" | "status">): ProblemSummaryDto {
-    // The AddProblemDialog will use the API to create the problem;
-    // we just need to invalidate the problems list afterwards
-    const created: ProblemSummaryDto = { ...p, id: Date.now(), status: "UNSEEN" }
-    invalidate(0)
-    return created
+  async function handleAdd(p: Omit<ProblemSummaryDto, "id" | "status">): Promise<ProblemSummaryDto> {
+    return createProblemMutation.mutateAsync(p)
   }
 
   const existingProblems = new Map(problems.map((p) => [p.leetcodeId, p.id]))

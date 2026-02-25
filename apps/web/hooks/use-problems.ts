@@ -2,8 +2,8 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useSession } from "next-auth/react"
-import { getPatterns, getProblem, getProblems, getTopics } from "@/lib/api"
-import type { ProblemFilters } from "@/lib/types"
+import { createProblem, getPatterns, getProblem, getProblems, getTopics } from "@/lib/api"
+import type { ProblemFilters, ProblemSummaryDto } from "@/lib/types"
 
 export function useProblems(filters?: ProblemFilters) {
   const { data: session } = useSession()
@@ -40,6 +40,16 @@ export function usePatterns() {
     queryFn: () => getPatterns(session?.accessToken),
     enabled: !!session?.accessToken,
     staleTime: 5 * 60 * 1000,
+  })
+}
+
+export function useCreateProblem() {
+  const { data: session } = useSession()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (body: Omit<ProblemSummaryDto, "id" | "status">) =>
+      createProblem(session?.accessToken, body),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["problems"] }),
   })
 }
 

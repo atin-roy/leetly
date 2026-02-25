@@ -65,6 +65,16 @@ export function getProblems(
   return apiFetch(`/api/problems${qs ? `?${qs}` : ""}`, token)
 }
 
+export function createProblem(
+  token: string | undefined,
+  body: Omit<ProblemSummaryDto, "id" | "status">,
+): Promise<ProblemSummaryDto> {
+  return apiFetch("/api/problems", token, {
+    method: "POST",
+    body: JSON.stringify(body),
+  })
+}
+
 export function getProblem(
   token: string | undefined,
   id: number,

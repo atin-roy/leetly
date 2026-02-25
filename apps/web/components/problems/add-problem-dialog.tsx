@@ -41,14 +41,14 @@ async function fetchProblem(input: string): Promise<FetchedProblem> {
 }
 
 interface Props {
-  onAdd: (problem: Omit<ProblemSummaryDto, "id" | "status">) => ProblemSummaryDto
+  onAdd: (problem: Omit<ProblemSummaryDto, "id" | "status">) => Promise<ProblemSummaryDto>
   /** Maps leetcodeId → internal problem id for duplicate detection */
   existingProblems: Map<number, number>
 }
 
 export function AddProblemDialog({ onAdd, existingProblems }: Props) {
   const [open, setOpen] = useState(false)
-  const [step, setStep] = useState<"form" | "added">("form")
+  const [step, setStep] = useState<"form" | "adding" | "added">("form")
   const [input, setInput] = useState("")
   const [fetchStatus, setFetchStatus] = useState<"idle" | "loading" | "fetched" | "error">("idle")
   const [preview, setPreview] = useState<FetchedProblem | null>(null)
@@ -97,11 +97,17 @@ export function AddProblemDialog({ onAdd, existingProblems }: Props) {
   const duplicateId = preview ? existingProblems.get(preview.leetcodeId) : undefined
   const isDuplicate = duplicateId !== undefined
 
-  function handleAdd() {
+  async function handleAdd() {
     if (!preview || isDuplicate) return
-    const created = onAdd(preview)
-    setAdded(created)
-    setStep("added")
+    setStep("adding")
+    try {
+      const created = await onAdd(preview)
+      setAdded(created)
+      setStep("added")
+    } catch {
+      setError("Failed to add problem")
+      setStep("form")
+    }
   }
 
   function handleTrackAnother() {
@@ -124,7 +130,7 @@ export function AddProblemDialog({ onAdd, existingProblems }: Props) {
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
-        {step === "form" ? (
+        {step !== "added" ? (
           <>
             <DialogHeader>
               <DialogTitle>Track a Problem</DialogTitle>
@@ -196,8 +202,8 @@ export function AddProblemDialog({ onAdd, existingProblems }: Props) {
                 <Button variant="outline" onClick={handleClose}>
                   Cancel
                 </Button>
-                <Button onClick={handleAdd} disabled={!preview || isDuplicate}>
-                  Add to My Problems
+                <Button onClick={handleAdd} disabled={!preview || isDuplicate || step === "adding"}>
+                  {step === "adding" ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Adding…</> : "Add to My Problems"}
                 </Button>
               </div>
             </div>
