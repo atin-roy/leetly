@@ -9,7 +9,7 @@ public final class ProblemSpecification {
     }
 
     public static Specification<Problem> buildSpec(String difficulty, String status, Long topicId, Long patternId, String search) {
-        Specification<Problem> spec = Specification.where((Specification<Problem>) null);
+        Specification<Problem> spec = (root, query, cb) -> cb.conjunction();
 
         if (difficulty != null && !difficulty.isBlank()) {
             spec = spec.and((root, query, cb) ->
