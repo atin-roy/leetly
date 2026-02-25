@@ -41,6 +41,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       issuer: process.env.KEYCLOAK_ISSUER!,
     }),
   ],
+  pages: {
+    signIn: "/sign-in",
+  },
   callbacks: {
     async jwt({ token, account }) {
       // Initial sign-in: persist tokens

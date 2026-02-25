@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
 // Routes accessible without authentication
-const PUBLIC_ROUTES = ["/", "/privacy", "/about", "/terms"]
+const PUBLIC_ROUTES = ["/", "/privacy", "/about", "/terms", "/sign-in"]
 
 export default function proxy(request: NextRequest) {
     const { nextUrl } = request
@@ -15,7 +15,7 @@ export default function proxy(request: NextRequest) {
             request.cookies.has("__Secure-authjs.session-token")
 
         if (!hasSession) {
-            const signInUrl = new URL("/api/auth/signin/keycloak", nextUrl.origin)
+            const signInUrl = new URL("/sign-in", nextUrl.origin)
             signInUrl.searchParams.set("callbackUrl", nextUrl.pathname)
             return NextResponse.redirect(signInUrl)
         }
