@@ -34,7 +34,7 @@ public class NoteService {
 
     @Transactional(readOnly = true)
     public List<Note> findByProblem(long problemId, User user) {
-        Problem problem = problemService.findById(problemId);
+        Problem problem = problemService.findById(problemId, user);
         return noteRepository.findByProblemAndUser(problem, user);
     }
 
@@ -47,7 +47,7 @@ public class NoteService {
         Note note = new Note();
         note.setUser(user);
         if (problemId != null) {
-            note.setProblem(problemService.findById(problemId));
+            note.setProblem(problemService.findById(problemId, user));
         }
         note.setTag(tag);
         note.setTitle(title);

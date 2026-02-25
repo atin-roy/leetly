@@ -43,6 +43,30 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(
+                                HttpMethod.POST,
+                                "/api/topics/**",
+                                "/api/patterns/**",
+                                "/api/themes/**"
+                        ).denyAll()
+                        .requestMatchers(
+                                HttpMethod.PUT,
+                                "/api/topics/**",
+                                "/api/patterns/**",
+                                "/api/themes/**"
+                        ).denyAll()
+                        .requestMatchers(
+                                HttpMethod.PATCH,
+                                "/api/topics/**",
+                                "/api/patterns/**",
+                                "/api/themes/**"
+                        ).denyAll()
+                        .requestMatchers(
+                                HttpMethod.DELETE,
+                                "/api/topics/**",
+                                "/api/patterns/**",
+                                "/api/themes/**"
+                        ).denyAll()
+                        .requestMatchers(
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**"

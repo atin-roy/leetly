@@ -30,12 +30,6 @@ public class ProblemListService {
     }
 
     @Transactional(readOnly = true)
-    public ProblemList findById(long id) {
-        return problemListRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("ProblemList not found: " + id));
-    }
-
-    @Transactional(readOnly = true)
     public ProblemList findByIdAndUser(long id, User user) {
         return problemListRepository.findByIdAndUser(id, user)
                 .orElseThrow(() -> new ResourceNotFoundException("ProblemList not found: " + id));
@@ -59,7 +53,7 @@ public class ProblemListService {
 
     public ProblemList addProblem(long listId, long problemId, User user) {
         ProblemList list = findByIdAndUser(listId, user);
-        Problem problem = problemService.findById(problemId);
+        Problem problem = problemService.findById(problemId, user);
         if (!list.getProblems().contains(problem)) {
             list.getProblems().add(problem);
         }

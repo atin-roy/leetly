@@ -20,7 +20,7 @@ public class AttemptService {
 
     @Transactional(readOnly = true)
     public List<Attempt> findByProblem(long problemId, User user) {
-        Problem problem = problemRepository.findById(problemId)
+        Problem problem = problemRepository.findByIdAndUser(problemId, user)
                 .orElseThrow(() -> new ResourceNotFoundException("Problem not found: " + problemId));
         return attemptRepository.findByProblemAndUser(problem, user);
     }
@@ -34,7 +34,7 @@ public class AttemptService {
     public Attempt logAttempt(long problemId, User user, LogAttemptRequest request) {
         // Pessimistic lock prevents two concurrent requests from reading the same
         // attempt count and assigning duplicate attempt numbers for the same user/problem.
-        Problem problem = problemRepository.findByIdForUpdate(problemId)
+        Problem problem = problemRepository.findByIdForUpdateAndUser(problemId, user)
                 .orElseThrow(() -> new ResourceNotFoundException("Problem not found: " + problemId));
 
         int attemptNumber = (int) attemptRepository.countByProblemAndUser(problem, user) + 1;

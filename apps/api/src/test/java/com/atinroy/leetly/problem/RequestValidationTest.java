@@ -1,6 +1,7 @@
 package com.atinroy.leetly.problem;
 
 import com.atinroy.leetly.config.KeycloakJwtAuthenticationConverter;
+import com.atinroy.leetly.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -30,6 +31,9 @@ class RequestValidationTest {
 
     @MockitoBean
     ProblemMapper problemMapper;
+
+    @MockitoBean
+    UserService userService;
 
     @Test
     void createProblem_returns400WhenTitleIsBlank() throws Exception {

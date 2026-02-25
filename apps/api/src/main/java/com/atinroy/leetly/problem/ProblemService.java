@@ -1,6 +1,7 @@
 package com.atinroy.leetly.problem;
 
 import com.atinroy.leetly.common.ResourceNotFoundException;
+import com.atinroy.leetly.user.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -20,30 +21,26 @@ public class ProblemService {
     private final PatternService patternService;
 
     @Transactional(readOnly = true)
-    public Page<Problem> findAll(Pageable pageable) {
-        return problemRepository.findAll(pageable);
+    public Page<Problem> findAll(User user, Pageable pageable, String difficulty, String status, Long topicId, Long patternId, String search) {
+        Specification<Problem> filters = ProblemSpecification.buildSpec(difficulty, status, topicId, patternId, search);
+        Specification<Problem> ownedByUser = (root, query, cb) -> cb.equal(root.get("user"), user);
+        return problemRepository.findAll(ownedByUser.and(filters), pageable);
     }
 
     @Transactional(readOnly = true)
-    public Page<Problem> findAll(Pageable pageable, String difficulty, String status, Long topicId, Long patternId, String search) {
-        Specification<Problem> spec = ProblemSpecification.buildSpec(difficulty, status, topicId, patternId, search);
-        return problemRepository.findAll(spec, pageable);
-    }
-
-    @Transactional(readOnly = true)
-    public Problem findById(long id) {
-        return problemRepository.findById(id)
+    public Problem findById(long id, User user) {
+        return problemRepository.findByIdAndUser(id, user)
                 .orElseThrow(() -> new ResourceNotFoundException("Problem not found: " + id));
     }
 
     @Transactional(readOnly = true)
-    public Problem findDetailById(long id) {
-        return problemRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Problem not found: " + id));
+    public Problem findDetailById(long id, User user) {
+        return findById(id, user);
     }
 
-    public Problem create(CreateProblemRequest request) {
+    public Problem create(CreateProblemRequest request, User user) {
         Problem problem = new Problem();
+        problem.setUser(user);
         problem.setLeetcodeId(request.leetcodeId());
         problem.setTitle(request.title());
         problem.setUrl(request.url());
@@ -52,8 +49,8 @@ public class ProblemService {
         return problemRepository.save(problem);
     }
 
-    public Problem update(long id, CreateProblemRequest request) {
-        Problem problem = findById(id);
+    public Problem update(long id, CreateProblemRequest request, User user) {
+        Problem problem = findById(id, user);
         problem.setLeetcodeId(request.leetcodeId());
         problem.setTitle(request.title());
         problem.setUrl(request.url());
@@ -61,12 +58,12 @@ public class ProblemService {
         return problemRepository.save(problem);
     }
 
-    public void delete(long id) {
-        problemRepository.deleteById(id);
+    public void delete(long id, User user) {
+        problemRepository.delete(findById(id, user));
     }
 
-    public Problem addTopic(long problemId, long topicId) {
-        Problem problem = findById(problemId);
+    public Problem addTopic(long problemId, long topicId, User user) {
+        Problem problem = findById(problemId, user);
         Topic topic = topicService.findById(topicId);
         if (!problem.getTopics().contains(topic)) {
             problem.getTopics().add(topic);
@@ -74,14 +71,14 @@ public class ProblemService {
         return problemRepository.save(problem);
     }
 
-    public Problem removeTopics(long problemId, List<Long> topicIds) {
-        Problem problem = findById(problemId);
+    public Problem removeTopics(long problemId, List<Long> topicIds, User user) {
+        Problem problem = findById(problemId, user);
         problem.getTopics().removeIf(t -> topicIds.contains(t.getId()));
         return problemRepository.save(problem);
     }
 
-    public Problem addPattern(long problemId, long patternId) {
-        Problem problem = findById(problemId);
+    public Problem addPattern(long problemId, long patternId, User user) {
+        Problem problem = findById(problemId, user);
         Pattern pattern = patternService.findById(patternId);
         if (!problem.getPatterns().contains(pattern)) {
             problem.getPatterns().add(pattern);
@@ -89,23 +86,23 @@ public class ProblemService {
         return problemRepository.save(problem);
     }
 
-    public Problem removePattern(long problemId, long patternId) {
-        Problem problem = findById(problemId);
+    public Problem removePattern(long problemId, long patternId, User user) {
+        Problem problem = findById(problemId, user);
         problem.getPatterns().removeIf(p -> p.getId().equals(patternId));
         return problemRepository.save(problem);
     }
 
-    public Problem addRelatedProblem(long problemId, long relatedId) {
-        Problem problem = findById(problemId);
-        Problem related = findById(relatedId);
+    public Problem addRelatedProblem(long problemId, long relatedId, User user) {
+        Problem problem = findById(problemId, user);
+        Problem related = findById(relatedId, user);
         if (!problem.getRelatedProblems().contains(related)) {
             problem.getRelatedProblems().add(related);
         }
         return problemRepository.save(problem);
     }
 
-    public Problem updateStatus(long problemId, ProblemStatus status) {
-        Problem problem = findById(problemId);
+    public Problem updateStatus(long problemId, ProblemStatus status, User user) {
+        Problem problem = findById(problemId, user);
         problem.setStatus(status);
         return problemRepository.save(problem);
     }

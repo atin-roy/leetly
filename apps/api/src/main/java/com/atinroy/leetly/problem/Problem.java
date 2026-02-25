@@ -2,6 +2,7 @@ package com.atinroy.leetly.problem;
 
 import com.atinroy.leetly.common.BaseEntity;
 import com.atinroy.leetly.note.Note;
+import com.atinroy.leetly.user.User;
 import jakarta.persistence.*;
 import org.hibernate.annotations.BatchSize;
 import lombok.Getter;
@@ -13,11 +14,12 @@ import java.util.List;
 @Getter
 @Setter
 @Entity
-@Table(name = "problems",
-        indexes = {
-                @Index(name = "idx_problem_leetcode_id", columnList = "leetcodeId", unique = true)
-        })
+@Table(name = "problems")
 public class Problem extends BaseEntity {
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @Column(nullable = false)
     private long leetcodeId;
