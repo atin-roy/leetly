@@ -134,8 +134,11 @@ export function getDailyStats(
   token: string | undefined,
   days?: number,
 ): Promise<DailyStatDto[]> {
-  const qs = days ? `?days=${days}` : ""
-  return apiFetch(`/api/me/stats/daily${qs}`, token)
+  const to = new Date()
+  const from = new Date()
+  from.setDate(from.getDate() - (days ?? 365))
+  const fmt = (d: Date) => d.toISOString().split("T")[0]
+  return apiFetch(`/api/me/stats/daily?from=${fmt(from)}&to=${fmt(to)}`, token)
 }
 
 // ─── Problem Lists ────────────────────────────────────────────────────────────

@@ -9,7 +9,7 @@ export default async function AppLayout({
   children: React.ReactNode
 }) {
   const session = await auth()
-  if (!session) await signIn("keycloak")
+  if (!session || session.error === "RefreshTokenError") await signIn("keycloak")
 
   return (
     <SidebarProvider>
