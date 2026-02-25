@@ -5,7 +5,7 @@
 # ── Stage 1: install dependencies ────────────────────────────────────────────
 FROM node:24-alpine AS deps
 WORKDIR /app
-RUN corepack enable
+RUN npm install -g pnpm@10.30.2
 
 # Copy workspace manifests so pnpm can resolve the monorepo correctly
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
@@ -17,7 +17,7 @@ RUN pnpm install --frozen-lockfile --filter web
 # ── Stage 2: build ────────────────────────────────────────────────────────────
 FROM node:24-alpine AS builder
 WORKDIR /app
-RUN corepack enable
+RUN npm install -g pnpm@10.30.2
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/apps/web/node_modules ./apps/web/node_modules
