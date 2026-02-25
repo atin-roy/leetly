@@ -186,18 +186,22 @@ function PreferencesForm() {
 
   async function onSubmit(values: FormValues) {
     try {
-      const promises: Promise<unknown>[] = []
+      let changed = false
       if (values.preferredLanguage !== settings?.preferredLanguage) {
-        promises.push(languageMutation.mutateAsync(values.preferredLanguage))
+        changed = true
+        await languageMutation.mutateAsync(values.preferredLanguage)
       }
       if (values.dailyGoal !== settings?.dailyGoal) {
-        promises.push(goalMutation.mutateAsync(values.dailyGoal))
+        changed = true
+        await goalMutation.mutateAsync(values.dailyGoal)
       }
       if (values.timezone !== settings?.timezone) {
-        promises.push(timezoneMutation.mutateAsync(values.timezone))
+        changed = true
+        await timezoneMutation.mutateAsync(values.timezone)
       }
-      await Promise.all(promises)
-      toast.success("Settings saved")
+      if (changed) {
+        toast.success("Settings saved")
+      }
     } catch {
       toast.error("Failed to save settings")
     }

@@ -1,5 +1,6 @@
 "use client"
 
+import { useMemo } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useSession } from "next-auth/react"
 import {
@@ -17,11 +18,37 @@ import {
 } from "@/lib/api"
 import type { ProblemFilters, ProblemSummaryDto } from "@/lib/types"
 
+function normalizeFilters(filters?: ProblemFilters): ProblemFilters {
+  return {
+    difficulty: filters?.difficulty,
+    status: filters?.status,
+    topicId: filters?.topicId,
+    patternId: filters?.patternId,
+    search: filters?.search?.trim() || undefined,
+    page: filters?.page ?? 0,
+    size: filters?.size ?? 20,
+    sort: filters?.sort,
+  }
+}
+
 export function useProblems(filters?: ProblemFilters) {
   const { data: session } = useSession()
+  const normalized = useMemo(() => normalizeFilters(filters), [filters])
+
   return useQuery({
-    queryKey: ["problems", filters],
-    queryFn: () => getProblems(session?.accessToken, filters),
+    queryKey: [
+      "problems",
+      session?.accessToken,
+      normalized.difficulty ?? null,
+      normalized.status ?? null,
+      normalized.topicId ?? null,
+      normalized.patternId ?? null,
+      normalized.search ?? null,
+      normalized.page,
+      normalized.size,
+      normalized.sort ?? null,
+    ],
+    queryFn: () => getProblems(session?.accessToken, normalized),
     enabled: !!session?.accessToken,
   })
 }
