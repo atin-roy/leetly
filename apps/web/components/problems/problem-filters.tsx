@@ -34,14 +34,14 @@ const STATUSES: { value: ProblemStatus; label: string }[] = [
 ]
 
 const SORT_OPTIONS: { value: string; label: string }[] = [
-  { value: "id_asc", label: "ID ↑" },
-  { value: "id_desc", label: "ID ↓" },
-  { value: "name_asc", label: "Name A → Z" },
-  { value: "name_desc", label: "Name Z → A" },
-  { value: "difficulty_asc", label: "Difficulty: Easy first" },
-  { value: "difficulty_desc", label: "Difficulty: Hard first" },
-  { value: "status_asc", label: "Status: Unseen first" },
-  { value: "status_desc", label: "Status: Mastered first" },
+  { value: "leetcodeId,asc", label: "ID ↑" },
+  { value: "leetcodeId,desc", label: "ID ↓" },
+  { value: "title,asc", label: "Name A → Z" },
+  { value: "title,desc", label: "Name Z → A" },
+  { value: "difficulty,asc", label: "Difficulty: Easy first" },
+  { value: "difficulty,desc", label: "Difficulty: Hard first" },
+  { value: "status,asc", label: "Status: Unseen first" },
+  { value: "status,desc", label: "Status: Mastered first" },
 ]
 
 export function ProblemFilters({ filters, onChange, onReset }: Props) {

@@ -2,7 +2,19 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useSession } from "next-auth/react"
-import { createProblem, getPatterns, getProblem, getProblems, getTopics } from "@/lib/api"
+import {
+  addProblemPattern,
+  addProblemTopic,
+  addRelatedProblem,
+  createProblem,
+  getPatterns,
+  getProblem,
+  getProblems,
+  getTopics,
+  removeProblemPattern,
+  removeProblemTopics,
+  updateProblemStatus,
+} from "@/lib/api"
 import type { ProblemFilters, ProblemSummaryDto } from "@/lib/types"
 
 export function useProblems(filters?: ProblemFilters) {
@@ -59,4 +71,82 @@ export function useInvalidateProblem() {
     qc.invalidateQueries({ queryKey: ["problems", id] })
     qc.invalidateQueries({ queryKey: ["problems"] })
   }
+}
+
+export function useUpdateProblemStatus(problemId: number) {
+  const { data: session } = useSession()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (status: string) =>
+      updateProblemStatus(session?.accessToken, problemId, status),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["problems", problemId] })
+      qc.invalidateQueries({ queryKey: ["problems"] })
+    },
+  })
+}
+
+export function useAddTopic(problemId: number) {
+  const { data: session } = useSession()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (topicId: number) =>
+      addProblemTopic(session?.accessToken, problemId, topicId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["problems", problemId] })
+      qc.invalidateQueries({ queryKey: ["problems"] })
+    },
+  })
+}
+
+export function useRemoveTopics(problemId: number) {
+  const { data: session } = useSession()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (topicIds: number[]) =>
+      removeProblemTopics(session?.accessToken, problemId, topicIds),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["problems", problemId] })
+      qc.invalidateQueries({ queryKey: ["problems"] })
+    },
+  })
+}
+
+export function useAddPattern(problemId: number) {
+  const { data: session } = useSession()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (patternId: number) =>
+      addProblemPattern(session?.accessToken, problemId, patternId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["problems", problemId] })
+      qc.invalidateQueries({ queryKey: ["problems"] })
+    },
+  })
+}
+
+export function useRemovePattern(problemId: number) {
+  const { data: session } = useSession()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (patternId: number) =>
+      removeProblemPattern(session?.accessToken, problemId, patternId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["problems", problemId] })
+      qc.invalidateQueries({ queryKey: ["problems"] })
+    },
+  })
+}
+
+export function useAddRelatedProblem(problemId: number) {
+  const { data: session } = useSession()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (relatedId: number) =>
+      addRelatedProblem(session?.accessToken, problemId, relatedId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["problems", problemId] })
+      qc.invalidateQueries({ queryKey: ["problems"] })
+    },
+  })
 }

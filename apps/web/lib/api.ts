@@ -82,6 +82,68 @@ export function getProblem(
   return apiFetch(`/api/problems/${id}`, token)
 }
 
+export function updateProblemStatus(
+  token: string | undefined,
+  id: number,
+  status: string,
+): Promise<ProblemSummaryDto> {
+  return apiFetch(`/api/problems/${id}/status`, token, {
+    method: "PATCH",
+    body: JSON.stringify({ status }),
+  })
+}
+
+export function addProblemTopic(
+  token: string | undefined,
+  id: number,
+  topicId: number,
+): Promise<ProblemDetailDto> {
+  return apiFetch(`/api/problems/${id}/topics/${topicId}`, token, {
+    method: "POST",
+  })
+}
+
+export function removeProblemTopics(
+  token: string | undefined,
+  id: number,
+  topicIds: number[],
+): Promise<ProblemDetailDto> {
+  return apiFetch(`/api/problems/${id}/topics`, token, {
+    method: "DELETE",
+    body: JSON.stringify({ topicIds }),
+  })
+}
+
+export function addProblemPattern(
+  token: string | undefined,
+  id: number,
+  patternId: number,
+): Promise<ProblemDetailDto> {
+  return apiFetch(`/api/problems/${id}/patterns/${patternId}`, token, {
+    method: "POST",
+  })
+}
+
+export function removeProblemPattern(
+  token: string | undefined,
+  id: number,
+  patternId: number,
+): Promise<ProblemDetailDto> {
+  return apiFetch(`/api/problems/${id}/patterns/${patternId}`, token, {
+    method: "DELETE",
+  })
+}
+
+export function addRelatedProblem(
+  token: string | undefined,
+  id: number,
+  relatedId: number,
+): Promise<ProblemDetailDto> {
+  return apiFetch(`/api/problems/${id}/related/${relatedId}`, token, {
+    method: "POST",
+  })
+}
+
 // ─── Topics & Patterns ────────────────────────────────────────────────────────
 
 export function getTopics(token: string | undefined): Promise<TopicDto[]> {

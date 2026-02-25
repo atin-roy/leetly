@@ -133,7 +133,7 @@ function ProfileSection() {
     <Card>
       <CardHeader>
         <CardTitle className="text-base">Profile</CardTitle>
-        <CardDescription>Your account information from Keycloak</CardDescription>
+        <CardDescription>Your account information</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="flex items-center gap-4">
@@ -253,6 +253,7 @@ function PreferencesForm() {
                         type="number"
                         min={1}
                         max={50}
+                        className="w-24"
                         placeholder="problems / day"
                         value={field.value}
                         onChange={(e) => field.onChange(e.target.valueAsNumber)}

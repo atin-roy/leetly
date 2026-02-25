@@ -23,7 +23,7 @@ export function ListCard({ list }: { list: ProblemListDto }) {
   }
 
   return (
-    <Card>
+    <Card className="group">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base">
@@ -37,7 +37,7 @@ export function ListCard({ list }: { list: ProblemListDto }) {
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-destructive"
+                className="text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
                 onClick={handleDelete}
                 disabled={deleteMutation.isPending}
               >

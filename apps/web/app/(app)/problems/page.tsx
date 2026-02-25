@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -10,7 +10,7 @@ import { ProblemTable } from "@/components/problems/problem-table"
 import { AddProblemDialog } from "@/components/problems/add-problem-dialog"
 import { NoteEditorDialog } from "@/components/notes/note-editor-dialog"
 import { useCreateProblem, useProblems, useInvalidateProblem } from "@/hooks/use-problems"
-import { useCreateNote } from "@/hooks/use-notes"
+import { useNotes, useCreateNote, useUpdateNote } from "@/hooks/use-notes"
 import type { NoteDto, NoteTag, ProblemFilters as Filters, ProblemSummaryDto } from "@/lib/types"
 
 const PAGE_SIZE = 20
@@ -22,8 +22,20 @@ export default function ProblemsPage() {
   const invalidate = useInvalidateProblem()
   const createProblemMutation = useCreateProblem()
   const createNoteMutation = useCreateNote()
+  const updateNoteMutation = useUpdateNote()
+  const { data: notesData } = useNotes({ size: 200 })
 
-  const [problemNotes, setProblemNotes] = useState<Record<number, NoteDto>>({})
+  const problemNotes = useMemo(() => {
+    const map: Record<number, NoteDto> = {}
+    if (notesData?.content) {
+      for (const n of notesData.content) {
+        if (n.problemId != null) {
+          map[n.problemId] = n
+        }
+      }
+    }
+    return map
+  }, [notesData])
   const [noteDialogOpen, setNoteDialogOpen] = useState(false)
   const [selectedProblem, setSelectedProblem] = useState<ProblemSummaryDto | undefined>()
 
@@ -48,13 +60,17 @@ export default function ProblemsPage() {
   async function handleNoteSave({ tag, title, content }: { tag: NoteTag; title: string; content: string }) {
     if (!selectedProblem || !title.trim() || !content.trim()) return
     try {
-      const note = await createNoteMutation.mutateAsync({
-        problemId: selectedProblem.id,
-        tag,
-        title,
-        content,
-      })
-      setProblemNotes((prev) => ({ ...prev, [selectedProblem.id]: note }))
+      const existing = problemNotes[selectedProblem.id]
+      if (existing) {
+        await updateNoteMutation.mutateAsync({ id: existing.id, body: { tag, title, content } })
+      } else {
+        await createNoteMutation.mutateAsync({
+          problemId: selectedProblem.id,
+          tag,
+          title,
+          content,
+        })
+      }
     } catch {
       // Error handled by mutation
     }

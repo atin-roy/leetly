@@ -20,8 +20,13 @@ public class ProblemController {
 
     @GetMapping
     public PagedResponse<ProblemSummaryDto> findAll(
-            @PageableDefault(size = 20, sort = "leetcodeId", direction = Sort.Direction.ASC) Pageable pageable) {
-        return PagedResponse.of(problemService.findAll(pageable).map(problemMapper::toSummaryDto));
+            @PageableDefault(size = 20, sort = "leetcodeId", direction = Sort.Direction.ASC) Pageable pageable,
+            @RequestParam(required = false) String difficulty,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) Long topicId,
+            @RequestParam(required = false) Long patternId,
+            @RequestParam(required = false) String search) {
+        return PagedResponse.of(problemService.findAll(pageable, difficulty, status, topicId, patternId, search).map(problemMapper::toSummaryDto));
     }
 
     @GetMapping("/{id}")

@@ -1,13 +1,12 @@
 "use client"
 
-import { useEffect, use, useState } from "react"
+import { use, useState } from "react"
 import Link from "next/link"
 import { format } from "date-fns"
 import { ArrowLeft, Check, Copy, ExternalLink, Plus, StickyNote, Trash2, X } from "lucide-react"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import {
   Select,
   SelectContent,
@@ -20,17 +19,24 @@ import { DifficultyBadge } from "@/components/problems/difficulty-badge"
 import { StatusBadge } from "@/components/problems/status-badge"
 import { AttemptForm } from "@/components/problems/attempt-form"
 import { NoteEditorDialog } from "@/components/notes/note-editor-dialog"
-import { useProblem } from "@/hooks/use-problems"
+import {
+  useProblem,
+  useTopics,
+  usePatterns,
+  useProblems,
+  useUpdateProblemStatus,
+  useAddTopic,
+  useRemoveTopics,
+  useAddPattern,
+  useRemovePattern,
+  useAddRelatedProblem,
+} from "@/hooks/use-problems"
 import { useDeleteAttempt } from "@/hooks/use-attempts"
+import { useNotes, useCreateNote, useUpdateNote } from "@/hooks/use-notes"
 import type {
   AttemptDto,
-  NoteDto,
   NoteTag,
-  PatternDto,
-  ProblemDetailDto,
   ProblemStatus,
-  ProblemSummaryDto,
-  TopicDto,
 } from "@/lib/types"
 
 
@@ -173,44 +179,6 @@ function AttemptCard({
   )
 }
 
-// ── Inline add input ──────────────────────────────────────────────────────────
-
-function InlineAdd({
-  placeholder,
-  onAdd,
-  onCancel,
-}: {
-  placeholder: string
-  onAdd: (value: string) => void
-  onCancel: () => void
-}) {
-  const [value, setValue] = useState("")
-  function commit() {
-    const v = value.trim()
-    if (v) onAdd(v)
-    setValue("")
-  }
-  return (
-    <div className="flex items-center gap-1.5">
-      <Input
-        autoFocus
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") commit()
-          if (e.key === "Escape") onCancel()
-        }}
-        placeholder={placeholder}
-        className="h-6 text-xs"
-      />
-      <Button size="sm" className="h-6 px-2 text-xs" onClick={commit}>Add</Button>
-      <Button size="sm" variant="ghost" className="h-6 px-2" onClick={onCancel}>
-        <X className="h-3 w-3" />
-      </Button>
-    </div>
-  )
-}
-
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function ProblemDetailPage({
@@ -227,24 +195,24 @@ export default function ProblemDetailPage({
   const [editingAttempt, setEditingAttempt] = useState<AttemptDto | undefined>()
 
   // Note
-  const [note, setNote] = useState<NoteDto | undefined>()
+  const { data: notesData } = useNotes({ problemId: id })
+  const note = notesData?.content?.[0]
   const [noteDialogOpen, setNoteDialogOpen] = useState(false)
+  const createNoteMutation = useCreateNote()
+  const updateNoteMutation = useUpdateNote()
 
-  // Editable metadata (local state initialized from API data)
-  const [status, setStatus] = useState<ProblemStatus>("UNSEEN")
-  const [topics, setTopics] = useState<TopicDto[]>([])
-  const [patterns, setPatterns] = useState<PatternDto[]>([])
-  const [related, setRelated] = useState<ProblemSummaryDto[]>([])
+  // Mutations
+  const statusMutation = useUpdateProblemStatus(id)
+  const addTopicMutation = useAddTopic(id)
+  const removeTopicsMutation = useRemoveTopics(id)
+  const addPatternMutation = useAddPattern(id)
+  const removePatternMutation = useRemovePattern(id)
+  const addRelatedMutation = useAddRelatedProblem(id)
 
-  // Sync state from API data once loaded
-  useEffect(() => {
-    if (problem) {
-      setStatus(problem.status)
-      setTopics(problem.topics)
-      setPatterns(problem.patterns)
-      setRelated(problem.relatedProblems)
-    }
-  }, [problem])
+  // Data for selects
+  const { data: allTopics } = useTopics()
+  const { data: allPatterns } = usePatterns()
+  const { data: allProblems } = useProblems({ size: 200 })
 
   // Add input toggles
   const [addingTopic, setAddingTopic] = useState(false)
@@ -256,12 +224,17 @@ export default function ProblemDetailPage({
     setAttemptFormOpen(true)
   }
 
-  function handleNoteSave({ tag, title, content }: { tag: NoteTag; title: string; content: string }) {
-    setNote((prev) =>
-      prev
-        ? { ...prev, tag, title, content }
-        : { id: Date.now(), problemId: id, dateTime: new Date().toISOString(), tag, title, content }
-    )
+  async function handleNoteSave({ tag, title, content }: { tag: NoteTag; title: string; content: string }) {
+    try {
+      if (note) {
+        await updateNoteMutation.mutateAsync({ id: note.id, body: { tag, title, content } })
+      } else {
+        await createNoteMutation.mutateAsync({ problemId: id, tag, title, content })
+      }
+      toast.success(note ? "Note updated" : "Note created")
+    } catch {
+      toast.error("Failed to save note")
+    }
   }
 
   if (isLoading) {
@@ -305,10 +278,10 @@ export default function ProblemDetailPage({
 
         {/* Status */}
         <MetaRow label="status">
-          <Select value={status} onValueChange={(v) => setStatus(v as ProblemStatus)}>
+          <Select value={problem.status} onValueChange={(v) => statusMutation.mutate(v)}>
             <SelectTrigger className="h-auto w-fit border-0 p-0 shadow-none focus:ring-0 [&>svg]:ml-1 [&>svg]:h-3 [&>svg]:w-3 [&>svg]:opacity-50">
               <SelectValue>
-                <StatusBadge status={status} />
+                <StatusBadge status={problem.status} />
               </SelectValue>
             </SelectTrigger>
             <SelectContent>
@@ -342,14 +315,14 @@ export default function ProblemDetailPage({
         {/* Topics */}
         <MetaRow label="topics">
           <div className="flex flex-wrap items-center gap-1.5">
-            {topics.map((t) => (
+            {problem.topics.map((t) => (
               <span
                 key={t.id}
                 className="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium"
               >
                 {t.name}
                 <button
-                  onClick={() => setTopics((prev) => prev.filter((x) => x.id !== t.id))}
+                  onClick={() => removeTopicsMutation.mutate([t.id])}
                   className="rounded-full hover:bg-muted-foreground/20 p-0.5"
                 >
                   <X className="h-2.5 w-2.5" />
@@ -357,14 +330,25 @@ export default function ProblemDetailPage({
               </span>
             ))}
             {addingTopic ? (
-              <InlineAdd
-                placeholder="Topic name..."
-                onAdd={(name) => {
-                  setTopics((prev) => [...prev, { id: Date.now(), name, description: "" }])
+              <Select
+                onValueChange={(v) => {
+                  addTopicMutation.mutate(Number(v))
                   setAddingTopic(false)
                 }}
-                onCancel={() => setAddingTopic(false)}
-              />
+              >
+                <SelectTrigger className="h-7 w-40 text-xs">
+                  <SelectValue placeholder="Select topic..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {allTopics
+                    ?.filter((t) => !problem.topics.some((pt) => pt.id === t.id))
+                    .map((t) => (
+                      <SelectItem key={t.id} value={String(t.id)}>
+                        {t.name}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
             ) : (
               <button
                 onClick={() => setAddingTopic(true)}
@@ -380,7 +364,7 @@ export default function ProblemDetailPage({
         {/* Patterns */}
         <MetaRow label="patterns">
           <div className="space-y-1">
-            {patterns.map((p) => (
+            {problem.patterns.map((p) => (
               <div key={p.id} className="flex items-center justify-between gap-2 group/item">
                 <div className="min-w-0 flex items-center gap-1.5">
                   <span className="text-xs font-medium">{p.name}</span>
@@ -389,7 +373,7 @@ export default function ProblemDetailPage({
                   )}
                 </div>
                 <button
-                  onClick={() => setPatterns((prev) => prev.filter((x) => x.id !== p.id))}
+                  onClick={() => removePatternMutation.mutate(p.id)}
                   className="opacity-0 group-hover/item:opacity-100 shrink-0 rounded hover:bg-muted p-0.5 text-muted-foreground hover:text-foreground transition-opacity"
                 >
                   <X className="h-3 w-3" />
@@ -397,17 +381,25 @@ export default function ProblemDetailPage({
               </div>
             ))}
             {addingPattern ? (
-              <InlineAdd
-                placeholder="Pattern name..."
-                onAdd={(name) => {
-                  setPatterns((prev) => [
-                    ...prev,
-                    { id: Date.now(), name, description: "", topicId: null, topicName: null, namedAlgorithm: false },
-                  ])
+              <Select
+                onValueChange={(v) => {
+                  addPatternMutation.mutate(Number(v))
                   setAddingPattern(false)
                 }}
-                onCancel={() => setAddingPattern(false)}
-              />
+              >
+                <SelectTrigger className="h-7 w-48 text-xs">
+                  <SelectValue placeholder="Select pattern..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {allPatterns
+                    ?.filter((p) => !problem.patterns.some((pp) => pp.id === p.id))
+                    .map((p) => (
+                      <SelectItem key={p.id} value={String(p.id)}>
+                        {p.name}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
             ) : (
               <button
                 onClick={() => setAddingPattern(true)}
@@ -423,8 +415,8 @@ export default function ProblemDetailPage({
         {/* Related */}
         <MetaRow label="related">
           <div className="space-y-1">
-            {related.map((r) => (
-              <div key={r.id} className="flex items-center justify-between gap-2 group/item">
+            {problem.relatedProblems.map((r) => (
+              <div key={r.id} className="flex items-center gap-2">
                 <div className="flex items-center gap-2 min-w-0">
                   <Link
                     href={`/problems/${r.id}`}
@@ -434,26 +426,28 @@ export default function ProblemDetailPage({
                   </Link>
                   <DifficultyBadge difficulty={r.difficulty} />
                 </div>
-                <button
-                  onClick={() => setRelated((prev) => prev.filter((x) => x.id !== r.id))}
-                  className="opacity-0 group-hover/item:opacity-100 shrink-0 rounded hover:bg-muted p-0.5 text-muted-foreground hover:text-foreground transition-opacity"
-                >
-                  <X className="h-3 w-3" />
-                </button>
               </div>
             ))}
             {addingRelated ? (
-              <InlineAdd
-                placeholder="Problem title..."
-                onAdd={(title) => {
-                  setRelated((prev) => [
-                    ...prev,
-                    { id: Date.now(), leetcodeId: 0, title, url: "", difficulty: "MEDIUM", status: "UNSEEN" },
-                  ])
+              <Select
+                onValueChange={(v) => {
+                  addRelatedMutation.mutate(Number(v))
                   setAddingRelated(false)
                 }}
-                onCancel={() => setAddingRelated(false)}
-              />
+              >
+                <SelectTrigger className="h-7 w-56 text-xs">
+                  <SelectValue placeholder="Select problem..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {allProblems?.content
+                    ?.filter((p) => p.id !== id && !problem.relatedProblems.some((r) => r.id === p.id))
+                    .map((p) => (
+                      <SelectItem key={p.id} value={String(p.id)}>
+                        #{p.leetcodeId} {p.title}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
             ) : (
               <button
                 onClick={() => setAddingRelated(true)}
