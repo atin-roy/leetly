@@ -1,5 +1,6 @@
 # Build context must be the monorepo root:
 #   docker build --file apps/web/Dockerfile --build-arg NEXT_PUBLIC_API_URL=https://api.example.com .
+# rebuild: 2026-02-25
 
 # ── Stage 1: install dependencies ────────────────────────────────────────────
 FROM node:24-alpine AS deps
