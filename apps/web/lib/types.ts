@@ -199,6 +199,18 @@ export interface UpdateAttemptRequest {
   notes?: string
 }
 
+export interface CreateTopicRequest {
+  name: string
+  description?: string
+}
+
+export interface CreatePatternRequest {
+  name: string
+  description?: string
+  topicId?: number | null
+  namedAlgorithm?: boolean
+}
+
 export interface CreateNoteRequest {
   problemId?: number
   tag: NoteTag

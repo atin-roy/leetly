@@ -7,7 +7,9 @@ import {
   addProblemPattern,
   addProblemTopic,
   addRelatedProblem,
+  createPattern,
   createProblem,
+  createTopic,
   getPatterns,
   getProblem,
   getProblems,
@@ -89,6 +91,26 @@ export function useCreateProblem() {
     mutationFn: (body: Omit<ProblemSummaryDto, "id" | "status">) =>
       createProblem(session?.accessToken, body),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["problems"] }),
+  })
+}
+
+export function useCreateTopic() {
+  const { data: session } = useSession()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (body: { name: string; description?: string }) =>
+      createTopic(session?.accessToken, body),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["topics"] }),
+  })
+}
+
+export function useCreatePattern() {
+  const { data: session } = useSession()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (body: { name: string; description?: string; topicId?: number | null; namedAlgorithm?: boolean }) =>
+      createPattern(session?.accessToken, body),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["patterns"] }),
   })
 }
 

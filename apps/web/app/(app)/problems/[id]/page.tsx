@@ -8,6 +8,15 @@ import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -15,6 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Textarea } from "@/components/ui/textarea"
 import { DifficultyBadge } from "@/components/problems/difficulty-badge"
 import { StatusBadge } from "@/components/problems/status-badge"
 import { AttemptForm } from "@/components/problems/attempt-form"
@@ -24,6 +34,8 @@ import {
   useTopics,
   usePatterns,
   useProblems,
+  useCreateTopic,
+  useCreatePattern,
   useUpdateProblemStatus,
   useAddTopic,
   useRemoveTopics,
@@ -35,8 +47,11 @@ import { useDeleteAttempt } from "@/hooks/use-attempts"
 import { useNotes, useCreateNote, useUpdateNote } from "@/hooks/use-notes"
 import type {
   AttemptDto,
+  PatternDto,
   NoteTag,
   ProblemStatus,
+  ProblemSummaryDto,
+  TopicDto,
 } from "@/lib/types"
 
 
@@ -65,6 +80,48 @@ function MetaRow({ label, children }: { label: string; children: React.ReactNode
     <div className="flex items-start gap-0 px-3 py-2 border-b last:border-b-0">
       <span className="w-24 shrink-0 text-xs text-muted-foreground pt-0.5 select-none">{label}</span>
       <div className="flex-1 min-w-0">{children}</div>
+    </div>
+  )
+}
+
+function SelectorGrid({
+  options,
+  selectedIds,
+  onSelect,
+  isPending,
+}: {
+  options: Array<{ id: number; label: string; subtitle?: string }>
+  selectedIds: Set<number>
+  onSelect: (id: number) => void
+  isPending?: boolean
+}) {
+  if (options.length === 0) {
+    return (
+      <div className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">
+        No options available.
+      </div>
+    )
+  }
+
+  return (
+    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+      {options.map((option) => {
+        const isSelected = selectedIds.has(option.id)
+        return (
+          <button
+            key={option.id}
+            type="button"
+            disabled={isPending || isSelected}
+            onClick={() => onSelect(option.id)}
+            className="rounded-md border px-3 py-2 text-left transition-colors hover:border-foreground disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <p className="truncate text-xs font-medium">{option.label}</p>
+            {option.subtitle ? (
+              <p className="truncate text-[11px] text-muted-foreground">{option.subtitle}</p>
+            ) : null}
+          </button>
+        )
+      })}
     </div>
   )
 }
@@ -205,8 +262,10 @@ export default function ProblemDetailPage({
   const statusMutation = useUpdateProblemStatus(id)
   const addTopicMutation = useAddTopic(id)
   const removeTopicsMutation = useRemoveTopics(id)
+  const createTopicMutation = useCreateTopic()
   const addPatternMutation = useAddPattern(id)
   const removePatternMutation = useRemovePattern(id)
+  const createPatternMutation = useCreatePattern()
   const addRelatedMutation = useAddRelatedProblem(id)
 
   // Data for selects
@@ -214,10 +273,17 @@ export default function ProblemDetailPage({
   const { data: allPatterns } = usePatterns()
   const { data: allProblems } = useProblems({ size: 200 })
 
-  // Add input toggles
-  const [addingTopic, setAddingTopic] = useState(false)
-  const [addingPattern, setAddingPattern] = useState(false)
-  const [addingRelated, setAddingRelated] = useState(false)
+  // Metadata selector modals
+  const [topicModalOpen, setTopicModalOpen] = useState(false)
+  const [patternModalOpen, setPatternModalOpen] = useState(false)
+  const [relatedModalOpen, setRelatedModalOpen] = useState(false)
+
+  // Create flows inside selector modals
+  const [newTopicName, setNewTopicName] = useState("")
+  const [newTopicDescription, setNewTopicDescription] = useState("")
+  const [newPatternName, setNewPatternName] = useState("")
+  const [newPatternDescription, setNewPatternDescription] = useState("")
+  const [newPatternTopicId, setNewPatternTopicId] = useState<string>("none")
 
   function handleLogAttempt() {
     setEditingAttempt(undefined)
@@ -234,6 +300,99 @@ export default function ProblemDetailPage({
       toast.success(note ? "Note updated" : "Note created")
     } catch {
       toast.error("Failed to save note")
+    }
+  }
+
+  const topicIds = new Set(problem.topics.map((t) => t.id))
+  const patternIds = new Set(problem.patterns.map((p) => p.id))
+  const relatedIds = new Set(problem.relatedProblems.map((r) => r.id))
+
+  const topicOptions = (allTopics ?? []).map((t: TopicDto) => ({ id: t.id, label: t.name }))
+  const patternOptions = (allPatterns ?? []).map((p: PatternDto) => ({
+    id: p.id,
+    label: p.name,
+    subtitle: p.topicName ?? undefined,
+  }))
+  const relatedOptions = (allProblems?.content ?? [])
+    .filter((p: ProblemSummaryDto) => p.id !== id)
+    .map((p: ProblemSummaryDto) => ({
+      id: p.id,
+      label: `#${p.leetcodeId} ${p.title}`,
+      subtitle: p.difficulty,
+    }))
+
+  async function handleAddTopic(topicId: number) {
+    try {
+      await addTopicMutation.mutateAsync(topicId)
+      toast.success("Topic added")
+      setTopicModalOpen(false)
+    } catch {
+      toast.error("Failed to add topic")
+    }
+  }
+
+  async function handleCreateTopic() {
+    const name = newTopicName.trim()
+    if (!name) {
+      toast.error("Topic name is required")
+      return
+    }
+    try {
+      const created = await createTopicMutation.mutateAsync({
+        name,
+        description: newTopicDescription.trim() || undefined,
+      })
+      await addTopicMutation.mutateAsync(created.id)
+      toast.success("Topic created and added")
+      setNewTopicName("")
+      setNewTopicDescription("")
+      setTopicModalOpen(false)
+    } catch {
+      toast.error("Failed to create topic")
+    }
+  }
+
+  async function handleAddPattern(patternId: number) {
+    try {
+      await addPatternMutation.mutateAsync(patternId)
+      toast.success("Pattern added")
+      setPatternModalOpen(false)
+    } catch {
+      toast.error("Failed to add pattern")
+    }
+  }
+
+  async function handleCreatePattern() {
+    const name = newPatternName.trim()
+    if (!name) {
+      toast.error("Pattern name is required")
+      return
+    }
+    try {
+      const created = await createPatternMutation.mutateAsync({
+        name,
+        description: newPatternDescription.trim() || undefined,
+        topicId: newPatternTopicId === "none" ? null : Number(newPatternTopicId),
+        namedAlgorithm: false,
+      })
+      await addPatternMutation.mutateAsync(created.id)
+      toast.success("Pattern created and added")
+      setNewPatternName("")
+      setNewPatternDescription("")
+      setNewPatternTopicId("none")
+      setPatternModalOpen(false)
+    } catch {
+      toast.error("Failed to create pattern")
+    }
+  }
+
+  async function handleAddRelated(relatedId: number) {
+    try {
+      await addRelatedMutation.mutateAsync(relatedId)
+      toast.success("Related problem added")
+      setRelatedModalOpen(false)
+    } catch {
+      toast.error("Failed to add related problem")
     }
   }
 
@@ -329,35 +488,13 @@ export default function ProblemDetailPage({
                 </button>
               </span>
             ))}
-            {addingTopic ? (
-              <Select
-                onValueChange={(v) => {
-                  addTopicMutation.mutate(Number(v))
-                  setAddingTopic(false)
-                }}
-              >
-                <SelectTrigger className="h-7 w-40 text-xs">
-                  <SelectValue placeholder="Select topic..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {allTopics
-                    ?.filter((t) => !problem.topics.some((pt) => pt.id === t.id))
-                    .map((t) => (
-                      <SelectItem key={t.id} value={String(t.id)}>
-                        {t.name}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
-            ) : (
-              <button
-                onClick={() => setAddingTopic(true)}
-                className="inline-flex items-center gap-1 rounded-full border border-dashed px-2.5 py-0.5 text-xs text-muted-foreground hover:border-foreground hover:text-foreground transition-colors"
-              >
-                <Plus className="h-2.5 w-2.5" />
-                Add
-              </button>
-            )}
+            <button
+              onClick={() => setTopicModalOpen(true)}
+              className="inline-flex items-center gap-1 rounded-full border border-dashed px-2.5 py-0.5 text-xs text-muted-foreground hover:border-foreground hover:text-foreground transition-colors"
+            >
+              <Plus className="h-2.5 w-2.5" />
+              Add
+            </button>
           </div>
         </MetaRow>
 
@@ -380,35 +517,13 @@ export default function ProblemDetailPage({
                 </button>
               </div>
             ))}
-            {addingPattern ? (
-              <Select
-                onValueChange={(v) => {
-                  addPatternMutation.mutate(Number(v))
-                  setAddingPattern(false)
-                }}
-              >
-                <SelectTrigger className="h-7 w-48 text-xs">
-                  <SelectValue placeholder="Select pattern..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {allPatterns
-                    ?.filter((p) => !problem.patterns.some((pp) => pp.id === p.id))
-                    .map((p) => (
-                      <SelectItem key={p.id} value={String(p.id)}>
-                        {p.name}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
-            ) : (
-              <button
-                onClick={() => setAddingPattern(true)}
-                className="inline-flex items-center gap-1 rounded-full border border-dashed px-2.5 py-0.5 text-xs text-muted-foreground hover:border-foreground hover:text-foreground transition-colors"
-              >
-                <Plus className="h-2.5 w-2.5" />
-                Add
-              </button>
-            )}
+            <button
+              onClick={() => setPatternModalOpen(true)}
+              className="inline-flex items-center gap-1 rounded-full border border-dashed px-2.5 py-0.5 text-xs text-muted-foreground hover:border-foreground hover:text-foreground transition-colors"
+            >
+              <Plus className="h-2.5 w-2.5" />
+              Add
+            </button>
           </div>
         </MetaRow>
 
@@ -428,35 +543,13 @@ export default function ProblemDetailPage({
                 </div>
               </div>
             ))}
-            {addingRelated ? (
-              <Select
-                onValueChange={(v) => {
-                  addRelatedMutation.mutate(Number(v))
-                  setAddingRelated(false)
-                }}
-              >
-                <SelectTrigger className="h-7 w-56 text-xs">
-                  <SelectValue placeholder="Select problem..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {allProblems?.content
-                    ?.filter((p) => p.id !== id && !problem.relatedProblems.some((r) => r.id === p.id))
-                    .map((p) => (
-                      <SelectItem key={p.id} value={String(p.id)}>
-                        #{p.leetcodeId} {p.title}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
-            ) : (
-              <button
-                onClick={() => setAddingRelated(true)}
-                className="inline-flex items-center gap-1 rounded-full border border-dashed px-2.5 py-0.5 text-xs text-muted-foreground hover:border-foreground hover:text-foreground transition-colors"
-              >
-                <Plus className="h-2.5 w-2.5" />
-                Add
-              </button>
-            )}
+            <button
+              onClick={() => setRelatedModalOpen(true)}
+              className="inline-flex items-center gap-1 rounded-full border border-dashed px-2.5 py-0.5 text-xs text-muted-foreground hover:border-foreground hover:text-foreground transition-colors"
+            >
+              <Plus className="h-2.5 w-2.5" />
+              Add
+            </button>
           </div>
         </MetaRow>
 
@@ -525,6 +618,134 @@ export default function ProblemDetailPage({
         problemId={id}
         attempt={editingAttempt}
       />
+
+      <Dialog open={topicModalOpen} onOpenChange={setTopicModalOpen}>
+        <DialogContent className="sm:max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Add Topics</DialogTitle>
+            <DialogDescription>Select one topic from the grid to add it to this problem.</DialogDescription>
+          </DialogHeader>
+          <SelectorGrid
+            options={topicOptions}
+            selectedIds={topicIds}
+            onSelect={handleAddTopic}
+            isPending={addTopicMutation.isPending}
+          />
+          <div className="space-y-2 rounded-md border border-dashed p-3">
+            <p className="text-xs font-medium">Create new topic</p>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <div className="space-y-1">
+                <Label htmlFor="new-topic-name">Name</Label>
+                <Input
+                  id="new-topic-name"
+                  value={newTopicName}
+                  onChange={(e) => setNewTopicName(e.target.value)}
+                  placeholder="e.g. Backtracking"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="new-topic-description">Description</Label>
+                <Textarea
+                  id="new-topic-description"
+                  value={newTopicDescription}
+                  onChange={(e) => setNewTopicDescription(e.target.value)}
+                  className="min-h-20"
+                  placeholder="Short description (optional)"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end">
+              <Button onClick={handleCreateTopic} disabled={createTopicMutation.isPending || addTopicMutation.isPending}>
+                Create and Add
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={patternModalOpen} onOpenChange={setPatternModalOpen}>
+        <DialogContent className="sm:max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Add Patterns</DialogTitle>
+            <DialogDescription>Select one pattern from the grid to add it to this problem.</DialogDescription>
+          </DialogHeader>
+          <SelectorGrid
+            options={patternOptions}
+            selectedIds={patternIds}
+            onSelect={handleAddPattern}
+            isPending={addPatternMutation.isPending}
+          />
+          <div className="space-y-2 rounded-md border border-dashed p-3">
+            <p className="text-xs font-medium">Create new pattern</p>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <div className="space-y-1">
+                <Label htmlFor="new-pattern-name">Name</Label>
+                <Input
+                  id="new-pattern-name"
+                  value={newPatternName}
+                  onChange={(e) => setNewPatternName(e.target.value)}
+                  placeholder="e.g. Two Pointers"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="new-pattern-topic">Topic</Label>
+                <Select value={newPatternTopicId} onValueChange={setNewPatternTopicId}>
+                  <SelectTrigger id="new-pattern-topic">
+                    <SelectValue placeholder="Optional topic" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    {(allTopics ?? []).map((topic) => (
+                      <SelectItem key={topic.id} value={String(topic.id)}>
+                        {topic.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1 sm:col-span-2">
+                <Label htmlFor="new-pattern-description">Description</Label>
+                <Textarea
+                  id="new-pattern-description"
+                  value={newPatternDescription}
+                  onChange={(e) => setNewPatternDescription(e.target.value)}
+                  className="min-h-20"
+                  placeholder="Short description (optional)"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end">
+              <Button
+                onClick={handleCreatePattern}
+                disabled={createPatternMutation.isPending || addPatternMutation.isPending}
+              >
+                Create and Add
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={relatedModalOpen} onOpenChange={setRelatedModalOpen}>
+        <DialogContent className="sm:max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Add Related Problem</DialogTitle>
+            <DialogDescription>Select one problem from the grid to mark it as related.</DialogDescription>
+          </DialogHeader>
+          <SelectorGrid
+            options={relatedOptions}
+            selectedIds={relatedIds}
+            onSelect={handleAddRelated}
+            isPending={addRelatedMutation.isPending}
+          />
+          <div className="flex items-center justify-between rounded-md border border-dashed p-3">
+            <p className="text-xs text-muted-foreground">Need a problem that is not here yet?</p>
+            <Button asChild variant="outline" size="sm">
+              <Link href="/problems">Create New Problem</Link>
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <NoteEditorDialog
         open={noteDialogOpen}

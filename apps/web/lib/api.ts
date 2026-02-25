@@ -2,6 +2,8 @@ import type {
   AttemptDto,
   CreateListRequest,
   CreateNoteRequest,
+  CreatePatternRequest,
+  CreateTopicRequest,
   DailyStatDto,
   Language,
   LogAttemptRequest,
@@ -152,6 +154,26 @@ export function getTopics(token: string | undefined): Promise<TopicDto[]> {
 
 export function getPatterns(token: string | undefined): Promise<PatternDto[]> {
   return apiFetch("/api/patterns", token)
+}
+
+export function createTopic(
+  token: string | undefined,
+  body: CreateTopicRequest,
+): Promise<TopicDto> {
+  return apiFetch("/api/topics", token, {
+    method: "POST",
+    body: JSON.stringify(body),
+  })
+}
+
+export function createPattern(
+  token: string | undefined,
+  body: CreatePatternRequest,
+): Promise<PatternDto> {
+  return apiFetch("/api/patterns", token, {
+    method: "POST",
+    body: JSON.stringify(body),
+  })
 }
 
 // ─── Attempts ────────────────────────────────────────────────────────────────
