@@ -26,7 +26,7 @@ public interface ProblemRepository extends JpaRepository<Problem, Long> {
      * Eagerly fetches all collections needed by ProblemDetailDto to avoid
      * separate lazy-load queries per collection.
      */
-    @EntityGraph(attributePaths = {"topics", "patterns", "patterns.topic", "relatedProblems"})
+    @EntityGraph(attributePaths = {"topics", "patterns", "patterns.topic", "relatedProblems", "attempts", "attempts.mistakes"})
     @Query("SELECT p FROM Problem p WHERE p.id = :id")
     Optional<Problem> findDetailById(@Param("id") Long id);
 }
