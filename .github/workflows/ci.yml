@@ -160,13 +160,17 @@ jobs:
             if [ "${{ needs.changes.outputs.api }}" = "true" ]; then
               echo "→ Pulling and restarting API..."
               docker compose pull leetly-api
-              docker compose up -d --no-deps --force-recreate leetly-api
+              docker stop leetly-api 2>/dev/null || true
+              docker rm leetly-api 2>/dev/null || true
+              docker compose up -d --no-deps leetly-api
             fi
 
             if [ "${{ needs.changes.outputs.web }}" = "true" ]; then
               echo "→ Pulling and restarting Web..."
               docker compose pull leetly-web
-              docker compose up -d --no-deps --force-recreate leetly-web
+              docker stop leetly-web 2>/dev/null || true
+              docker rm leetly-web 2>/dev/null || true
+              docker compose up -d --no-deps leetly-web
             fi
 
             docker image prune -f
