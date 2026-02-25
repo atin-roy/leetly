@@ -15,7 +15,7 @@ import type { Language } from "@/lib/types"
 export function useSettings() {
   const { data: session } = useSession()
   return useQuery({
-    queryKey: ["settings"],
+    queryKey: ["settings", session?.accessToken ?? null],
     queryFn: () => getUserSettings(session?.accessToken),
     enabled: !!session?.accessToken,
   })

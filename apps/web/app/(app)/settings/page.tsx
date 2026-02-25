@@ -38,7 +38,6 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useSettings, useUpdateLanguage, useUpdateDailyGoal, useUpdateTimezone } from "@/hooks/use-settings"
 import { useTheme } from "@/hooks/use-theme"
 import { THEMES } from "@/lib/themes"
-import { cn } from "@/lib/utils"
 import type { Language } from "@/lib/types"
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -119,6 +118,27 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>
 
+function normalizeSettings(values?: {
+  preferredLanguage?: Language | null
+  dailyGoal?: number | null
+  timezone?: string | null
+}): FormValues {
+  const preferredLanguage =
+    values?.preferredLanguage && LANGUAGES.includes(values.preferredLanguage)
+      ? values.preferredLanguage
+      : "JAVA"
+  const timezone =
+    values?.timezone && TIMEZONES.includes(values.timezone)
+      ? values.timezone
+      : "UTC"
+  const dailyGoal =
+    typeof values?.dailyGoal === "number" && Number.isFinite(values.dailyGoal)
+      ? Math.min(50, Math.max(1, Math.trunc(values.dailyGoal)))
+      : 1
+
+  return { preferredLanguage, dailyGoal, timezone }
+}
+
 function getInitials(name: string) {
   return name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
 }
@@ -158,7 +178,7 @@ function ProfileSection() {
 }
 
 function PreferencesForm() {
-  const { data: settings, isPending } = useSettings()
+  const { data: settings, isPending, refetch } = useSettings()
   const languageMutation = useUpdateLanguage()
   const goalMutation = useUpdateDailyGoal()
   const timezoneMutation = useUpdateTimezone()
@@ -166,20 +186,12 @@ function PreferencesForm() {
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: {
-      preferredLanguage: "PYTHON",
-      dailyGoal: 1,
-      timezone: "UTC",
-    },
+    defaultValues: normalizeSettings(),
   })
 
   useEffect(() => {
     if (settings) {
-      form.reset({
-        preferredLanguage: settings.preferredLanguage,
-        dailyGoal: settings.dailyGoal,
-        timezone: settings.timezone,
-      })
+      form.reset(normalizeSettings(settings))
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [settings])
@@ -200,6 +212,10 @@ function PreferencesForm() {
         await timezoneMutation.mutateAsync(values.timezone)
       }
       if (changed) {
+        const latest = await refetch()
+        if (latest.data) {
+          form.reset(normalizeSettings(latest.data))
+        }
         toast.success("Settings saved")
       }
     } catch {
@@ -259,8 +275,16 @@ function PreferencesForm() {
                         max={50}
                         className="w-24"
                         placeholder="problems / day"
-                        value={field.value}
-                        onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                        value={Number.isFinite(field.value) ? field.value : ""}
+                        onChange={(e) => {
+                          const raw = e.target.value
+                          if (raw === "") {
+                            field.onChange(undefined)
+                            return
+                          }
+                          const next = Number(raw)
+                          field.onChange(Number.isFinite(next) ? next : undefined)
+                        }}
                         onBlur={field.onBlur}
                         name={field.name}
                       />
