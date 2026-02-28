@@ -44,6 +44,10 @@ interface Props {
   notedProblemIds?: Set<number>
 }
 
+function isInteractiveTarget(target: EventTarget | null) {
+  return target instanceof HTMLElement && Boolean(target.closest("[data-interactive='true']"))
+}
+
 function FillerRow() {
   return (
     <TableRow className={`${ROW_H} pointer-events-none select-none`}>
@@ -76,9 +80,13 @@ function StatusCell({ problem }: { problem: ProblemSummaryDto }) {
   }
 
   return (
-    <div onClick={(e) => e.stopPropagation()}>
+    <div data-interactive="true" className="flex justify-center" onClick={(e) => e.stopPropagation()}>
       <Select value={status} onValueChange={handleChange} disabled={statusMutation.isPending}>
-        <SelectTrigger className="mx-auto h-auto min-w-[9rem] justify-center border-0 p-0 shadow-none focus:ring-0 [&>svg]:ml-1 [&>svg]:h-3 [&>svg]:w-3 [&>svg]:opacity-50">
+        <SelectTrigger
+          data-interactive="true"
+          className="h-8 min-w-[9.5rem] justify-between rounded-full border border-border/80 bg-background px-2.5 shadow-none focus:ring-0"
+          onClick={(e) => e.stopPropagation()}
+        >
           <SelectValue>
             <StatusBadge status={status} />
           </SelectValue>
@@ -164,25 +172,30 @@ export function ProblemTable({
                 <TableRow
                   key={p.id}
                   className={`${ROW_H} group cursor-pointer`}
-                  onClick={() => router.push(`/problems/${p.id}`)}
+                  onClick={(e) => {
+                    if (isInteractiveTarget(e.target)) return
+                    router.push(`/problems/${p.id}`)
+                  }}
                 >
                   <TableCell className="font-mono text-sm text-muted-foreground">
                     {p.leetcodeId}
                   </TableCell>
                   <TableCell className="font-medium">{p.title}</TableCell>
-                  <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
+                  <TableCell className="text-center" data-interactive="true" onClick={(e) => e.stopPropagation()}>
                     <a
                       href={p.url}
                       target="_blank"
                       rel="noopener noreferrer"
+                      data-interactive="true"
                       className="inline-flex text-muted-foreground hover:text-foreground"
                     >
                       <ExternalLink className="h-4 w-4" />
                     </a>
                   </TableCell>
-                  <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
+                  <TableCell className="text-center" data-interactive="true" onClick={(e) => e.stopPropagation()}>
                     <button
                       onClick={() => onNoteClick?.(p)}
+                      data-interactive="true"
                       className={
                         hasNote
                           ? "inline-flex text-primary hover:text-primary/70"
@@ -197,12 +210,13 @@ export function ProblemTable({
                   <TableCell className="text-center">
                     <DifficultyBadge difficulty={p.difficulty} />
                   </TableCell>
-                  <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
+                  <TableCell className="text-center" data-interactive="true" onClick={(e) => e.stopPropagation()}>
                     <StatusCell problem={p} />
                   </TableCell>
-                  <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
+                  <TableCell className="text-center" data-interactive="true" onClick={(e) => e.stopPropagation()}>
                     <button
                       onClick={() => onDelete?.(p)}
+                      data-interactive="true"
                       disabled={!onDelete}
                       title="Remove problem"
                       className="inline-flex opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive disabled:pointer-events-none"
