@@ -11,16 +11,19 @@ declare module "next-auth" {
 async function refreshAccessToken(refreshToken: string) {
   const issuer = process.env.KEYCLOAK_ISSUER!
   const tokenUrl = `${issuer}/protocol/openid-connect/token`
+  const clientSecret = process.env.KEYCLOAK_CLIENT_SECRET?.trim()
+  const body = new URLSearchParams({
+    grant_type: "refresh_token",
+    client_id: process.env.KEYCLOAK_CLIENT_ID!,
+    refresh_token: refreshToken,
+  })
+
+  if (clientSecret) body.set("client_secret", clientSecret)
 
   const response = await fetch(tokenUrl, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      grant_type: "refresh_token",
-      client_id: process.env.KEYCLOAK_CLIENT_ID!,
-      client_secret: process.env.KEYCLOAK_CLIENT_SECRET!,
-      refresh_token: refreshToken,
-    }),
+    body,
   })
 
   const tokens = await response.json()
@@ -37,8 +40,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
     Keycloak({
       clientId: process.env.KEYCLOAK_CLIENT_ID!,
-      clientSecret: process.env.KEYCLOAK_CLIENT_SECRET!,
       issuer: process.env.KEYCLOAK_ISSUER!,
+      ...(process.env.KEYCLOAK_CLIENT_SECRET?.trim()
+        ? { clientSecret: process.env.KEYCLOAK_CLIENT_SECRET.trim() }
+        : {}),
     }),
   ],
   pages: {
@@ -99,17 +104,21 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (refreshToken) {
           const issuer = process.env.KEYCLOAK_ISSUER!
           const logoutUrl = `${issuer}/protocol/openid-connect/logout`
+          const clientSecret = process.env.KEYCLOAK_CLIENT_SECRET?.trim()
+          const body = new URLSearchParams({
+            client_id: process.env.KEYCLOAK_CLIENT_ID!,
+            refresh_token: refreshToken,
+          })
+
+          if (clientSecret) body.set("client_secret", clientSecret)
+
           try {
             await fetch(logoutUrl, {
               method: "POST",
               headers: {
                 "Content-Type": "application/x-www-form-urlencoded",
               },
-              body: new URLSearchParams({
-                client_id: process.env.KEYCLOAK_CLIENT_ID!,
-                client_secret: process.env.KEYCLOAK_CLIENT_SECRET!,
-                refresh_token: refreshToken,
-              }),
+              body,
             })
           } catch (error) {
             console.error("Error ending Keycloak session:", error)

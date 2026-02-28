@@ -1,4 +1,4 @@
-import { auth, signIn } from "@/lib/auth"
+import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 
 export default async function SignInPage({
@@ -12,5 +12,7 @@ export default async function SignInPage({
 
     // Otherwise, send directly to Keycloak — no middleman UI
     const { callbackUrl } = await searchParams
-    await signIn("keycloak", { redirectTo: callbackUrl ?? "/dashboard" })
+    redirect(
+        `/api/auth/signin/keycloak?callbackUrl=${encodeURIComponent(callbackUrl ?? "/dashboard")}`,
+    )
 }

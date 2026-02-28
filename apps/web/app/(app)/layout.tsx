@@ -1,7 +1,8 @@
-import { auth, signIn } from "@/lib/auth"
+import { auth } from "@/lib/auth"
 import { AppSidebar } from "@/components/layout/app-sidebar"
 import { Header } from "@/components/layout/header"
 import { SidebarProvider } from "@/components/layout/sidebar-context"
+import { redirect } from "next/navigation"
 
 export default async function AppLayout({
   children,
@@ -9,7 +10,7 @@ export default async function AppLayout({
   children: React.ReactNode
 }) {
   const session = await auth()
-  if (!session || session.error === "RefreshTokenError") await signIn("keycloak")
+  if (!session || session.error === "RefreshTokenError") redirect("/sign-in")
 
   return (
     <SidebarProvider>
