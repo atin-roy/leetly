@@ -134,7 +134,7 @@ jobs:
   deploy:
     name: Deploy to VPS
     needs: [changes, api, web]
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     if: >-
       always() &&
       github.ref == 'refs/heads/main' &&
@@ -143,28 +143,52 @@ jobs:
       (needs.changes.outputs.api == 'true' || needs.changes.outputs.web == 'true')
 
     steps:
-      - name: Deploy on self-hosted runner
+      - name: Start SSH agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.VPS_SSH_KEY }}
+
+      - name: Add VPS host key
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H "$VPS_HOST" >> ~/.ssh/known_hosts
+
+      - name: Deploy over SSH
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_GHCR_USER: ${{ secrets.VPS_GHCR_USER }}
+          VPS_GHCR_TOKEN: ${{ secrets.VPS_GHCR_TOKEN }}
+          API_CHANGED: ${{ needs.changes.outputs.api }}
+          WEB_CHANGED: ${{ needs.changes.outputs.web }}
         shell: bash
         run: |
           set -euo pipefail
 
-          echo "${{ secrets.VPS_GHCR_TOKEN }}" | docker login ghcr.io -u "${{ secrets.VPS_GHCR_USER }}" --password-stdin
+          ssh "$VPS_USER@$VPS_HOST" \
+            "export VPS_GHCR_USER='$VPS_GHCR_USER' VPS_GHCR_TOKEN='$VPS_GHCR_TOKEN' API_CHANGED='$API_CHANGED' WEB_CHANGED='$WEB_CHANGED'; bash -s" <<'EOF'
+          set -euo pipefail
+
+          echo "$VPS_GHCR_TOKEN" | docker login ghcr.io -u "$VPS_GHCR_USER" --password-stdin
 
           # The infra compose at /srv/infra includes /srv/apps/leetly/docker-compose.yml
           # so all service management is done from there.
           cd /srv/infra
 
           # Only pull & restart the services that changed
-          if [ "${{ needs.changes.outputs.api }}" = "true" ]; then
-            echo "→ Pulling and restarting API..."
+          if [ "$API_CHANGED" = "true" ]; then
+            echo "Pulling and restarting API..."
             docker compose pull leetly-api
             docker compose up -d --no-deps leetly-api
           fi
 
-          if [ "${{ needs.changes.outputs.web }}" = "true" ]; then
-            echo "→ Pulling and restarting Web..."
+          if [ "$WEB_CHANGED" = "true" ]; then
+            echo "Pulling and restarting Web..."
             docker compose pull leetly-web
             docker compose up -d --no-deps leetly-web
           fi
 
           docker image prune -f
+          EOF
