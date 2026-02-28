@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useRef, useState } from "react"
 import Link from "next/link"
 import { AlertCircle, ArrowRight, CheckCircle2, ExternalLink, Loader2, Plus, RotateCcw } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -13,40 +13,26 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { fetchLeetCodeProblem, parseProblemInput, type FetchedProblem } from "@/lib/leetcode"
 import { DifficultyBadge } from "./difficulty-badge"
-import type { Difficulty, ProblemSummaryDto } from "@/lib/types"
-
-interface FetchedProblem {
-  leetcodeId: number
-  title: string
-  difficulty: Difficulty
-  url: string
-}
-
-function parseInput(input: string): { param: "id" | "slug"; value: string } | null {
-  const t = input.trim()
-  if (/^\d+$/.test(t)) return { param: "id", value: t }
-  const m = t.match(/leetcode\.com\/problems\/([\w-]+)/i)
-  if (m) return { param: "slug", value: m[1] }
-  return null
-}
-
-async function fetchProblem(input: string): Promise<FetchedProblem> {
-  const parsed = parseInput(input)
-  if (!parsed) throw new Error("Enter a valid problem number or LeetCode URL")
-  const res = await fetch(`/api/leetcode?${parsed.param}=${parsed.value}`)
-  const data = await res.json()
-  if (!res.ok) throw new Error(data.error ?? "Failed to fetch problem")
-  return data
-}
+import type { ProblemSummaryDto } from "@/lib/types"
 
 interface Props {
   onAdd: (problem: Omit<ProblemSummaryDto, "id" | "status">) => Promise<ProblemSummaryDto>
   /** Maps leetcodeId → internal problem id for duplicate detection */
   existingProblems: Map<number, number>
+  triggerLabel?: string
+  title?: string
+  submitLabel?: string
 }
 
-export function AddProblemDialog({ onAdd, existingProblems }: Props) {
+export function AddProblemDialog({
+  onAdd,
+  existingProblems,
+  triggerLabel = "New Problem",
+  title = "Track a Problem",
+  submitLabel = "Add to My Problems",
+}: Props) {
   const [open, setOpen] = useState(false)
   const [step, setStep] = useState<"form" | "adding" | "added">("form")
   const [input, setInput] = useState("")
@@ -70,20 +56,24 @@ export function AddProblemDialog({ onAdd, existingProblems }: Props) {
     setAdded(null)
   }
 
-  useEffect(() => {
+  function handleInputChange(value: string) {
+    setInput(value)
+
     if (debounceRef.current) clearTimeout(debounceRef.current)
-    if (!input.trim() || !parseInput(input)) {
+    if (!value.trim() || !parseProblemInput(value)) {
       setFetchStatus("idle")
       setPreview(null)
       setError(null)
       return
     }
+
     setFetchStatus("loading")
     setPreview(null)
     setError(null)
+
     debounceRef.current = setTimeout(async () => {
       try {
-        const result = await fetchProblem(input)
+        const result = await fetchLeetCodeProblem(value)
         setPreview(result)
         setFetchStatus("fetched")
       } catch (e) {
@@ -91,8 +81,7 @@ export function AddProblemDialog({ onAdd, existingProblems }: Props) {
         setFetchStatus("error")
       }
     }, 500)
-    return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
-  }, [input])
+  }
 
   const duplicateId = preview ? existingProblems.get(preview.leetcodeId) : undefined
   const isDuplicate = duplicateId !== undefined
@@ -126,14 +115,14 @@ export function AddProblemDialog({ onAdd, existingProblems }: Props) {
       <DialogTrigger asChild>
         <Button size="sm">
           <Plus className="mr-1.5 h-4 w-4" />
-          New Problem
+          {triggerLabel}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         {step !== "added" ? (
           <>
             <DialogHeader>
-              <DialogTitle>Track a Problem</DialogTitle>
+              <DialogTitle>{title}</DialogTitle>
             </DialogHeader>
 
             <div className="space-y-4 pt-2">
@@ -144,7 +133,7 @@ export function AddProblemDialog({ onAdd, existingProblems }: Props) {
                     id="problem-input"
                     placeholder="e.g. 42 or leetcode.com/problems/two-sum/"
                     value={input}
-                    onChange={(e) => setInput(e.target.value)}
+                    onChange={(e) => handleInputChange(e.target.value)}
                     className={fetchStatus === "loading" ? "pr-8" : ""}
                   />
                   {fetchStatus === "loading" && (
@@ -203,7 +192,7 @@ export function AddProblemDialog({ onAdd, existingProblems }: Props) {
                   Cancel
                 </Button>
                 <Button onClick={handleAdd} disabled={!preview || isDuplicate || step === "adding"}>
-                  {step === "adding" ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Adding…</> : "Add to My Problems"}
+                  {step === "adding" ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Adding…</> : submitLabel}
                 </Button>
               </div>
             </div>

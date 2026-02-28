@@ -90,7 +90,10 @@ export function useCreateProblem() {
   return useMutation({
     mutationFn: (body: Omit<ProblemSummaryDto, "id" | "status">) =>
       createProblem(session?.accessToken, body),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["problems"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["problems"] })
+      qc.invalidateQueries({ queryKey: ["lists"] })
+    },
   })
 }
 

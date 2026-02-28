@@ -1,6 +1,8 @@
 package com.atinroy.leetly.problem;
 
 import com.atinroy.leetly.common.ResourceNotFoundException;
+import com.atinroy.leetly.user.ProblemList;
+import com.atinroy.leetly.user.ProblemListRepository;
 import com.atinroy.leetly.user.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -17,6 +19,7 @@ import java.util.List;
 public class ProblemService {
 
     private final ProblemRepository problemRepository;
+    private final ProblemListRepository problemListRepository;
     private final TopicService topicService;
     private final PatternService patternService;
 
@@ -46,7 +49,16 @@ public class ProblemService {
         problem.setUrl(request.url());
         problem.setDifficulty(request.difficulty());
         problem.setStatus(ProblemStatus.UNSEEN);
-        return problemRepository.save(problem);
+
+        Problem savedProblem = problemRepository.save(problem);
+        ProblemList defaultList = problemListRepository.findByUserAndIsDefaultTrue(user)
+                .orElseThrow(() -> new ResourceNotFoundException("Default problem list not found for user: " + user.getId()));
+        if (!defaultList.getProblems().contains(savedProblem)) {
+            defaultList.getProblems().add(savedProblem);
+            problemListRepository.save(defaultList);
+        }
+
+        return savedProblem;
     }
 
     public Problem update(long id, CreateProblemRequest request, User user) {
