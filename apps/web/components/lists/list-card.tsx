@@ -7,9 +7,16 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useDeleteList } from "@/hooks/use-lists"
-import type { ProblemListDto } from "@/lib/types"
+import type { ProblemListDto, ProblemSummaryDto } from "@/lib/types"
+import { AddProblemToListDialog } from "./add-problem-to-list-dialog"
 
-export function ListCard({ list }: { list: ProblemListDto }) {
+export function ListCard({
+  list,
+  problems,
+}: {
+  list: ProblemListDto
+  problems: ProblemSummaryDto[]
+}) {
   const deleteMutation = useDeleteList()
 
   async function handleDelete() {
@@ -48,9 +55,18 @@ export function ListCard({ list }: { list: ProblemListDto }) {
         </div>
       </CardHeader>
       <CardContent>
-        <p className="text-sm text-muted-foreground">
-          {list.problems.length} problem{list.problems.length !== 1 ? "s" : ""}
-        </p>
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-sm text-muted-foreground">
+            {list.problems.length} problem{list.problems.length !== 1 ? "s" : ""}
+          </p>
+          <AddProblemToListDialog
+            listId={list.id}
+            listName={list.name}
+            listProblemIds={list.problems.map((problem) => problem.id)}
+            problems={problems}
+            buttonVariant="outline"
+          />
+        </div>
       </CardContent>
     </Card>
   )

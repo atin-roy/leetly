@@ -26,14 +26,13 @@ import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ListCard } from "@/components/lists/list-card"
 import { useCreateList, useProblemLists } from "@/hooks/use-lists"
-import type { ProblemListDto } from "@/lib/types"
-
-
+import { useProblems } from "@/hooks/use-problems"
 
 const schema = z.object({ name: z.string().min(1, "Name is required") })
 
 export default function ListsPage() {
   const { data: lists, isLoading } = useProblemLists()
+  const { data: problems } = useProblems({ size: 200 })
   const createMutation = useCreateList()
   const [open, setOpen] = useState(false)
 
@@ -114,7 +113,7 @@ export default function ListsPage() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {lists.map((list) => (
-            <ListCard key={list.id} list={list} />
+            <ListCard key={list.id} list={list} problems={problems?.content ?? []} />
           ))}
         </div>
       )}

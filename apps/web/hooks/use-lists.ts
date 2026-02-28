@@ -60,8 +60,10 @@ export function useAddProblemToList() {
       listId: number
       problemId: number
     }) => addProblemToList(session?.accessToken, listId, problemId),
-    onSuccess: (_data, { listId }) =>
-      qc.invalidateQueries({ queryKey: ["lists", listId] }),
+    onSuccess: (_data, { listId }) => {
+      qc.invalidateQueries({ queryKey: ["lists"] })
+      qc.invalidateQueries({ queryKey: ["lists", listId] })
+    },
   })
 }
 
@@ -76,7 +78,9 @@ export function useRemoveProblemFromList() {
       listId: number
       problemId: number
     }) => removeProblemFromList(session?.accessToken, listId, problemId),
-    onSuccess: (_data, { listId }) =>
-      qc.invalidateQueries({ queryKey: ["lists", listId] }),
+    onSuccess: (_data, { listId }) => {
+      qc.invalidateQueries({ queryKey: ["lists"] })
+      qc.invalidateQueries({ queryKey: ["lists", listId] })
+    },
   })
 }
