@@ -163,7 +163,23 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p ~/.ssh
-          ssh-keyscan -p "${VPS_SSH_PORT}" -H "${VPS_HOST}" >> ~/.ssh/known_hosts
+          touch ~/.ssh/known_hosts
+
+          host_keys="$(mktemp)"
+          trap 'rm -f "$host_keys"' EXIT
+
+          for attempt in 1 2 3 4 5; do
+            if ssh-keyscan -4 -T 10 -t rsa,ecdsa,ed25519 -p "${VPS_SSH_PORT}" -H "${VPS_HOST}" > "$host_keys" 2>/dev/null && [[ -s "$host_keys" ]]; then
+              cat "$host_keys" >> ~/.ssh/known_hosts
+              exit 0
+            fi
+
+            echo "ssh-keyscan attempt ${attempt}/5 failed for ${VPS_HOST}:${VPS_SSH_PORT}" >&2
+            sleep 3
+          done
+
+          echo "Unable to fetch SSH host key from ${VPS_HOST}:${VPS_SSH_PORT} after 5 attempts" >&2
+          exit 1
 
       - name: Deploy over SSH
         env:
