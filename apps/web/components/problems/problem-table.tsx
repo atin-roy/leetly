@@ -1,7 +1,9 @@
 "use client"
 
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { ExternalLink, StickyNote, Trash2 } from "lucide-react"
+import { toast } from "sonner"
 import {
   Table,
   TableBody,
@@ -10,13 +12,28 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useUpdateProblemStatus } from "@/hooks/use-problems"
 import { DifficultyBadge } from "./difficulty-badge"
 import { StatusBadge } from "./status-badge"
-import type { ProblemSummaryDto } from "@/lib/types"
+import type { ProblemStatus, ProblemSummaryDto } from "@/lib/types"
 
 const COLS = 7
 const ROW_H = "h-11"
+const STATUSES: ProblemStatus[] = [
+  "UNSEEN",
+  "ATTEMPTED",
+  "SOLVED_WITH_HELP",
+  "SOLVED",
+  "MASTERED",
+]
 
 interface Props {
   problems?: ProblemSummaryDto[]
@@ -34,6 +51,47 @@ function FillerRow() {
         <TableCell key={j} />
       ))}
     </TableRow>
+  )
+}
+
+function StatusCell({ problem }: { problem: ProblemSummaryDto }) {
+  const statusMutation = useUpdateProblemStatus(problem.id)
+  const [optimisticStatus, setOptimisticStatus] = useState<ProblemStatus | null>(null)
+  const status = optimisticStatus ?? problem.status
+
+  async function handleChange(nextStatus: string) {
+    if (nextStatus === status) return
+
+    setOptimisticStatus(nextStatus as ProblemStatus)
+
+    try {
+      await statusMutation.mutateAsync(nextStatus)
+    } catch {
+      setOptimisticStatus(null)
+      toast.error("Failed to update status")
+      return
+    }
+
+    setOptimisticStatus(null)
+  }
+
+  return (
+    <div onClick={(e) => e.stopPropagation()}>
+      <Select value={status} onValueChange={handleChange} disabled={statusMutation.isPending}>
+        <SelectTrigger className="mx-auto h-auto min-w-[9rem] justify-center border-0 p-0 shadow-none focus:ring-0 [&>svg]:ml-1 [&>svg]:h-3 [&>svg]:w-3 [&>svg]:opacity-50">
+          <SelectValue>
+            <StatusBadge status={status} />
+          </SelectValue>
+        </SelectTrigger>
+        <SelectContent>
+          {STATUSES.map((option) => (
+            <SelectItem key={option} value={option}>
+              <StatusBadge status={option} />
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
   )
 }
 
@@ -139,8 +197,8 @@ export function ProblemTable({
                   <TableCell className="text-center">
                     <DifficultyBadge difficulty={p.difficulty} />
                   </TableCell>
-                  <TableCell className="text-center">
-                    <StatusBadge status={p.status} />
+                  <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
+                    <StatusCell problem={p} />
                   </TableCell>
                   <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
                     <button

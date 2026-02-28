@@ -18,7 +18,13 @@ import {
   removeProblemTopics,
   updateProblemStatus,
 } from "@/lib/api"
-import type { ProblemFilters, ProblemSummaryDto } from "@/lib/types"
+import type {
+  PagedResponse,
+  ProblemDetailDto,
+  ProblemFilters,
+  ProblemListDto,
+  ProblemSummaryDto,
+} from "@/lib/types"
 
 function normalizeFilters(filters?: ProblemFilters): ProblemFilters {
   return {
@@ -31,6 +37,38 @@ function normalizeFilters(filters?: ProblemFilters): ProblemFilters {
     size: filters?.size ?? 20,
     sort: filters?.sort,
   }
+}
+
+function updateProblemInPage(
+  page: PagedResponse<ProblemSummaryDto> | undefined,
+  updatedProblem: ProblemSummaryDto,
+) {
+  if (!page) return page
+
+  let changed = false
+  const content = page.content.map((problem) => {
+    if (problem.id !== updatedProblem.id) return problem
+    changed = true
+    return { ...problem, status: updatedProblem.status }
+  })
+
+  return changed ? { ...page, content } : page
+}
+
+function updateProblemInList(
+  list: ProblemListDto | undefined,
+  updatedProblem: ProblemSummaryDto,
+) {
+  if (!list) return list
+
+  let changed = false
+  const problems = list.problems.map((problem) => {
+    if (problem.id !== updatedProblem.id) return problem
+    changed = true
+    return { ...problem, status: updatedProblem.status }
+  })
+
+  return changed ? { ...list, problems } : list
 }
 
 export function useProblems(filters?: ProblemFilters) {
@@ -131,9 +169,34 @@ export function useUpdateProblemStatus(problemId: number) {
   return useMutation({
     mutationFn: (status: string) =>
       updateProblemStatus(session?.accessToken, problemId, status),
-    onSuccess: () => {
+    onSuccess: (updatedProblem) => {
+      qc.setQueryData<ProblemDetailDto | undefined>(
+        ["problems", problemId],
+        (current) => current ? { ...current, status: updatedProblem.status } : current,
+      )
+      qc.setQueriesData(
+        { queryKey: ["problems"] },
+        (current: PagedResponse<ProblemSummaryDto> | ProblemDetailDto | undefined) =>
+          current && "content" in current
+            ? updateProblemInPage(current, updatedProblem)
+            : current,
+      )
+      qc.setQueriesData(
+        { queryKey: ["lists"] },
+        (current: ProblemListDto[] | ProblemListDto | undefined) => {
+          if (Array.isArray(current)) {
+            return current.map((list) => updateProblemInList(list, updatedProblem) ?? list)
+          }
+
+          return current && "problems" in current
+            ? updateProblemInList(current, updatedProblem)
+            : current
+        },
+      )
       qc.invalidateQueries({ queryKey: ["problems", problemId] })
       qc.invalidateQueries({ queryKey: ["problems"] })
+      qc.invalidateQueries({ queryKey: ["lists"] })
+      qc.invalidateQueries({ queryKey: ["stats"] })
     },
   })
 }
