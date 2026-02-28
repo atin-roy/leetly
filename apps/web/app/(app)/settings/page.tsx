@@ -35,10 +35,11 @@ import {
 } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
+import type { QueryObserverResult } from "@tanstack/react-query"
 import { useSettings, useUpdateLanguage, useUpdateDailyGoal, useUpdateTimezone } from "@/hooks/use-settings"
 import { useTheme } from "@/hooks/use-theme"
 import { THEMES } from "@/lib/themes"
-import type { Language } from "@/lib/types"
+import type { Language, UserSettingsDto } from "@/lib/types"
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -177,8 +178,13 @@ function ProfileSection() {
   )
 }
 
-function PreferencesForm() {
-  const { data: settings, isPending, refetch } = useSettings()
+function PreferencesFormContent({
+  settings,
+  refetch,
+}: {
+  settings: UserSettingsDto | undefined
+  refetch: () => Promise<QueryObserverResult<UserSettingsDto>>
+}) {
   const languageMutation = useUpdateLanguage()
   const goalMutation = useUpdateDailyGoal()
   const timezoneMutation = useUpdateTimezone()
@@ -186,7 +192,7 @@ function PreferencesForm() {
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: normalizeSettings(),
+    defaultValues: normalizeSettings(settings),
   })
 
   useEffect(() => {
@@ -221,10 +227,6 @@ function PreferencesForm() {
     } catch {
       toast.error("Failed to save settings")
     }
-  }
-
-  if (isPending) {
-    return <Skeleton className="h-64 w-full" />
   }
 
   return (
@@ -332,6 +334,16 @@ function PreferencesForm() {
       </CardContent>
     </Card>
   )
+}
+
+function PreferencesForm() {
+  const { data: settings, isPending, refetch } = useSettings()
+
+  if (isPending) {
+    return <Skeleton className="h-64 w-full" />
+  }
+
+  return <PreferencesFormContent settings={settings} refetch={refetch} />
 }
 
 function ThemeSwatch({ t, active }: { t: (typeof THEMES)[number]; active: boolean }) {
