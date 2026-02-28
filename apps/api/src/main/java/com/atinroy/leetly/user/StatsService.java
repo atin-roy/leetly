@@ -7,6 +7,9 @@ import com.atinroy.leetly.problem.Difficulty;
 import com.atinroy.leetly.problem.LogAttemptRequest;
 import com.atinroy.leetly.problem.Mistake;
 import com.atinroy.leetly.problem.Outcome;
+import com.atinroy.leetly.problem.Problem;
+import com.atinroy.leetly.problem.ProblemRepository;
+import com.atinroy.leetly.problem.ProblemStatus;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -15,9 +18,15 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Service
 @Transactional
@@ -25,6 +34,8 @@ import java.util.Map;
 public class StatsService {
 
     private final UserStatsRepository userStatsRepository;
+    private final ProblemRepository problemRepository;
+    private final AttemptRepository attemptRepository;
     private final DailyStatRepository dailyStatRepository;
     private final ObjectMapper objectMapper;
 
@@ -33,18 +44,43 @@ public class StatsService {
         UserStats stats = userStatsRepository.findByUser(user)
                 .orElseThrow(() -> new ResourceNotFoundException("UserStats not found for user: " + user.getId()));
 
-        // Compute rolling windows on-demand from DailyStat (never stale)
-        LocalDate startOfWeek = LocalDate.now().with(DayOfWeek.MONDAY);
-        LocalDate startOfMonth = LocalDate.now().withDayOfMonth(1);
-        stats.setSolvedThisWeek(dailyStatRepository.sumSolvedSince(user, startOfWeek));
-        stats.setSolvedThisMonth(dailyStatRepository.sumSolvedSince(user, startOfMonth));
-
+        recalculateStats(user, stats);
         return stats;
     }
 
     @Transactional(readOnly = true)
     public List<DailyStat> getDailyStatsBetween(User user, LocalDate from, LocalDate to) {
-        return dailyStatRepository.findByUserAndDateBetween(user, from, to);
+        List<Problem> problems = problemRepository.findAllByUser(user);
+        List<Attempt> attempts = attemptRepository.findByUserOrderByCreatedDateAsc(user);
+        Map<Long, List<Attempt>> attemptsByProblemId = groupAttemptsByProblem(attempts);
+        Map<LocalDate, DailyStat> dailyStats = new LinkedHashMap<>();
+
+        for (Attempt attempt : attempts) {
+            LocalDate attemptDate = toLocalDate(attempt.getCreatedDate());
+            if (attemptDate == null || attemptDate.isBefore(from) || attemptDate.isAfter(to)) {
+                continue;
+            }
+
+            DailyStat daily = dailyStats.computeIfAbsent(attemptDate, this::newDailyStat);
+            daily.setAttempted(daily.getAttempted() + 1);
+            if (attempt.getDurationMinutes() != null) {
+                daily.setTimeMinutes(daily.getTimeMinutes() + attempt.getDurationMinutes());
+            }
+        }
+
+        for (Problem problem : problems) {
+            LocalDate solveDate = findSolveDate(problem, attemptsByProblemId.get(problem.getId()));
+            if (solveDate == null || solveDate.isBefore(from) || solveDate.isAfter(to)) {
+                continue;
+            }
+
+            DailyStat daily = dailyStats.computeIfAbsent(solveDate, this::newDailyStat);
+            daily.setSolved(daily.getSolved() + 1);
+        }
+
+        return dailyStats.values().stream()
+                .sorted(Comparator.comparing(DailyStat::getDate))
+                .toList();
     }
 
     public void updateOnAttempt(User user, Attempt attempt, boolean isFirstSolve) {
@@ -106,23 +142,18 @@ public class StatsService {
         UserStats stats = userStatsRepository.findByUser(user)
                 .orElseThrow(() -> new ResourceNotFoundException("UserStats not found for user: " + user.getId()));
 
-        // Adjust time
         int oldDuration = oldAttempt.getDurationMinutes() != null ? oldAttempt.getDurationMinutes() : 0;
         int newDuration = newRequest.durationMinutes() != null ? newRequest.durationMinutes() : 0;
         stats.setTotalTimeMinutes(Math.max(0, stats.getTotalTimeMinutes() + newDuration - oldDuration));
 
-        // Adjust mistakes: reverse old, apply new
         updateMistakeBreakdown(stats, oldAttempt.getMistakes(), -1);
         List<Mistake> newMistakes = newRequest.mistakes() != null ? newRequest.mistakes() : List.of();
         updateMistakeBreakdown(stats, newMistakes, 1);
 
-        // Adjust solve stats if outcome changed
         boolean oldAccepted = oldAttempt.getOutcome() == Outcome.ACCEPTED;
         boolean newAccepted = newRequest.outcome() == Outcome.ACCEPTED;
 
         if (oldAccepted && !newAccepted) {
-            // Removing a solve: only affects totalSolved if this was the only accepted attempt
-            // We'll check after the fact — for now adjust stats, Problem.status will be handled separately
             stats.setTotalSolved(Math.max(0, stats.getTotalSolved() - 1));
             if (oldAttempt.getAttemptNumber() == 1) {
                 stats.setFirstAttemptSolves(Math.max(0, stats.getFirstAttemptSolves() - 1));
@@ -138,7 +169,6 @@ public class StatsService {
 
         userStatsRepository.save(stats);
 
-        // Adjust DailyStat time delta and solved delta
         LocalDate attemptDate = oldAttempt.getCreatedDate() != null
                 ? oldAttempt.getCreatedDate().toLocalDate() : LocalDate.now();
         adjustDailyStatTime(user, attemptDate, newDuration - oldDuration);
@@ -147,6 +177,194 @@ public class StatsService {
         } else if (!oldAccepted && newAccepted) {
             upsertDailyStat(user, 0, true, attemptDate, 0);
         }
+    }
+
+    private void recalculateStats(User user, UserStats stats) {
+        List<Problem> problems = problemRepository.findAllByUser(user);
+        List<Attempt> attempts = attemptRepository.findByUserOrderByCreatedDateAsc(user);
+        Map<Long, List<Attempt>> attemptsByProblemId = groupAttemptsByProblem(attempts);
+
+        stats.setTotalSolved(0);
+        stats.setTotalSolvedWithHelp(0);
+        stats.setTotalMastered(0);
+        stats.setTotalAttempted(0);
+        stats.setEasySolved(0);
+        stats.setMediumSolved(0);
+        stats.setHardSolved(0);
+        stats.setTotalAttempts(attempts.size());
+        stats.setFirstAttemptSolves(0);
+        stats.setTotalTimeMinutes(0);
+        stats.setCurrentStreak(0);
+        stats.setLongestStreak(0);
+        stats.setLastSolvedDate(null);
+        stats.setSolvedThisWeek(0);
+        stats.setSolvedThisMonth(0);
+        stats.setDistinctTopicsCovered(0);
+        stats.setDistinctPatternsCovered(0);
+
+        Map<String, Integer> mistakeBreakdown = new HashMap<>();
+        Set<Long> distinctTopicIds = new HashSet<>();
+        Set<Long> distinctPatternIds = new HashSet<>();
+        List<LocalDate> solveDates = new ArrayList<>();
+
+        for (Attempt attempt : attempts) {
+            if (attempt.getDurationMinutes() != null) {
+                stats.setTotalTimeMinutes(stats.getTotalTimeMinutes() + attempt.getDurationMinutes());
+            }
+            for (Mistake mistake : attempt.getMistakes()) {
+                mistakeBreakdown.merge(mistake.name(), 1, Integer::sum);
+            }
+        }
+
+        for (Problem problem : problems) {
+            problem.getTopics().stream()
+                    .map(topic -> topic.getId())
+                    .forEach(distinctTopicIds::add);
+            problem.getPatterns().stream()
+                    .map(pattern -> pattern.getId())
+                    .forEach(distinctPatternIds::add);
+
+            if (problem.getStatus() != ProblemStatus.UNSEEN) {
+                stats.setTotalAttempted(stats.getTotalAttempted() + 1);
+            }
+
+            switch (problem.getStatus()) {
+                case SOLVED -> stats.setTotalSolved(stats.getTotalSolved() + 1);
+                case SOLVED_WITH_HELP -> stats.setTotalSolvedWithHelp(stats.getTotalSolvedWithHelp() + 1);
+                case MASTERED -> stats.setTotalMastered(stats.getTotalMastered() + 1);
+                default -> {
+                }
+            }
+
+            if (isSolvedStatus(problem.getStatus())) {
+                incrementDifficultyCount(stats, problem.getDifficulty());
+                LocalDate solveDate = findSolveDate(problem, attemptsByProblemId.get(problem.getId()));
+                if (solveDate != null) {
+                    solveDates.add(solveDate);
+                }
+            }
+
+            Attempt firstAcceptedAttempt = findFirstAcceptedAttempt(attemptsByProblemId.get(problem.getId()));
+            if (firstAcceptedAttempt != null && firstAcceptedAttempt.getAttemptNumber() == 1) {
+                stats.setFirstAttemptSolves(stats.getFirstAttemptSolves() + 1);
+            }
+        }
+
+        stats.setDistinctTopicsCovered(distinctTopicIds.size());
+        stats.setDistinctPatternsCovered(distinctPatternIds.size());
+        stats.setMistakeBreakdown(writeMistakeBreakdown(mistakeBreakdown));
+        applySolveWindowStats(stats, solveDates);
+    }
+
+    private Map<Long, List<Attempt>> groupAttemptsByProblem(List<Attempt> attempts) {
+        Map<Long, List<Attempt>> attemptsByProblemId = new HashMap<>();
+        for (Attempt attempt : attempts) {
+            if (attempt.getProblem() == null || attempt.getProblem().getId() == null) {
+                continue;
+            }
+            attemptsByProblemId
+                    .computeIfAbsent(attempt.getProblem().getId(), ignored -> new ArrayList<>())
+                    .add(attempt);
+        }
+        return attemptsByProblemId;
+    }
+
+    private void applySolveWindowStats(UserStats stats, List<LocalDate> solveDates) {
+        if (solveDates.isEmpty()) {
+            return;
+        }
+
+        LocalDate startOfWeek = LocalDate.now().with(DayOfWeek.MONDAY);
+        LocalDate startOfMonth = LocalDate.now().withDayOfMonth(1);
+        Set<LocalDate> uniqueDates = new HashSet<>(solveDates);
+
+        stats.setSolvedThisWeek((int) solveDates.stream().filter(date -> !date.isBefore(startOfWeek)).count());
+        stats.setSolvedThisMonth((int) solveDates.stream().filter(date -> !date.isBefore(startOfMonth)).count());
+        stats.setLastSolvedDate(solveDates.stream().max(LocalDate::compareTo).orElse(null));
+        stats.setLongestStreak(calculateLongestStreak(uniqueDates));
+        stats.setCurrentStreak(calculateCurrentStreak(uniqueDates));
+    }
+
+    private int calculateLongestStreak(Set<LocalDate> solveDates) {
+        int longest = 0;
+
+        for (LocalDate date : solveDates) {
+            if (solveDates.contains(date.minusDays(1))) {
+                continue;
+            }
+
+            int streak = 1;
+            LocalDate cursor = date;
+            while (solveDates.contains(cursor.plusDays(1))) {
+                cursor = cursor.plusDays(1);
+                streak++;
+            }
+            longest = Math.max(longest, streak);
+        }
+
+        return longest;
+    }
+
+    private int calculateCurrentStreak(Set<LocalDate> solveDates) {
+        if (solveDates.isEmpty()) {
+            return 0;
+        }
+
+        LocalDate cursor = LocalDate.now();
+        if (!solveDates.contains(cursor)) {
+            cursor = cursor.minusDays(1);
+            if (!solveDates.contains(cursor)) {
+                return 0;
+            }
+        }
+
+        int streak = 0;
+        while (solveDates.contains(cursor)) {
+            streak++;
+            cursor = cursor.minusDays(1);
+        }
+        return streak;
+    }
+
+    private LocalDate findSolveDate(Problem problem, List<Attempt> attempts) {
+        if (!isSolvedStatus(problem.getStatus())) {
+            return null;
+        }
+
+        Attempt firstAcceptedAttempt = findFirstAcceptedAttempt(attempts);
+        if (firstAcceptedAttempt != null) {
+            LocalDate acceptedDate = toLocalDate(firstAcceptedAttempt.getCreatedDate());
+            if (acceptedDate != null) {
+                return acceptedDate;
+            }
+        }
+
+        LocalDate modifiedDate = toLocalDate(problem.getLastModifiedDate());
+        if (modifiedDate != null) {
+            return modifiedDate;
+        }
+
+        return toLocalDate(problem.getCreatedDate());
+    }
+
+    private Attempt findFirstAcceptedAttempt(List<Attempt> attempts) {
+        if (attempts == null) {
+            return null;
+        }
+
+        return attempts.stream()
+                .filter(attempt -> attempt.getOutcome() == Outcome.ACCEPTED)
+                .min(Comparator
+                        .comparing((Attempt attempt) -> attempt.getCreatedDate() == null)
+                        .thenComparing(Attempt::getCreatedDate, Comparator.nullsLast(Comparator.naturalOrder()))
+                        .thenComparingInt(Attempt::getAttemptNumber))
+                .orElse(null);
+    }
+
+    private boolean isSolvedStatus(ProblemStatus status) {
+        return status == ProblemStatus.SOLVED
+                || status == ProblemStatus.SOLVED_WITH_HELP
+                || status == ProblemStatus.MASTERED;
     }
 
     private void incrementDifficultyCount(UserStats stats, Difficulty difficulty) {
@@ -174,7 +392,6 @@ public class StatsService {
         } else if (lastSolved.equals(today.minusDays(1))) {
             stats.setCurrentStreak(stats.getCurrentStreak() + 1);
         }
-        // lastSolved == today → no change (already counted)
 
         if (stats.getCurrentStreak() > stats.getLongestStreak()) {
             stats.setLongestStreak(stats.getCurrentStreak());
@@ -207,7 +424,7 @@ public class StatsService {
     }
 
     private void upsertDailyStat(User user, Integer durationMinutes, boolean isSolve,
-                                  LocalDate date, int attemptDelta) {
+                                 LocalDate date, int attemptDelta) {
         DailyStat daily = dailyStatRepository.findByUserAndDate(user, date)
                 .orElseGet(() -> {
                     DailyStat d = new DailyStat();
@@ -227,7 +444,7 @@ public class StatsService {
     }
 
     private void adjustDailyStat(User user, Integer durationMinutes, boolean wasSolve,
-                                   LocalDate date, int attemptDelta) {
+                                 LocalDate date, int attemptDelta) {
         dailyStatRepository.findByUserAndDate(user, date).ifPresent(daily -> {
             daily.setAttempted(Math.max(0, daily.getAttempted() + attemptDelta));
             if (wasSolve) {
@@ -241,10 +458,30 @@ public class StatsService {
     }
 
     private void adjustDailyStatTime(User user, LocalDate date, int timeDelta) {
-        if (timeDelta == 0) return;
+        if (timeDelta == 0) {
+            return;
+        }
         dailyStatRepository.findByUserAndDate(user, date).ifPresent(daily -> {
             daily.setTimeMinutes(Math.max(0, daily.getTimeMinutes() + timeDelta));
             dailyStatRepository.save(daily);
         });
+    }
+
+    private DailyStat newDailyStat(LocalDate date) {
+        DailyStat stat = new DailyStat();
+        stat.setDate(date);
+        return stat;
+    }
+
+    private LocalDate toLocalDate(LocalDateTime dateTime) {
+        return dateTime != null ? dateTime.toLocalDate() : null;
+    }
+
+    private String writeMistakeBreakdown(Map<String, Integer> breakdown) {
+        try {
+            return objectMapper.writeValueAsString(breakdown);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to serialize mistake breakdown", e);
+        }
     }
 }
