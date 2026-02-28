@@ -37,3 +37,4 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 Deployment smoke-test marker for the GitHub-hosted VPS deploy path.
 Second smoke-test marker after SSH host handling fix.
+Third smoke-test marker for HTTPS deploy hook validation.
