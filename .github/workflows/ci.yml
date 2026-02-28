@@ -143,45 +143,17 @@ jobs:
       (needs.changes.outputs.api == 'true' || needs.changes.outputs.web == 'true')
 
     steps:
-      - name: Start SSH agent
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.VPS_SSH_KEY }}
-
-      - name: Deploy over SSH
+      - name: Deploy over HTTPS webhook
         env:
-          VPS_HOST: ${{ secrets.VPS_HOST }}
-          VPS_USER: ${{ secrets.VPS_USER }}
-          VPS_GHCR_USER: ${{ secrets.VPS_GHCR_USER }}
-          VPS_GHCR_TOKEN: ${{ secrets.VPS_GHCR_TOKEN }}
+          DEPLOY_WEBHOOK_TOKEN: ${{ secrets.DEPLOY_WEBHOOK_TOKEN }}
           API_CHANGED: ${{ needs.changes.outputs.api }}
           WEB_CHANGED: ${{ needs.changes.outputs.web }}
         shell: bash
         run: |
           set -euo pipefail
 
-          ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$VPS_USER@$VPS_HOST" \
-            "export VPS_GHCR_USER='$VPS_GHCR_USER' VPS_GHCR_TOKEN='$VPS_GHCR_TOKEN' API_CHANGED='$API_CHANGED' WEB_CHANGED='$WEB_CHANGED'; bash -s" <<'EOF'
-          set -euo pipefail
-
-          echo "$VPS_GHCR_TOKEN" | docker login ghcr.io -u "$VPS_GHCR_USER" --password-stdin
-
-          # The infra compose at /srv/infra includes /srv/apps/leetly/docker-compose.yml
-          # so all service management is done from there.
-          cd /srv/infra
-
-          # Only pull & restart the services that changed
-          if [ "$API_CHANGED" = "true" ]; then
-            echo "Pulling and restarting API..."
-            docker compose pull leetly-api
-            docker compose up -d --no-deps leetly-api
-          fi
-
-          if [ "$WEB_CHANGED" = "true" ]; then
-            echo "Pulling and restarting Web..."
-            docker compose pull leetly-web
-            docker compose up -d --no-deps leetly-web
-          fi
-
-          docker image prune -f
-          EOF
+          curl --fail --show-error --silent \
+            -X POST \
+            -H "Content-Type: application/json" \
+            --data "{\"api\":${API_CHANGED},\"web\":${WEB_CHANGED}}" \
+            "https://atinroy.com/hooks/leetly?token=${DEPLOY_WEBHOOK_TOKEN}"
