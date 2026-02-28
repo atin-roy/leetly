@@ -148,13 +148,6 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.VPS_SSH_KEY }}
 
-      - name: Add VPS host key
-        env:
-          VPS_HOST: ${{ secrets.VPS_HOST }}
-        run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan -H "$VPS_HOST" >> ~/.ssh/known_hosts
-
       - name: Deploy over SSH
         env:
           VPS_HOST: ${{ secrets.VPS_HOST }}
@@ -167,7 +160,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          ssh "$VPS_USER@$VPS_HOST" \
+          ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$VPS_USER@$VPS_HOST" \
             "export VPS_GHCR_USER='$VPS_GHCR_USER' VPS_GHCR_TOKEN='$VPS_GHCR_TOKEN' API_CHANGED='$API_CHANGED' WEB_CHANGED='$WEB_CHANGED'; bash -s" <<'EOF'
           set -euo pipefail
 
