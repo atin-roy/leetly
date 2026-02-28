@@ -20,10 +20,13 @@ export function StatsCards() {
 
   if (!s) return null
 
+  const totalSolved =
+    s.totalSolved + s.totalSolvedWithHelp + s.totalMastered
+
   const cards = [
     {
       title: "Total Solved",
-      value: s.totalSolved,
+      value: totalSolved,
       icon: CheckCircle2,
       sub: `${s.easySolved}E · ${s.mediumSolved}M · ${s.hardSolved}H`,
       color: "text-green-500",

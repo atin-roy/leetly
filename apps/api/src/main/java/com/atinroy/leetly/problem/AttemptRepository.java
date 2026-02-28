@@ -10,6 +10,8 @@ import java.util.Optional;
 @Repository
 public interface AttemptRepository extends JpaRepository<Attempt, Long> {
 
+    List<Attempt> findByUserOrderByCreatedDateAsc(User user);
+
     List<Attempt> findByProblemAndUser(Problem problem, User user);
 
     Optional<Attempt> findByIdAndProblemIdAndUser(Long id, Long problemId, User user);
