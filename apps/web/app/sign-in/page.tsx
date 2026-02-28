@@ -10,9 +10,6 @@ export default async function SignInPage({
     const session = await auth()
     if (session) redirect("/dashboard")
 
-    // Otherwise, send directly to Keycloak — no middleman UI
     const { callbackUrl } = await searchParams
-    redirect(
-        `/api/auth/signin/keycloak?callbackUrl=${encodeURIComponent(callbackUrl ?? "/dashboard")}`,
-    )
+    redirect(`/auth/start?callbackUrl=${encodeURIComponent(callbackUrl ?? "/dashboard")}`)
 }

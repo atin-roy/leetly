@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
 // Routes accessible without authentication
-const PUBLIC_ROUTES = ["/", "/privacy", "/about", "/terms", "/sign-in"]
+const PUBLIC_ROUTES = ["/", "/privacy", "/about", "/terms", "/sign-in", "/auth/start"]
 
 export default function proxy(request: NextRequest) {
     const { nextUrl } = request
