@@ -10,6 +10,10 @@ env:
   REGISTRY: ghcr.io
   IMAGE_PREFIX: ghcr.io/${{ github.repository_owner }}
 
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   # ─────────────────────────────────────────────────────────────────────────────
   # Detect which apps have changed
@@ -135,6 +139,9 @@ jobs:
     name: Deploy to VPS
     needs: [changes, api, web]
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
     if: >-
       always() &&
       github.ref == 'refs/heads/main' &&
@@ -143,39 +150,56 @@ jobs:
       (needs.changes.outputs.api == 'true' || needs.changes.outputs.web == 'true')
 
     steps:
-      - name: Deploy over HTTPS webhook
+      - name: Start SSH agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.VPS_SSH_KEY }}
+
+      - name: Trust VPS host key
         env:
-          DEPLOY_WEBHOOK_TOKEN: ${{ secrets.DEPLOY_WEBHOOK_TOKEN }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_SSH_PORT: ${{ secrets.VPS_SSH_PORT }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          ssh-keyscan -p "${VPS_SSH_PORT}" -H "${VPS_HOST}" >> ~/.ssh/known_hosts
+
+      - name: Deploy over SSH
+        env:
           API_CHANGED: ${{ needs.changes.outputs.api }}
           WEB_CHANGED: ${{ needs.changes.outputs.web }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_SSH_PORT: ${{ secrets.VPS_SSH_PORT }}
+          GHCR_USERNAME: ${{ secrets.VPS_GHCR_USER }}
+          GHCR_TOKEN: ${{ secrets.VPS_GHCR_TOKEN }}
         shell: bash
         run: |
           set -euo pipefail
 
-          response_file="$(mktemp)"
-          trap 'rm -f "$response_file"' EXIT
+          remote_script="$(mktemp)"
+          trap 'rm -f "$remote_script"' EXIT
 
-          http_code="$(
-            curl --show-error --silent \
-              --output "$response_file" \
-              --write-out "%{http_code}" \
-              --connect-timeout 10 \
-              --max-time 120 \
-              --retry 2 \
-              --retry-delay 2 \
-              --retry-connrefused \
-              -X POST \
-              -H "Content-Type: application/json" \
-              --data "{\"api\":${API_CHANGED},\"web\":${WEB_CHANGED}}" \
-              "https://atinroy.com/hooks/leetly?token=${DEPLOY_WEBHOOK_TOKEN}"
-          )"
+          cat >"$remote_script" <<'EOF'
+          set -euo pipefail
+          cd /srv/infra
 
-          echo "Deploy webhook returned HTTP ${http_code}"
+          echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
 
-          if [[ -s "$response_file" ]]; then
-            cat "$response_file"
+          if [[ "$API_CHANGED" == "true" ]]; then
+            docker compose pull leetly-api
+            docker compose up -d --no-deps leetly-api
           fi
 
-          if [[ "$http_code" -lt 200 || "$http_code" -ge 300 ]]; then
-            exit 1
+          if [[ "$WEB_CHANGED" == "true" ]]; then
+            docker compose pull leetly-web
+            docker compose up -d --no-deps leetly-web
           fi
+
+          docker image prune -f
+          EOF
+
+          scp -P "${VPS_SSH_PORT}" "$remote_script" "${VPS_USER}@${VPS_HOST}:/tmp/leetly-deploy.sh"
+          ssh -p "${VPS_SSH_PORT}" "${VPS_USER}@${VPS_HOST}" \
+            "API_CHANGED='${API_CHANGED}' WEB_CHANGED='${WEB_CHANGED}' GHCR_USERNAME='${GHCR_USERNAME}' GHCR_TOKEN='${GHCR_TOKEN}' bash /tmp/leetly-deploy.sh && rm -f /tmp/leetly-deploy.sh"
