@@ -84,6 +84,7 @@ function StatusCell({ problem }: { problem: ProblemSummaryDto }) {
       <Select value={status} onValueChange={handleChange} disabled={statusMutation.isPending}>
         <SelectTrigger
           data-interactive="true"
+          aria-label={`Change status for ${problem.title}`}
           className="h-8 min-w-[9.5rem] justify-between rounded-full border border-border/80 bg-background px-2.5 shadow-none focus:ring-0"
           onClick={(e) => e.stopPropagation()}
         >
