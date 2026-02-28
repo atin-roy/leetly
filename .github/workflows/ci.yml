@@ -152,8 +152,30 @@ jobs:
         run: |
           set -euo pipefail
 
-          curl --fail --show-error --silent \
-            -X POST \
-            -H "Content-Type: application/json" \
-            --data "{\"api\":${API_CHANGED},\"web\":${WEB_CHANGED}}" \
-            "https://atinroy.com/hooks/leetly?token=${DEPLOY_WEBHOOK_TOKEN}"
+          response_file="$(mktemp)"
+          trap 'rm -f "$response_file"' EXIT
+
+          http_code="$(
+            curl --show-error --silent \
+              --output "$response_file" \
+              --write-out "%{http_code}" \
+              --connect-timeout 10 \
+              --max-time 120 \
+              --retry 2 \
+              --retry-delay 2 \
+              --retry-connrefused \
+              -X POST \
+              -H "Content-Type: application/json" \
+              --data "{\"api\":${API_CHANGED},\"web\":${WEB_CHANGED}}" \
+              "https://atinroy.com/hooks/leetly?token=${DEPLOY_WEBHOOK_TOKEN}"
+          )"
+
+          echo "Deploy webhook returned HTTP ${http_code}"
+
+          if [[ -s "$response_file" ]]; then
+            cat "$response_file"
+          fi
+
+          if [[ "$http_code" -lt 200 || "$http_code" -ge 300 ]]; then
+            exit 1
+          fi
