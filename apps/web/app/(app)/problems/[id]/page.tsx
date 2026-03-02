@@ -45,9 +45,16 @@ import {
 } from "@/hooks/use-problems"
 import { useDeleteAttempt } from "@/hooks/use-attempts"
 import { useNotes, useCreateNote, useUpdateNote } from "@/hooks/use-notes"
+import {
+  useProblemLists,
+  useCreateList,
+  useAddProblemToList,
+  useRemoveProblemFromList,
+} from "@/hooks/use-lists"
 import type {
   AttemptDto,
   PatternDto,
+  ProblemListDto,
   NoteTag,
   ProblemStatus,
   ProblemSummaryDto,
@@ -268,6 +275,12 @@ export default function ProblemDetailPage({
   const createPatternMutation = useCreatePattern()
   const addRelatedMutation = useAddRelatedProblem(id)
 
+  // Lists
+  const { data: allLists } = useProblemLists()
+  const createListMutation = useCreateList()
+  const addToListMutation = useAddProblemToList()
+  const removeFromListMutation = useRemoveProblemFromList()
+
   // Data for selects
   const { data: allTopics } = useTopics()
   const { data: allPatterns } = usePatterns()
@@ -277,6 +290,7 @@ export default function ProblemDetailPage({
   const [topicModalOpen, setTopicModalOpen] = useState(false)
   const [patternModalOpen, setPatternModalOpen] = useState(false)
   const [relatedModalOpen, setRelatedModalOpen] = useState(false)
+  const [listModalOpen, setListModalOpen] = useState(false)
 
   // Create flows inside selector modals
   const [newTopicName, setNewTopicName] = useState("")
@@ -285,6 +299,7 @@ export default function ProblemDetailPage({
   const [newPatternDescription, setNewPatternDescription] = useState("")
   const [newPatternTopicId, setNewPatternTopicId] = useState<string>("none")
   const [relatedSearch, setRelatedSearch] = useState("")
+  const [newListName, setNewListName] = useState("")
 
   function handleLogAttempt() {
     setEditingAttempt(undefined)
@@ -398,6 +413,56 @@ export default function ProblemDetailPage({
       setRelatedModalOpen(false)
     } catch {
       toast.error("Failed to add related problem")
+    }
+  }
+
+  // Lists: derive which lists contain this problem
+  const problemListIds = new Set(
+    (allLists ?? [])
+      .filter((l: ProblemListDto) => l.problems.some((p) => p.id === id))
+      .map((l: ProblemListDto) => l.id),
+  )
+  const problemLists = (allLists ?? []).filter((l: ProblemListDto) =>
+    problemListIds.has(l.id),
+  )
+  const listOptions = (allLists ?? []).map((l: ProblemListDto) => ({
+    id: l.id,
+    label: l.name,
+  }))
+
+  async function handleAddToList(listId: number) {
+    try {
+      await addToListMutation.mutateAsync({ listId, problemId: id })
+      toast.success("Added to list")
+      setListModalOpen(false)
+    } catch {
+      toast.error("Failed to add to list")
+    }
+  }
+
+  async function handleRemoveFromList(listId: number) {
+    try {
+      await removeFromListMutation.mutateAsync({ listId, problemId: id })
+      toast.success("Removed from list")
+    } catch {
+      toast.error("Failed to remove from list")
+    }
+  }
+
+  async function handleCreateList() {
+    const name = newListName.trim()
+    if (!name) {
+      toast.error("List name is required")
+      return
+    }
+    try {
+      const created = await createListMutation.mutateAsync({ name })
+      await addToListMutation.mutateAsync({ listId: created.id, problemId: id })
+      toast.success("List created and problem added")
+      setNewListName("")
+      setListModalOpen(false)
+    } catch {
+      toast.error("Failed to create list")
     }
   }
 
@@ -550,6 +615,35 @@ export default function ProblemDetailPage({
             ))}
             <button
               onClick={() => setRelatedModalOpen(true)}
+              className="inline-flex items-center gap-1 rounded-full border border-dashed px-2.5 py-0.5 text-xs text-muted-foreground hover:border-foreground hover:text-foreground transition-colors"
+            >
+              <Plus className="h-2.5 w-2.5" />
+              Add
+            </button>
+          </div>
+        </MetaRow>
+
+        {/* Lists */}
+        <MetaRow label="lists">
+          <div className="flex flex-wrap items-center gap-1.5">
+            {problemLists.map((l) => (
+              <span
+                key={l.id}
+                className="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium"
+              >
+                <Link href={`/lists/${l.id}`} className="hover:underline">
+                  {l.name}
+                </Link>
+                <button
+                  onClick={() => handleRemoveFromList(l.id)}
+                  className="rounded-full hover:bg-muted-foreground/20 p-0.5"
+                >
+                  <X className="h-2.5 w-2.5" />
+                </button>
+              </span>
+            ))}
+            <button
+              onClick={() => setListModalOpen(true)}
               className="inline-flex items-center gap-1 rounded-full border border-dashed px-2.5 py-0.5 text-xs text-muted-foreground hover:border-foreground hover:text-foreground transition-colors"
             >
               <Plus className="h-2.5 w-2.5" />
@@ -772,6 +866,41 @@ export default function ProblemDetailPage({
             <Button asChild variant="outline" size="sm">
               <Link href="/problems">Create New Problem</Link>
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={listModalOpen} onOpenChange={setListModalOpen}>
+        <DialogContent className="sm:max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Add to List</DialogTitle>
+            <DialogDescription>Select a list to add this problem to, or create a new one.</DialogDescription>
+          </DialogHeader>
+          <SelectorGrid
+            options={listOptions}
+            selectedIds={problemListIds}
+            onSelect={handleAddToList}
+            isPending={addToListMutation.isPending}
+          />
+          <div className="space-y-2 rounded-md border border-dashed p-3">
+            <p className="text-xs font-medium">Create new list</p>
+            <div className="space-y-1">
+              <Label htmlFor="new-list-name">Name</Label>
+              <Input
+                id="new-list-name"
+                value={newListName}
+                onChange={(e) => setNewListName(e.target.value)}
+                placeholder="e.g. Blind 75"
+              />
+            </div>
+            <div className="flex justify-end">
+              <Button
+                onClick={handleCreateList}
+                disabled={createListMutation.isPending || addToListMutation.isPending}
+              >
+                Create and Add
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
