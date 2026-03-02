@@ -17,6 +17,7 @@ public interface ProblemListRepository extends JpaRepository<ProblemList, Long> 
     @EntityGraph(attributePaths = {"problems"})
     List<ProblemList> findByUser(User user);
 
+    @EntityGraph(attributePaths = {"problems"})
     Optional<ProblemList> findByIdAndUser(Long id, User user);
 
     Optional<ProblemList> findByUserAndIsDefaultTrue(User user);

@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { ExternalLink, StickyNote, Trash2 } from "lucide-react"
+import { Check, ExternalLink, StickyNote, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 import {
   Table,
@@ -12,17 +12,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { Badge } from "@/components/ui/badge"
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useUpdateProblemStatus } from "@/hooks/use-problems"
 import { DifficultyBadge } from "./difficulty-badge"
-import { StatusBadge } from "./status-badge"
+import { statusLabels, statusStyles } from "./status-badge"
 import type { ProblemStatus, ProblemSummaryDto } from "@/lib/types"
 
 const COLS = 7
@@ -61,12 +60,17 @@ function FillerRow() {
 function StatusCell({ problem }: { problem: ProblemSummaryDto }) {
   const statusMutation = useUpdateProblemStatus(problem.id)
   const [optimisticStatus, setOptimisticStatus] = useState<ProblemStatus | null>(null)
+  const [open, setOpen] = useState(false)
   const status = optimisticStatus ?? problem.status
 
-  async function handleChange(nextStatus: string) {
-    if (nextStatus === status) return
+  async function handleChange(nextStatus: ProblemStatus) {
+    if (nextStatus === status) {
+      setOpen(false)
+      return
+    }
 
-    setOptimisticStatus(nextStatus as ProblemStatus)
+    setOptimisticStatus(nextStatus)
+    setOpen(false)
 
     try {
       await statusMutation.mutateAsync(nextStatus)
@@ -81,25 +85,35 @@ function StatusCell({ problem }: { problem: ProblemSummaryDto }) {
 
   return (
     <div data-interactive="true" className="flex justify-center" onClick={(e) => e.stopPropagation()}>
-      <Select value={status} onValueChange={handleChange} disabled={statusMutation.isPending}>
-        <SelectTrigger
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger
           data-interactive="true"
           aria-label={`Change status for ${problem.title}`}
-          className="h-8 min-w-[9.5rem] justify-between rounded-full border border-border/80 bg-background px-2.5 shadow-none focus:ring-0"
+          disabled={statusMutation.isPending}
           onClick={(e) => e.stopPropagation()}
+          className="cursor-pointer"
         >
-          <SelectValue>
-            <StatusBadge status={status} />
-          </SelectValue>
-        </SelectTrigger>
-        <SelectContent>
-          {STATUSES.map((option) => (
-            <SelectItem key={option} value={option}>
-              <StatusBadge status={option} />
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+          <Badge variant="outline" className={`${statusStyles[status]} transition-opacity hover:opacity-80`}>
+            {statusLabels[status]}
+          </Badge>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-1" align="center">
+          <div className="flex flex-col gap-0.5">
+            {STATUSES.map((option) => (
+              <button
+                key={option}
+                onClick={() => handleChange(option)}
+                className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-accent transition-colors"
+              >
+                <Check className={`h-3.5 w-3.5 ${option === status ? "opacity-100" : "opacity-0"}`} />
+                <Badge variant="outline" className={statusStyles[option]}>
+                  {statusLabels[option]}
+                </Badge>
+              </button>
+            ))}
+          </div>
+        </PopoverContent>
+      </Popover>
     </div>
   )
 }

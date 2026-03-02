@@ -39,10 +39,13 @@ public class StatsService {
     private final DailyStatRepository dailyStatRepository;
     private final ObjectMapper objectMapper;
 
-    @Transactional(readOnly = true)
     public UserStats getByUser(User user) {
         UserStats stats = userStatsRepository.findByUser(user)
-                .orElseThrow(() -> new ResourceNotFoundException("UserStats not found for user: " + user.getId()));
+                .orElseGet(() -> {
+                    UserStats s = new UserStats();
+                    s.setUser(user);
+                    return userStatsRepository.save(s);
+                });
 
         recalculateStats(user, stats);
         return stats;
