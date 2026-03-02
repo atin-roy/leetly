@@ -118,7 +118,7 @@ export function AddProblemToListDialog({
     }
   }
 
-  async function handleCreateAndAdd(problem: Omit<ProblemSummaryDto, "id" | "status">) {
+  async function handleCreateAndAdd(problem: Omit<ProblemSummaryDto, "id" | "status" | "lastAttemptedAt">) {
     try {
       const created = await createProblemMutation.mutateAsync(problem)
       await addMutation.mutateAsync({

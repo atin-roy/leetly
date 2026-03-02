@@ -69,7 +69,7 @@ export function getProblems(
 
 export function createProblem(
   token: string | undefined,
-  body: Omit<ProblemSummaryDto, "id" | "status">,
+  body: Omit<ProblemSummaryDto, "id" | "status" | "lastAttemptedAt">,
 ): Promise<ProblemSummaryDto> {
   return apiFetch("/api/problems", token, {
     method: "POST",

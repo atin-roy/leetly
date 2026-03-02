@@ -64,11 +64,12 @@ public class AttemptService {
 
         if (isFirstSolve) {
             problem.setStatus(ProblemStatus.SOLVED);
-            problemRepository.save(problem);
         } else if (!isAccepted && problem.getStatus() == ProblemStatus.UNSEEN) {
             problem.setStatus(ProblemStatus.ATTEMPTED);
-            problemRepository.save(problem);
         }
+
+        problem.setLastAttemptedAt(savedAttempt.getCreatedDate());
+        problemRepository.save(problem);
 
         statsService.updateOnAttempt(user, savedAttempt, isFirstSolve);
 
@@ -94,7 +95,12 @@ public class AttemptService {
 
     public void delete(long id, long problemId, User user) {
         Attempt attempt = findByIdAndProblem(id, problemId, user);
+        Problem problem = attempt.getProblem();
         statsService.adjustOnAttemptDelete(user, attempt, attemptRepository);
         attemptRepository.delete(attempt);
+
+        problem.setLastAttemptedAt(
+                attemptRepository.findMaxCreatedDateByProblemAndUser(problem, user).orElse(null));
+        problemRepository.save(problem);
     }
 }

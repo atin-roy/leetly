@@ -76,7 +76,7 @@ export default function ProblemsPage() {
     }
   }
 
-  async function handleAdd(p: Omit<ProblemSummaryDto, "id" | "status">): Promise<ProblemSummaryDto> {
+  async function handleAdd(p: Omit<ProblemSummaryDto, "id" | "status" | "lastAttemptedAt">): Promise<ProblemSummaryDto> {
     return createProblemMutation.mutateAsync(p)
   }
 

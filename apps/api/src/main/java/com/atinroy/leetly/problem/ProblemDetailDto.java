@@ -1,5 +1,6 @@
 package com.atinroy.leetly.problem;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public record ProblemDetailDto(
@@ -9,6 +10,7 @@ public record ProblemDetailDto(
         String url,
         Difficulty difficulty,
         ProblemStatus status,
+        LocalDateTime lastAttemptedAt,
         List<TopicDto> topics,
         List<PatternDto> patterns,
         List<ProblemSummaryDto> relatedProblems,
@@ -22,6 +24,7 @@ public record ProblemDetailDto(
                 problem.getUrl(),
                 problem.getDifficulty(),
                 problem.getStatus(),
+                problem.getLastAttemptedAt(),
                 problem.getTopics().stream().map(TopicDto::from).toList(),
                 problem.getPatterns().stream().map(PatternDto::from).toList(),
                 problem.getRelatedProblems().stream().map(ProblemSummaryDto::from).toList(),

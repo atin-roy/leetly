@@ -8,6 +8,7 @@ import org.hibernate.annotations.BatchSize;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,6 +38,9 @@ public class Problem extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ProblemStatus status;
+
+    @Column(name = "last_attempted_at")
+    private LocalDateTime lastAttemptedAt;
 
     @OneToMany(mappedBy = "problem", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @BatchSize(size = 20)

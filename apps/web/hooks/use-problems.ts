@@ -126,7 +126,7 @@ export function useCreateProblem() {
   const { data: session } = useSession()
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (body: Omit<ProblemSummaryDto, "id" | "status">) =>
+    mutationFn: (body: Omit<ProblemSummaryDto, "id" | "status" | "lastAttemptedAt">) =>
       createProblem(session?.accessToken, body),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["problems"] })

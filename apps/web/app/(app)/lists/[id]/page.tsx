@@ -1,17 +1,58 @@
 "use client"
 
-import { use } from "react"
+import { use, useMemo, useState } from "react"
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
 import { AddProblemToListDialog } from "@/components/lists/add-problem-to-list-dialog"
 import { ProblemTable } from "@/components/problems/problem-table"
 import { useProblemList, useRemoveProblemFromList } from "@/hooks/use-lists"
 import { useProblems } from "@/hooks/use-problems"
 import type { ProblemSummaryDto } from "@/lib/types"
+
+const LIST_SORT_OPTIONS = [
+  { value: "default", label: "Default" },
+  { value: "leetcodeId", label: "ID" },
+  { value: "title", label: "Name" },
+  { value: "difficulty", label: "Difficulty" },
+  { value: "lastAttemptedAt", label: "Recently Attempted" },
+] as const
+
+type ListSortKey = (typeof LIST_SORT_OPTIONS)[number]["value"]
+
+const DIFFICULTY_ORDER = { EASY: 0, MEDIUM: 1, HARD: 2 } as const
+
+function sortProblems(problems: ProblemSummaryDto[], sortKey: ListSortKey): ProblemSummaryDto[] {
+  if (sortKey === "default") return problems
+  return [...problems].sort((a, b) => {
+    switch (sortKey) {
+      case "leetcodeId":
+        return a.leetcodeId - b.leetcodeId
+      case "title":
+        return a.title.localeCompare(b.title)
+      case "difficulty":
+        return DIFFICULTY_ORDER[a.difficulty] - DIFFICULTY_ORDER[b.difficulty]
+      case "lastAttemptedAt": {
+        if (!a.lastAttemptedAt && !b.lastAttemptedAt) return 0
+        if (!a.lastAttemptedAt) return 1
+        if (!b.lastAttemptedAt) return -1
+        return b.lastAttemptedAt.localeCompare(a.lastAttemptedAt)
+      }
+      default:
+        return 0
+    }
+  })
+}
 
 export default function ListDetailPage({
   params,
@@ -23,6 +64,12 @@ export default function ListDetailPage({
   const { data: list, isLoading } = useProblemList(id)
   const removeMutation = useRemoveProblemFromList()
   const { data: allProblems } = useProblems({ size: 200 })
+  const [sortKey, setSortKey] = useState<ListSortKey>("default")
+
+  const sortedProblems = useMemo(
+    () => (list ? sortProblems(list.problems, sortKey) : []),
+    [list, sortKey],
+  )
 
   async function handleRemoveProblem(problem: ProblemSummaryDto) {
     try {
@@ -67,16 +114,30 @@ export default function ListDetailPage({
             {list.problems.length} problem{list.problems.length !== 1 ? "s" : ""}
           </p>
         </div>
-        <AddProblemToListDialog
-          listId={list.id}
-          listName={list.name}
-          listProblemIds={list.problems.map((problem) => problem.id)}
-          problems={allProblems?.content ?? []}
-        />
+        <div className="flex items-center gap-2">
+          <Select value={sortKey} onValueChange={(v) => setSortKey(v as ListSortKey)}>
+            <SelectTrigger className="w-44">
+              <SelectValue placeholder="Sort by" />
+            </SelectTrigger>
+            <SelectContent>
+              {LIST_SORT_OPTIONS.map(({ value, label }) => (
+                <SelectItem key={value} value={value}>
+                  {label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <AddProblemToListDialog
+            listId={list.id}
+            listName={list.name}
+            listProblemIds={list.problems.map((problem) => problem.id)}
+            problems={allProblems?.content ?? []}
+          />
+        </div>
       </div>
       <Card>
         <CardContent className="p-0">
-          <ProblemTable problems={list.problems} onDelete={handleRemoveProblem} />
+          <ProblemTable problems={sortedProblems} onDelete={handleRemoveProblem} />
         </CardContent>
       </Card>
     </div>

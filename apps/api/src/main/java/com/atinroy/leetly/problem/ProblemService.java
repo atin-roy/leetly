@@ -6,11 +6,15 @@ import com.atinroy.leetly.user.ProblemListRepository;
 import com.atinroy.leetly.user.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.JpaSort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -27,7 +31,27 @@ public class ProblemService {
     public Page<Problem> findAll(User user, Pageable pageable, String difficulty, String status, Long topicId, Long patternId, String search) {
         Specification<Problem> filters = ProblemSpecification.buildSpec(difficulty, status, topicId, patternId, search);
         Specification<Problem> ownedByUser = (root, query, cb) -> cb.equal(root.get("user"), user);
-        return problemRepository.findAll(ownedByUser.and(filters), pageable);
+        return problemRepository.findAll(ownedByUser.and(filters), adjustLastAttemptedSort(pageable));
+    }
+
+    private Pageable adjustLastAttemptedSort(Pageable pageable) {
+        boolean hasLastAttemptedAt = pageable.getSort().stream()
+                .anyMatch(o -> o.getProperty().equals("lastAttemptedAt"));
+        if (!hasLastAttemptedAt) {
+            return pageable;
+        }
+
+        List<Sort.Order> adjusted = new ArrayList<>();
+        for (Sort.Order order : pageable.getSort()) {
+            if (order.getProperty().equals("lastAttemptedAt")) {
+                Sort coalesced = JpaSort.unsafe(order.getDirection(),
+                        "COALESCE(lastAttemptedAt, TIMESTAMP '1970-01-01')");
+                coalesced.forEach(adjusted::add);
+            } else {
+                adjusted.add(order);
+            }
+        }
+        return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by(adjusted));
     }
 
     @Transactional(readOnly = true)

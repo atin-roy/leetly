@@ -94,6 +94,7 @@ export interface ProblemSummaryDto {
   url: string
   difficulty: Difficulty
   status: ProblemStatus
+  lastAttemptedAt: string | null
 }
 
 export interface ProblemDetailDto {
@@ -103,6 +104,7 @@ export interface ProblemDetailDto {
   url: string
   difficulty: Difficulty
   status: ProblemStatus
+  lastAttemptedAt: string | null
   topics: TopicDto[]
   patterns: PatternDto[]
   relatedProblems: ProblemSummaryDto[]

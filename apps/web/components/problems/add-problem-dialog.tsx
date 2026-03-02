@@ -18,7 +18,7 @@ import { DifficultyBadge } from "./difficulty-badge"
 import type { ProblemSummaryDto } from "@/lib/types"
 
 interface Props {
-  onAdd: (problem: Omit<ProblemSummaryDto, "id" | "status">) => Promise<ProblemSummaryDto>
+  onAdd: (problem: Omit<ProblemSummaryDto, "id" | "status" | "lastAttemptedAt">) => Promise<ProblemSummaryDto>
   /** Maps leetcodeId → internal problem id for duplicate detection */
   existingProblems: Map<number, number>
   triggerLabel?: string
