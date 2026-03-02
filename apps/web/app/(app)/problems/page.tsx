@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
+import { AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -18,7 +19,7 @@ const DEFAULT_FILTERS: Filters = { page: 0, size: PAGE_SIZE }
 
 export default function ProblemsPage() {
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS)
-  const { data: pagedResponse, isLoading } = useProblems(filters)
+  const { data: pagedResponse, error, isError, isLoading } = useProblems(filters)
   const invalidate = useInvalidateProblem()
   const createProblemMutation = useCreateProblem()
   const createNoteMutation = useCreateNote()
@@ -91,6 +92,33 @@ export default function ProblemsPage() {
         </div>
         <Skeleton className="h-10 w-full" />
         <Skeleton className="h-[400px] w-full" />
+      </div>
+    )
+  }
+
+  if (isError) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-semibold tracking-tight">Problems</h1>
+          <AddProblemDialog onAdd={handleAdd} existingProblems={new Map()} />
+        </div>
+
+        <ProblemFilters
+          filters={filters}
+          onChange={handleChange}
+          onReset={handleReset}
+        />
+
+        <Card className="border-destructive/40 bg-destructive/5">
+          <CardContent className="flex items-start gap-3 p-6 text-sm text-muted-foreground">
+            <AlertCircle className="mt-0.5 h-4 w-4 text-destructive" />
+            <div>
+              <p className="font-medium text-foreground">Failed to load problems.</p>
+              <p>{error instanceof Error ? error.message : "Unexpected error"}</p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     )
   }

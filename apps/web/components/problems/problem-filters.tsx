@@ -42,7 +42,6 @@ const SORT_OPTIONS: { value: string; label: string }[] = [
   { value: "difficulty,desc", label: "Difficulty: Hard first" },
   { value: "status,asc", label: "Status: Unseen first" },
   { value: "status,desc", label: "Status: Mastered first" },
-  { value: "lastAttemptedAt,desc", label: "Recently Attempted" },
 ]
 
 export function ProblemFilters({ filters, onChange, onReset }: Props) {
