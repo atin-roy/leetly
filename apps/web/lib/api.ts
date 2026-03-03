@@ -27,7 +27,7 @@ import type {
 
 const BASE =
   typeof window === "undefined"
-    ? (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080")
+    ? (process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080")
     : ""
 
 export async function apiFetch<T>(

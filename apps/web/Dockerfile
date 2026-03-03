@@ -52,6 +52,7 @@ ENV HOSTNAME=0.0.0.0
 
 # Runtime env vars (NOT baked in — pass at docker run / compose):
 #   AUTH_SECRET, AUTH_URL,
-#   KEYCLOAK_CLIENT_ID, KEYCLOAK_CLIENT_SECRET, KEYCLOAK_ISSUER
+#   KEYCLOAK_CLIENT_ID, KEYCLOAK_CLIENT_SECRET, KEYCLOAK_ISSUER,
+#   API_URL (backend URL reachable from this container, e.g. http://api:8080)
 
 ENTRYPOINT ["node", "server.js"]
