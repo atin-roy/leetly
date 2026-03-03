@@ -25,7 +25,10 @@ import type {
   UserStatsDto,
 } from "./types"
 
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080"
+const BASE =
+  typeof window === "undefined"
+    ? (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080")
+    : ""
 
 export async function apiFetch<T>(
   path: string,
