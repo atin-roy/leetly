@@ -138,7 +138,7 @@ jobs:
   deploy:
     name: Deploy to VPS
     needs: [changes, api, web]
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64]
     permissions:
       contents: read
     if: >-
@@ -149,42 +149,24 @@ jobs:
       (needs.changes.outputs.api == 'true' || needs.changes.outputs.web == 'true')
 
     steps:
-      - name: Trigger deploy webhook
+      - name: Deploy changed services locally
         env:
           API_CHANGED: ${{ needs.changes.outputs.api }}
           WEB_CHANGED: ${{ needs.changes.outputs.web }}
-          DEPLOY_WEBHOOK_TOKEN: ${{ secrets.DEPLOY_WEBHOOK_TOKEN }}
         shell: bash
         run: |
           set -euo pipefail
 
-          body="$(printf '{"api":%s,"web":%s}' "$API_CHANGED" "$WEB_CHANGED")"
-          response_file="$(mktemp)"
-          status_code="$(
-            curl \
-              --ipv4 \
-              --http1.1 \
-              --silent \
-              --show-error \
-              --output "$response_file" \
-              --write-out '%{http_code}' \
-              --connect-timeout 10 \
-              --max-time 60 \
-              --retry 5 \
-              --retry-delay 2 \
-              --retry-max-time 180 \
-              --retry-connrefused \
-              --retry-all-errors \
-              -X POST \
-              -H 'Content-Type: application/json' \
-              --data "$body" \
-              "https://atinroy.com/hooks/leetly?token=${DEPLOY_WEBHOOK_TOKEN}"
-          )"
+          cd /srv/apps/leetly
 
-          echo "Webhook response (${status_code}):"
-          cat "$response_file"
-
-          if [[ "$status_code" != "202" && "$status_code" != "200" ]]; then
-            echo "Deploy webhook failed with HTTP ${status_code}" >&2
-            exit 1
+          if [[ "$API_CHANGED" == "true" ]]; then
+            docker compose pull leetly-api
+            docker compose up -d --no-deps leetly-api
           fi
+
+          if [[ "$WEB_CHANGED" == "true" ]]; then
+            docker compose pull leetly-web
+            docker compose up -d --no-deps leetly-web
+          fi
+
+          docker image prune -f
