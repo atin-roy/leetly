@@ -49,22 +49,34 @@ const OUTCOMES = [
 
 const TIME_COMPLEXITIES = [
   "O(1)",
-  "O(log n)",
   "O(n)",
+  "O(log n)",
   "O(n log n)",
   "O(n^2)",
+  "O(m + n)",
+  "O(V + E)",
+  "O(sqrt n)",
+  "O(log^2 n)",
+  "O(n + k)",
+  "O(nk)",
+  "O(mn)",
   "O(n^3)",
   "O(2^n)",
-  "O(k^n)",
   "O(n!)",
+  "O(k^n)",
 ] as const
 
 const SPACE_COMPLEXITIES = [
   "O(1)",
-  "O(log n)",
   "O(n)",
+  "O(log n)",
+  "O(m + n)",
+  "O(V + E)",
+  "O(sqrt n)",
   "O(n log n)",
   "O(n^2)",
+  "O(nk)",
+  "O(mn)",
   "O(n^3)",
 ] as const
 
@@ -126,6 +138,12 @@ function getDefaultValues(preferredLanguage?: Language, attempt?: AttemptDto): F
   }
 }
 
+function normalizeLanguage(preferredLanguage?: Language | null): Language {
+  return preferredLanguage && LANGUAGES.includes(preferredLanguage)
+    ? preferredLanguage
+    : "PYTHON"
+}
+
 function formatElapsed(totalSeconds: number) {
   const hours = Math.floor(totalSeconds / 3600)
   const minutes = Math.floor((totalSeconds % 3600) / 60)
@@ -171,7 +189,7 @@ export function AttemptForm({ open, onOpenChange, problemId, attempt }: Props) {
   const preferredLanguage = settings?.preferredLanguage
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: getDefaultValues(preferredLanguage, attempt),
+    defaultValues: getDefaultValues(normalizeLanguage(preferredLanguage), attempt),
   })
 
   const startedAt = useWatch({ control: form.control, name: "startedAt" })
@@ -180,13 +198,13 @@ export function AttemptForm({ open, onOpenChange, problemId, attempt }: Props) {
 
   useEffect(() => {
     if (!open) return
-    form.reset(getDefaultValues(preferredLanguage, attempt))
+    form.reset(getDefaultValues(normalizeLanguage(preferredLanguage), attempt))
   }, [attempt, form, open, preferredLanguage])
 
   useEffect(() => {
     if (!open || attempt || !preferredLanguage) return
     if (form.getFieldState("language").isDirty) return
-    form.setValue("language", preferredLanguage)
+    form.setValue("language", normalizeLanguage(preferredLanguage), { shouldDirty: false })
   }, [attempt, form, open, preferredLanguage])
 
   useEffect(() => {
@@ -369,8 +387,8 @@ export function AttemptForm({ open, onOpenChange, problemId, attempt }: Props) {
               </div>
             </div>
 
-            <div className="grid min-h-0 flex-1 divide-y lg:grid-cols-[3fr_2fr] lg:divide-x lg:divide-y-0">
-              <div className="grid min-h-0 grid-rows-[auto_1fr] gap-4 p-6">
+            <div className="grid min-h-0 flex-1 overflow-hidden divide-y lg:grid-cols-[minmax(0,3fr)_minmax(320px,2fr)] lg:divide-x lg:divide-y-0">
+              <div className="flex min-h-0 flex-col gap-4 p-6">
                 <FormField
                   control={form.control}
                   name="approach"
@@ -410,19 +428,19 @@ export function AttemptForm({ open, onOpenChange, problemId, attempt }: Props) {
                 />
               </div>
 
-              <div className="grid min-h-0 gap-4 p-6 lg:grid-rows-3">
+              <div className="flex min-h-0 flex-col gap-4 p-6">
                 <FormField
                   control={form.control}
                   name="learned"
                   render={({ field }) => (
-                    <FormItem className="flex min-h-0 flex-col">
+                    <FormItem className="flex min-h-0 flex-1 flex-col">
                       <FormLabel>What I learned</FormLabel>
                       <FormControl>
                         <Textarea
                           {...field}
                           value={field.value ?? ""}
                           placeholder="Key insights..."
-                          className="min-h-0 flex-1 resize-none"
+                          className="min-h-0 h-full flex-1 resize-none"
                         />
                       </FormControl>
                     </FormItem>
@@ -433,14 +451,14 @@ export function AttemptForm({ open, onOpenChange, problemId, attempt }: Props) {
                   control={form.control}
                   name="takeaways"
                   render={({ field }) => (
-                    <FormItem className="flex min-h-0 flex-col">
+                    <FormItem className="flex min-h-0 flex-1 flex-col">
                       <FormLabel>Takeaways</FormLabel>
                       <FormControl>
                         <Textarea
                           {...field}
                           value={field.value ?? ""}
                           placeholder="Patterns to remember..."
-                          className="min-h-0 flex-1 resize-none"
+                          className="min-h-0 h-full flex-1 resize-none"
                         />
                       </FormControl>
                     </FormItem>
@@ -451,14 +469,14 @@ export function AttemptForm({ open, onOpenChange, problemId, attempt }: Props) {
                   control={form.control}
                   name="notes"
                   render={({ field }) => (
-                    <FormItem className="flex min-h-0 flex-col">
+                    <FormItem className="flex min-h-0 flex-1 flex-col">
                       <FormLabel>Notes</FormLabel>
                       <FormControl>
                         <Textarea
                           {...field}
                           value={field.value ?? ""}
                           placeholder="Additional notes..."
-                          className="min-h-0 flex-1 resize-none"
+                          className="min-h-0 h-full flex-1 resize-none"
                         />
                       </FormControl>
                     </FormItem>
