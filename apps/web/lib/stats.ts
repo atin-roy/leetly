@@ -21,6 +21,7 @@ export const EMPTY_USER_STATS: UserStatsDto = {
   distinctTopicsCovered: 0,
   distinctPatternsCovered: 0,
   mistakeBreakdown: null,
+  patternBreakdown: null,
 }
 
 const SOLVED_STATUSES: ProblemStatus[] = ["SOLVED", "SOLVED_WITH_HELP", "MASTERED"]

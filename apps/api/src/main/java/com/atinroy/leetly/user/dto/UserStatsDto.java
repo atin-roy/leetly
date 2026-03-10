@@ -22,7 +22,8 @@ public record UserStatsDto(
         int solvedThisMonth,
         int distinctTopicsCovered,
         int distinctPatternsCovered,
-        String mistakeBreakdown
+        String mistakeBreakdown,
+        String patternBreakdown
 ) {
     public static UserStatsDto from(UserStats stats) {
         return new UserStatsDto(
@@ -44,7 +45,8 @@ public record UserStatsDto(
                 stats.getSolvedThisMonth(),
                 stats.getDistinctTopicsCovered(),
                 stats.getDistinctPatternsCovered(),
-                stats.getMistakeBreakdown()
+                stats.getMistakeBreakdown(),
+                stats.getPatternBreakdown()
         );
     }
 }

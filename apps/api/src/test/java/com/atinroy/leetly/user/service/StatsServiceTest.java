@@ -242,6 +242,35 @@ class StatsServiceTest {
         assertThat(result.getCurrentStreak()).isEqualTo(3);
         assertThat(result.getMistakeBreakdown()).contains("OFF_BY_ONE");
         assertThat(result.getMistakeBreakdown()).contains("WRONG_PATTERN");
+        assertThat(result.getPatternBreakdown()).contains("20");
+        assertThat(result.getPatternBreakdown()).contains("21");
+    }
+
+    @Test
+    void getByUser_usesMostRecentAttemptAsSolveDateForSolvedProblems() {
+        User user = new User();
+        UserStats stats = new UserStats();
+        when(userStatsRepository.findByUser(user)).thenReturn(Optional.of(stats));
+
+        LocalDate today = LocalDate.now();
+        Problem solved = problem(1L, ProblemStatus.SOLVED, Difficulty.MEDIUM, today.minusDays(10));
+
+        Attempt accepted = attempt(Outcome.ACCEPTED, Difficulty.MEDIUM, 1);
+        accepted.setProblem(solved);
+        accepted.setCreatedDate(today.minusDays(5).atStartOfDay());
+
+        Attempt reviewAttempt = attempt(Outcome.WRONG_ANSWER, Difficulty.MEDIUM, 2);
+        reviewAttempt.setProblem(solved);
+        reviewAttempt.setCreatedDate(today.minusDays(1).atStartOfDay());
+
+        when(problemRepository.findAllByUser(user)).thenReturn(List.of(solved));
+        when(attemptRepository.findByUserOrderByCreatedDateAsc(user)).thenReturn(List.of(accepted, reviewAttempt));
+
+        UserStats result = statsService.getByUser(user);
+
+        assertThat(result.getLastSolvedDate()).isEqualTo(today.minusDays(1));
+        assertThat(result.getSolvedThisWeek()).isEqualTo(1);
+        assertThat(result.getSolvedThisMonth()).isEqualTo(1);
     }
 
     @Test
@@ -305,6 +334,7 @@ class StatsServiceTest {
     private Pattern pattern(Long id) {
         Pattern pattern = new Pattern();
         pattern.setId(id);
+        pattern.setName(String.valueOf(id));
         return pattern;
     }
 

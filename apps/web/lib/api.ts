@@ -1,3 +1,4 @@
+import { format } from "date-fns"
 import type {
   AttemptDto,
   CreateListRequest,
@@ -241,10 +242,11 @@ export function getDailyStats(
   token: string | undefined,
   days?: number,
 ): Promise<DailyStatDto[]> {
+  const windowDays = days ?? 365
   const to = new Date()
   const from = new Date()
-  from.setDate(from.getDate() - (days ?? 365))
-  const fmt = (d: Date) => d.toISOString().split("T")[0]
+  from.setDate(from.getDate() - (windowDays - 1))
+  const fmt = (d: Date) => format(d, "yyyy-MM-dd")
   return apiFetch(`/api/me/stats/daily?from=${fmt(from)}&to=${fmt(to)}`, token)
 }
 

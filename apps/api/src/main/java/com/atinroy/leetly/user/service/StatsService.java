@@ -223,8 +223,10 @@ public class StatsService {
         stats.setSolvedThisMonth(0);
         stats.setDistinctTopicsCovered(0);
         stats.setDistinctPatternsCovered(0);
+        stats.setPatternBreakdown(null);
 
         Map<String, Integer> mistakeBreakdown = new HashMap<>();
+        Map<String, Integer> patternBreakdown = new HashMap<>();
         Set<Long> distinctTopicIds = new HashSet<>();
         Set<Long> distinctPatternIds = new HashSet<>();
         List<LocalDate> solveDates = new ArrayList<>();
@@ -242,9 +244,10 @@ public class StatsService {
             problem.getTopics().stream()
                     .map(topic -> topic.getId())
                     .forEach(distinctTopicIds::add);
-            problem.getPatterns().stream()
-                    .map(pattern -> pattern.getId())
-                    .forEach(distinctPatternIds::add);
+            problem.getPatterns().forEach(pattern -> {
+                distinctPatternIds.add(pattern.getId());
+                patternBreakdown.merge(pattern.getName(), 1, Integer::sum);
+            });
 
             if (problem.getStatus() != ProblemStatus.UNSEEN) {
                 stats.setTotalAttempted(stats.getTotalAttempted() + 1);
@@ -275,6 +278,7 @@ public class StatsService {
         stats.setDistinctTopicsCovered(distinctTopicIds.size());
         stats.setDistinctPatternsCovered(distinctPatternIds.size());
         stats.setMistakeBreakdown(writeMistakeBreakdown(mistakeBreakdown));
+        stats.setPatternBreakdown(writeBreakdown(patternBreakdown));
         applySolveWindowStats(stats, solveDates);
     }
 
@@ -353,20 +357,28 @@ public class StatsService {
             return null;
         }
 
-        Attempt firstAcceptedAttempt = findFirstAcceptedAttempt(attempts);
-        if (firstAcceptedAttempt != null) {
-            LocalDate acceptedDate = toLocalDate(firstAcceptedAttempt.getCreatedDate());
-            if (acceptedDate != null) {
-                return acceptedDate;
+        Attempt mostRecentAttempt = findMostRecentAttempt(attempts);
+        if (mostRecentAttempt != null) {
+            LocalDate attemptDate = toLocalDate(mostRecentAttempt.getCreatedDate());
+            if (attemptDate != null) {
+                return attemptDate;
             }
         }
 
-        LocalDate modifiedDate = toLocalDate(problem.getLastModifiedDate());
-        if (modifiedDate != null) {
-            return modifiedDate;
+        return toLocalDate(problem.getCreatedDate());
+    }
+
+    private Attempt findMostRecentAttempt(List<Attempt> attempts) {
+        if (attempts == null) {
+            return null;
         }
 
-        return toLocalDate(problem.getCreatedDate());
+        return attempts.stream()
+                .max(Comparator
+                        .comparing((Attempt attempt) -> attempt.getCreatedDate() == null)
+                        .thenComparing(Attempt::getCreatedDate, Comparator.nullsFirst(Comparator.naturalOrder()))
+                        .thenComparingInt(Attempt::getAttemptNumber))
+                .orElse(null);
     }
 
     private Attempt findFirstAcceptedAttempt(List<Attempt> attempts) {
@@ -500,10 +512,14 @@ public class StatsService {
     }
 
     private String writeMistakeBreakdown(Map<String, Integer> breakdown) {
+        return writeBreakdown(breakdown);
+    }
+
+    private String writeBreakdown(Map<String, Integer> breakdown) {
         try {
             return objectMapper.writeValueAsString(breakdown);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to serialize mistake breakdown", e);
+            throw new RuntimeException("Failed to serialize breakdown", e);
         }
     }
 }

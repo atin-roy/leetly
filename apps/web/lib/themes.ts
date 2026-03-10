@@ -7,6 +7,10 @@ export type ThemeId =
   | "forest"
   | "signal"
   | "paper"
+  | "lagoon"
+  | "sunset"
+  | "graphite"
+  | "rose"
 
 export interface Theme {
   id: ThemeId
@@ -126,6 +130,58 @@ export const THEMES: Theme[] = [
       primary: "oklch(0.42 0.09 250)",
       fg: "oklch(0.24 0.03 255)",
       border: "oklch(0.88 0.02 95)",
+    },
+  },
+  {
+    id: "lagoon",
+    name: "Lagoon",
+    description: "Deep ocean blue with aqua light",
+    preview: {
+      bg: "oklch(0.2 0.035 230)",
+      sidebar: "oklch(0.16 0.03 230)",
+      card: "oklch(0.26 0.03 230)",
+      primary: "oklch(0.78 0.14 190)",
+      fg: "oklch(0.96 0.02 205)",
+      border: "oklch(0.33 0.03 230)",
+    },
+  },
+  {
+    id: "sunset",
+    name: "Sunset",
+    description: "Burnt coral evening glow",
+    preview: {
+      bg: "oklch(0.22 0.04 18)",
+      sidebar: "oklch(0.18 0.035 18)",
+      card: "oklch(0.28 0.035 18)",
+      primary: "oklch(0.76 0.16 28)",
+      fg: "oklch(0.96 0.015 65)",
+      border: "oklch(0.35 0.03 18)",
+    },
+  },
+  {
+    id: "graphite",
+    name: "Graphite",
+    description: "Slate monochrome with cobalt edges",
+    preview: {
+      bg: "oklch(0.22 0.01 255)",
+      sidebar: "oklch(0.17 0.01 255)",
+      card: "oklch(0.28 0.012 255)",
+      primary: "oklch(0.7 0.13 255)",
+      fg: "oklch(0.94 0.01 255)",
+      border: "oklch(0.37 0.012 255)",
+    },
+  },
+  {
+    id: "rose",
+    name: "Rose",
+    description: "Muted berry dark with blush accents",
+    preview: {
+      bg: "oklch(0.23 0.035 355)",
+      sidebar: "oklch(0.19 0.03 355)",
+      card: "oklch(0.29 0.03 355)",
+      primary: "oklch(0.78 0.14 355)",
+      fg: "oklch(0.96 0.012 20)",
+      border: "oklch(0.36 0.025 355)",
     },
   },
 ]

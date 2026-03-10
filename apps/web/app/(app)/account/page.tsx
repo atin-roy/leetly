@@ -459,18 +459,18 @@ function AppearanceCard({
         <CardDescription>Choose a color theme for the interface</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="flex flex-wrap gap-4">
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
           {THEMES.map((theme) => (
             <button
               key={theme.id}
               type="button"
               onClick={() => onSelect(theme.id)}
-              className="flex flex-col items-center gap-2 rounded-xl p-1.5 transition-all hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              className="flex min-h-[150px] flex-col items-center gap-2 rounded-xl border border-transparent p-2 text-center transition-all hover:border-border hover:bg-muted/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >
               <ThemeSwatch t={theme} active={themeId === theme.id} />
-              <div className="flex flex-col items-center gap-0.5">
-                <span className="text-xs font-medium">{theme.name}</span>
-                <span className="text-[10px] text-muted-foreground">{theme.description}</span>
+              <div className="flex min-h-[44px] flex-col items-center gap-0.5">
+                <span className="text-xs font-medium leading-none">{theme.name}</span>
+                <span className="text-[10px] leading-snug text-muted-foreground">{theme.description}</span>
               </div>
             </button>
           ))}

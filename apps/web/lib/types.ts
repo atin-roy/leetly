@@ -158,6 +158,7 @@ export interface UserStatsDto {
   distinctTopicsCovered: number
   distinctPatternsCovered: number
   mistakeBreakdown: string | null // JSON string
+  patternBreakdown: string | null // JSON string
 }
 
 export interface DailyStatDto {

@@ -53,6 +53,7 @@ import {
 } from "@/hooks/use-lists"
 import type {
   AttemptDto,
+  MistakeType,
   PatternDto,
   ProblemListDto,
   NoteTag,
@@ -78,6 +79,44 @@ const OUTCOME_LABELS: Record<string, string> = {
   MEMORY_LIMIT_EXCEEDED: "MLE",
   RUNTIME_ERROR: "Runtime Error",
   NOT_COMPLETED: "Not Completed",
+}
+
+const MISTAKE_LABELS: Record<MistakeType, string> = {
+  WRONG_PATTERN: "Wrong Pattern",
+  OFF_BY_ONE: "Off By One",
+  MISSED_EDGE_CASE: "Missed Edge Case",
+  FORGOT_BASE_CASE: "Forgot Base Case",
+  WRONG_DATA_STRUCTURE: "Wrong Data Structure",
+  OVERCOMPLICATED: "Overcomplicated",
+  TIMEOUT: "Timeout",
+  OVERFLOW: "Overflow",
+  WRONG_INITIALIZATION: "Wrong Initialization",
+  INCORRECT_LOGIC: "Incorrect Logic",
+}
+
+function formatDuration(minutes: number | null) {
+  if (minutes == null) return null
+  if (minutes < 60) return `${minutes}m`
+  const hours = Math.floor(minutes / 60)
+  const remainingMinutes = minutes % 60
+  return remainingMinutes === 0 ? `${hours}h` : `${hours}h ${remainingMinutes}m`
+}
+
+function AttemptStat({
+  label,
+  value,
+}: {
+  label: string
+  value: string | null
+}) {
+  if (!value) return null
+
+  return (
+    <div className="rounded-md border bg-muted/30 px-3 py-2">
+      <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className="mt-1 text-sm font-medium">{value}</p>
+    </div>
+  )
 }
 
 // ── Meta Row ──────────────────────────────────────────────────────────────────
@@ -223,10 +262,36 @@ function AttemptCard({
           {format(new Date(attempt.createdDate), "MMM d, yyyy 'at' h:mm a")}
           {attempt.startedAt && ` · Started ${format(new Date(attempt.startedAt), "h:mm a")}`}
           {attempt.endedAt && ` · Ended ${format(new Date(attempt.endedAt), "h:mm a")}`}
-          {attempt.durationMinutes != null && ` · ${attempt.durationMinutes}m`}
-          {attempt.timeComplexity && ` · T: ${attempt.timeComplexity}`}
-          {attempt.spaceComplexity && ` · S: ${attempt.spaceComplexity}`}
         </p>
+        <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+          <AttemptStat label="Solve Time" value={formatDuration(attempt.durationMinutes)} />
+          <AttemptStat label="Time Complexity" value={attempt.timeComplexity} />
+          <AttemptStat label="Space Complexity" value={attempt.spaceComplexity} />
+          <AttemptStat
+            label="Timer"
+            value={
+              attempt.startedAt && attempt.endedAt
+                ? `${format(new Date(attempt.startedAt), "h:mm a")} to ${format(new Date(attempt.endedAt), "h:mm a")}`
+                : attempt.startedAt
+                  ? `Started ${format(new Date(attempt.startedAt), "h:mm a")}`
+                  : attempt.endedAt
+                    ? `Ended ${format(new Date(attempt.endedAt), "h:mm a")}`
+                    : null
+            }
+          />
+        </div>
+        {attempt.mistakes.length > 0 && (
+          <div className="space-y-1.5">
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Mistakes</p>
+            <div className="flex flex-wrap gap-2">
+              {attempt.mistakes.map((mistake) => (
+                <Badge key={mistake} variant="secondary" className="font-medium">
+                  {MISTAKE_LABELS[mistake] ?? mistake}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        )}
         {attempt.approach && (
           <div className="space-y-1">
             <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Approach</p>
@@ -234,8 +299,11 @@ function AttemptCard({
           </div>
         )}
         <CodeBlock language={attempt.language} code={attempt.code} />
-        {(attempt.learned || attempt.takeaways || attempt.notes) && (
+        {(attempt.learned || attempt.takeaways || attempt.notes || attempt.aiReview) && (
           <div className="space-y-1.5 text-sm">
+            {attempt.aiReview && (
+              <p><span className="font-medium">AI Review: </span>{attempt.aiReview}</p>
+            )}
             {attempt.learned && (
               <p><span className="font-medium">Learned: </span>{attempt.learned}</p>
             )}

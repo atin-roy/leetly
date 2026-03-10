@@ -82,4 +82,8 @@ public class UserStats extends BaseEntity {
     @Column(columnDefinition = "jsonb")
     @JdbcTypeCode(SqlTypes.JSON)
     private String mistakeBreakdown;
+
+    @Column(columnDefinition = "jsonb")
+    @JdbcTypeCode(SqlTypes.JSON)
+    private String patternBreakdown;
 }
