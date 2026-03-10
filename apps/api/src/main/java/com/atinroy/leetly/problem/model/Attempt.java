@@ -9,6 +9,7 @@ import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -33,6 +34,9 @@ public class Attempt extends BaseEntity {
 
     @Column(columnDefinition = "TEXT")
     private String code;
+
+    @Column(columnDefinition = "TEXT")
+    private String approach;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -65,4 +69,10 @@ public class Attempt extends BaseEntity {
 
     @Column(length = 5000)
     private String notes;
+
+    @Column
+    private LocalDateTime startedAt;
+
+    @Column
+    private LocalDateTime endedAt;
 }

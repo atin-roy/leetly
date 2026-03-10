@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 import com.atinroy.leetly.problem.dto.LogAttemptRequest;
 import com.atinroy.leetly.problem.model.Attempt;
@@ -52,8 +54,9 @@ public class AttemptService {
         attempt.setAttemptNumber(attemptNumber);
         attempt.setLanguage(request.language());
         attempt.setCode(request.code());
+        attempt.setApproach(request.approach());
         attempt.setOutcome(request.outcome());
-        attempt.setDurationMinutes(request.durationMinutes());
+        attempt.setDurationMinutes(resolveDurationMinutes(request));
         attempt.setMistakes(request.mistakes() != null ? request.mistakes() : List.of());
         attempt.setTimeComplexity(request.timeComplexity());
         attempt.setSpaceComplexity(request.spaceComplexity());
@@ -61,6 +64,8 @@ public class AttemptService {
         attempt.setLearned(request.learned());
         attempt.setTakeaways(request.takeaways());
         attempt.setNotes(request.notes());
+        attempt.setStartedAt(request.startedAt());
+        attempt.setEndedAt(request.endedAt());
         Attempt savedAttempt = attemptRepository.save(attempt);
 
         boolean isAccepted = request.outcome() == Outcome.ACCEPTED;
@@ -88,8 +93,9 @@ public class AttemptService {
         statsService.adjustOnAttemptUpdate(user, attempt, request);
         attempt.setLanguage(request.language());
         attempt.setCode(request.code());
+        attempt.setApproach(request.approach());
         attempt.setOutcome(request.outcome());
-        attempt.setDurationMinutes(request.durationMinutes());
+        attempt.setDurationMinutes(resolveDurationMinutes(request));
         attempt.setMistakes(request.mistakes() != null ? request.mistakes() : List.of());
         attempt.setTimeComplexity(request.timeComplexity());
         attempt.setSpaceComplexity(request.spaceComplexity());
@@ -97,6 +103,8 @@ public class AttemptService {
         attempt.setLearned(request.learned());
         attempt.setTakeaways(request.takeaways());
         attempt.setNotes(request.notes());
+        attempt.setStartedAt(request.startedAt());
+        attempt.setEndedAt(request.endedAt());
         return attemptRepository.save(attempt);
     }
 
@@ -109,5 +117,18 @@ public class AttemptService {
         problem.setLastAttemptedAt(
                 attemptRepository.findMaxCreatedDateByProblemAndUser(problem, user).orElse(null));
         problemRepository.save(problem);
+    }
+
+    private Integer resolveDurationMinutes(LogAttemptRequest request) {
+        LocalDateTime startedAt = request.startedAt();
+        LocalDateTime endedAt = request.endedAt();
+
+        if (startedAt != null && endedAt != null && !endedAt.isBefore(startedAt)) {
+            long seconds = Duration.between(startedAt, endedAt).getSeconds();
+            if (seconds <= 0) return 0;
+            return Math.max(1, (int) Math.ceil(seconds / 60.0));
+        }
+
+        return request.durationMinutes();
     }
 }

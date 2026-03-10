@@ -1,8 +1,9 @@
 "use client"
 
-import { useEffect } from "react"
-import { useForm } from "react-hook-form"
+import { useEffect, useState } from "react"
+import { useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { format } from "date-fns"
 import { z } from "zod"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
@@ -20,7 +21,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
 import {
   Select,
   SelectContent,
@@ -30,7 +30,8 @@ import {
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { useLogAttempt, useUpdateAttempt } from "@/hooks/use-attempts"
-import type { AttemptDto } from "@/lib/types"
+import { useSettings } from "@/hooks/use-settings"
+import type { AttemptDto, Language } from "@/lib/types"
 
 const LANGUAGES = [
   "JAVA", "PYTHON", "JAVASCRIPT", "TYPESCRIPT",
@@ -46,16 +47,40 @@ const OUTCOMES = [
   { value: "NOT_COMPLETED", label: "Not Completed" },
 ] as const
 
+const TIME_COMPLEXITIES = [
+  "O(1)",
+  "O(log n)",
+  "O(n)",
+  "O(n log n)",
+  "O(n^2)",
+  "O(n^3)",
+  "O(2^n)",
+  "O(k^n)",
+  "O(n!)",
+] as const
+
+const SPACE_COMPLEXITIES = [
+  "O(1)",
+  "O(log n)",
+  "O(n)",
+  "O(n log n)",
+  "O(n^2)",
+  "O(n^3)",
+] as const
+
 const schema = z.object({
   language: z.enum(LANGUAGES),
-  outcome: z.enum(["ACCEPTED","WRONG_ANSWER","TIME_LIMIT_EXCEEDED","MEMORY_LIMIT_EXCEEDED","RUNTIME_ERROR","NOT_COMPLETED"]),
-  code: z.string().min(1, "Code is required"),
-  durationMinutes: z.number().int().positive().optional(),
+  outcome: z.enum(["ACCEPTED", "WRONG_ANSWER", "TIME_LIMIT_EXCEEDED", "MEMORY_LIMIT_EXCEEDED", "RUNTIME_ERROR", "NOT_COMPLETED"]),
+  code: z.string().optional(),
+  approach: z.string().optional(),
+  durationMinutes: z.number().int().min(0).optional(),
   timeComplexity: z.string().optional(),
   spaceComplexity: z.string().optional(),
   learned: z.string().optional(),
   takeaways: z.string().optional(),
   notes: z.string().optional(),
+  startedAt: z.string().optional(),
+  endedAt: z.string().optional(),
 })
 
 type FormValues = z.infer<typeof schema>
@@ -67,60 +92,148 @@ interface Props {
   attempt?: AttemptDto
 }
 
+function getDefaultValues(preferredLanguage?: Language, attempt?: AttemptDto): FormValues {
+  if (attempt) {
+    return {
+      language: attempt.language,
+      outcome: attempt.outcome,
+      code: attempt.code ?? "",
+      approach: attempt.approach ?? "",
+      durationMinutes: attempt.durationMinutes ?? undefined,
+      timeComplexity: attempt.timeComplexity ?? undefined,
+      spaceComplexity: attempt.spaceComplexity ?? undefined,
+      learned: attempt.learned ?? "",
+      takeaways: attempt.takeaways ?? "",
+      notes: attempt.notes ?? "",
+      startedAt: attempt.startedAt ?? undefined,
+      endedAt: attempt.endedAt ?? undefined,
+    }
+  }
+
+  return {
+    language: preferredLanguage ?? "PYTHON",
+    outcome: "NOT_COMPLETED",
+    code: "",
+    approach: "",
+    durationMinutes: undefined,
+    timeComplexity: undefined,
+    spaceComplexity: undefined,
+    learned: "",
+    takeaways: "",
+    notes: "",
+    startedAt: undefined,
+    endedAt: undefined,
+  }
+}
+
+function formatElapsed(totalSeconds: number) {
+  const hours = Math.floor(totalSeconds / 3600)
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+  const seconds = totalSeconds % 60
+
+  if (hours > 0) {
+    return `${hours}h ${minutes}m ${seconds}s`
+  }
+
+  return `${minutes}m ${seconds}s`
+}
+
+function getElapsedSeconds(startedAt?: string, endedAt?: string, nowMs?: number) {
+  if (!startedAt) return 0
+  const startMs = new Date(startedAt).getTime()
+  const endMs = endedAt ? new Date(endedAt).getTime() : nowMs ?? Date.now()
+
+  if (Number.isNaN(startMs) || Number.isNaN(endMs) || endMs < startMs) return 0
+  return Math.floor((endMs - startMs) / 1000)
+}
+
+function formatTimestamp(value?: string) {
+  if (!value) return "Not set"
+  return format(new Date(value), "MMM d, yyyy h:mm:ss a")
+}
+
+function createLocalTimestamp() {
+  return new Date().toISOString().slice(0, 19)
+}
+
+function normalizeText(value?: string) {
+  const trimmed = value?.trim()
+  return trimmed ? trimmed : undefined
+}
+
 export function AttemptForm({ open, onOpenChange, problemId, attempt }: Props) {
   const isEdit = !!attempt
+  const { data: settings } = useSettings()
   const logMutation = useLogAttempt(problemId)
   const updateMutation = useUpdateAttempt(problemId)
+  const [nowMs, setNowMs] = useState(() => Date.now())
 
+  const preferredLanguage = settings?.preferredLanguage
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: {
-      language: "PYTHON",
-      outcome: "NOT_COMPLETED",
-      code: "",
-      durationMinutes: undefined,
-      timeComplexity: "",
-      spaceComplexity: "",
-      learned: "",
-      takeaways: "",
-      notes: "",
-    },
+    defaultValues: getDefaultValues(preferredLanguage, attempt),
   })
 
+  const startedAt = useWatch({ control: form.control, name: "startedAt" })
+  const endedAt = useWatch({ control: form.control, name: "endedAt" })
+  const elapsedSeconds = getElapsedSeconds(startedAt, endedAt, nowMs)
+
   useEffect(() => {
-    if (attempt) {
-      form.reset({
-        language: attempt.language,
-        outcome: attempt.outcome,
-        code: attempt.code,
-        durationMinutes: attempt.durationMinutes ?? undefined,
-        timeComplexity: attempt.timeComplexity ?? "",
-        spaceComplexity: attempt.spaceComplexity ?? "",
-        learned: attempt.learned ?? "",
-        takeaways: attempt.takeaways ?? "",
-        notes: attempt.notes ?? "",
-      })
-    } else {
-      form.reset()
+    if (!open) return
+    form.reset(getDefaultValues(preferredLanguage, attempt))
+  }, [attempt, form, open, preferredLanguage])
+
+  useEffect(() => {
+    if (!open || attempt || !preferredLanguage) return
+    if (form.getFieldState("language").isDirty) return
+    form.setValue("language", preferredLanguage)
+  }, [attempt, form, open, preferredLanguage])
+
+  useEffect(() => {
+    if (!open || !startedAt || endedAt) return
+
+    const interval = window.setInterval(() => setNowMs(Date.now()), 1000)
+    return () => window.clearInterval(interval)
+  }, [endedAt, open, startedAt])
+
+  function handleStartSolving() {
+    const started = createLocalTimestamp()
+    form.setValue("startedAt", started, { shouldDirty: true })
+    form.setValue("endedAt", undefined, { shouldDirty: true })
+  }
+
+  function handleEndSolving() {
+    if (!form.getValues("startedAt")) {
+      handleStartSolving()
     }
-  }, [attempt, form])
+
+    form.setValue("endedAt", createLocalTimestamp(), { shouldDirty: true })
+  }
+
+  function handleResetTimer() {
+    form.setValue("startedAt", undefined, { shouldDirty: true })
+    form.setValue("endedAt", undefined, { shouldDirty: true })
+  }
 
   async function onSubmit(values: FormValues) {
     const body = {
       language: values.language,
       outcome: values.outcome,
-      code: values.code,
+      code: normalizeText(values.code),
+      approach: normalizeText(values.approach),
       durationMinutes: values.durationMinutes,
       timeComplexity: values.timeComplexity || undefined,
       spaceComplexity: values.spaceComplexity || undefined,
-      learned: values.learned || undefined,
-      takeaways: values.takeaways || undefined,
-      notes: values.notes || undefined,
+      learned: normalizeText(values.learned),
+      takeaways: normalizeText(values.takeaways),
+      notes: normalizeText(values.notes),
+      startedAt: values.startedAt,
+      endedAt: values.endedAt,
     }
 
     try {
       if (isEdit) {
-        await updateMutation.mutateAsync({ attemptId: attempt!.id, body })
+        await updateMutation.mutateAsync({ attemptId: attempt.id, body })
         toast.success("Attempt updated")
       } else {
         await logMutation.mutateAsync(body)
@@ -134,19 +247,14 @@ export function AttemptForm({ open, onOpenChange, problemId, attempt }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-5xl h-[85vh] flex flex-col gap-0 p-0 overflow-hidden">
-        {/* Header */}
-        <DialogHeader className="shrink-0 px-6 py-5 border-b">
+      <DialogContent className="h-[88vh] max-w-[96vw] p-0 sm:max-w-6xl">
+        <DialogHeader className="border-b px-6 py-5">
           <DialogTitle>{isEdit ? "Edit Attempt" : "Log Attempt"}</DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="flex flex-col flex-1 min-h-0"
-          >
-            {/* Top bar: Language + Outcome + Duration + Time + Space */}
-            <div className="shrink-0 grid grid-cols-5 gap-4 px-6 py-4 border-b">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex h-full min-h-0 flex-col">
+            <div className="grid shrink-0 gap-4 border-b px-6 py-4 md:grid-cols-2 xl:grid-cols-[1fr_1fr_1fr_1fr_1.5fr]">
               <FormField
                 control={form.control}
                 name="language"
@@ -160,8 +268,8 @@ export function AttemptForm({ open, onOpenChange, problemId, attempt }: Props) {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {LANGUAGES.map((l) => (
-                          <SelectItem key={l} value={l}>{l}</SelectItem>
+                        {LANGUAGES.map((language) => (
+                          <SelectItem key={language} value={language}>{language}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -169,6 +277,7 @@ export function AttemptForm({ open, onOpenChange, problemId, attempt }: Props) {
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="outcome"
@@ -191,69 +300,108 @@ export function AttemptForm({ open, onOpenChange, problemId, attempt }: Props) {
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="durationMinutes"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Duration (min)</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        placeholder="30"
-                        value={field.value ?? ""}
-                        onChange={(e) =>
-                          field.onChange(e.target.value === "" ? undefined : e.target.valueAsNumber)
-                        }
-                        onBlur={field.onBlur}
-                        name={field.name}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+
               <FormField
                 control={form.control}
                 name="timeComplexity"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Time</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="O(n)" />
-                    </FormControl>
+                    <FormLabel>Time Complexity</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select time complexity" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {TIME_COMPLEXITIES.map((complexity) => (
+                          <SelectItem key={complexity} value={complexity}>{complexity}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="spaceComplexity"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Space</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="O(1)" />
-                    </FormControl>
+                    <FormLabel>Space Complexity</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select space complexity" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {SPACE_COMPLEXITIES.map((complexity) => (
+                          <SelectItem key={complexity} value={complexity}>{complexity}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
+
+              <div className="rounded-lg border bg-muted/20 px-4 py-3">
+                <p className="text-sm font-medium">Solve Timer</p>
+                <p className="mt-1 text-2xl font-semibold tabular-nums">{formatElapsed(elapsedSeconds)}</p>
+                <p className="mt-1 text-xs text-muted-foreground">Recorded automatically when both start and end are set.</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Button type="button" size="sm" onClick={handleStartSolving}>
+                    Start solving
+                  </Button>
+                  <Button type="button" size="sm" variant="secondary" onClick={handleEndSolving}>
+                    End
+                  </Button>
+                  <Button type="button" size="sm" variant="ghost" onClick={handleResetTimer}>
+                    Reset
+                  </Button>
+                </div>
+                <div className="mt-3 space-y-1 text-xs text-muted-foreground">
+                  <p>Started: {formatTimestamp(startedAt)}</p>
+                  <p>Ended: {formatTimestamp(endedAt)}</p>
+                </div>
+              </div>
             </div>
 
-            {/* Body: Code (left) + Reflections (right) */}
-            <div className="flex-1 min-h-0 grid grid-cols-[3fr_2fr] divide-x">
-              {/* Code */}
-              <div className="flex flex-col gap-1.5 p-6">
+            <div className="grid min-h-0 flex-1 divide-y lg:grid-cols-[3fr_2fr] lg:divide-x lg:divide-y-0">
+              <div className="grid min-h-0 grid-rows-[auto_1fr] gap-4 p-6">
+                <FormField
+                  control={form.control}
+                  name="approach"
+                  render={({ field }) => (
+                    <FormItem className="flex min-h-0 flex-col">
+                      <FormLabel>Approach</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          {...field}
+                          value={field.value ?? ""}
+                          placeholder="Capture your brainstorming, edge cases, tradeoffs, and intended algorithm before or during the solve."
+                          className="min-h-32 resize-none"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
                 <FormField
                   control={form.control}
                   name="code"
                   render={({ field }) => (
-                    <FormItem className="flex flex-col flex-1 min-h-0">
+                    <FormItem className="flex min-h-0 flex-col">
                       <FormLabel>Code</FormLabel>
                       <FormControl>
                         <Textarea
                           {...field}
+                          value={field.value ?? ""}
                           placeholder="Paste your solution here..."
-                          className="flex-1 resize-none font-mono text-sm"
+                          className="min-h-0 flex-1 resize-none font-mono text-sm"
                         />
                       </FormControl>
                       <FormMessage />
@@ -262,40 +410,56 @@ export function AttemptForm({ open, onOpenChange, problemId, attempt }: Props) {
                 />
               </div>
 
-              {/* Reflections */}
-              <div className="flex flex-col gap-4 p-6 overflow-y-auto">
+              <div className="grid min-h-0 gap-4 p-6 lg:grid-rows-3">
                 <FormField
                   control={form.control}
                   name="learned"
                   render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="flex min-h-0 flex-col">
                       <FormLabel>What I learned</FormLabel>
                       <FormControl>
-                        <Textarea {...field} rows={4} placeholder="Key insights..." />
+                        <Textarea
+                          {...field}
+                          value={field.value ?? ""}
+                          placeholder="Key insights..."
+                          className="min-h-0 flex-1 resize-none"
+                        />
                       </FormControl>
                     </FormItem>
                   )}
                 />
+
                 <FormField
                   control={form.control}
                   name="takeaways"
                   render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="flex min-h-0 flex-col">
                       <FormLabel>Takeaways</FormLabel>
                       <FormControl>
-                        <Textarea {...field} rows={4} placeholder="Patterns to remember..." />
+                        <Textarea
+                          {...field}
+                          value={field.value ?? ""}
+                          placeholder="Patterns to remember..."
+                          className="min-h-0 flex-1 resize-none"
+                        />
                       </FormControl>
                     </FormItem>
                   )}
                 />
+
                 <FormField
                   control={form.control}
                   name="notes"
                   render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="flex min-h-0 flex-col">
                       <FormLabel>Notes</FormLabel>
                       <FormControl>
-                        <Textarea {...field} rows={4} placeholder="Additional notes..." />
+                        <Textarea
+                          {...field}
+                          value={field.value ?? ""}
+                          placeholder="Additional notes..."
+                          className="min-h-0 flex-1 resize-none"
+                        />
                       </FormControl>
                     </FormItem>
                   )}
@@ -303,15 +467,11 @@ export function AttemptForm({ open, onOpenChange, problemId, attempt }: Props) {
               </div>
             </div>
 
-            {/* Footer */}
-            <div className="shrink-0 flex justify-end gap-2 px-6 py-4 border-t">
+            <div className="flex shrink-0 justify-end gap-2 border-t px-6 py-4">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
-              <Button
-                type="submit"
-                disabled={logMutation.isPending || updateMutation.isPending}
-              >
+              <Button type="submit" disabled={logMutation.isPending || updateMutation.isPending}>
                 {isEdit ? "Update" : "Log Attempt"}
               </Button>
             </div>

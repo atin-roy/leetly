@@ -74,7 +74,8 @@ export interface AttemptDto {
   problemId: number
   attemptNumber: number
   language: Language
-  code: string
+  code: string | null
+  approach: string | null
   outcome: Outcome
   durationMinutes: number | null
   mistakes: Mistake[]
@@ -84,6 +85,8 @@ export interface AttemptDto {
   learned: string | null
   takeaways: string | null
   notes: string | null
+  startedAt: string | null
+  endedAt: string | null
   createdDate: string // ISO datetime
 }
 
@@ -179,7 +182,8 @@ export interface ProblemListDto {
 
 export interface LogAttemptRequest {
   language: Language
-  code: string
+  code?: string
+  approach?: string
   outcome: Outcome
   durationMinutes?: number
   timeComplexity?: string
@@ -187,11 +191,14 @@ export interface LogAttemptRequest {
   learned?: string
   takeaways?: string
   notes?: string
+  startedAt?: string
+  endedAt?: string
 }
 
 export interface UpdateAttemptRequest {
   language?: Language
   code?: string
+  approach?: string
   outcome?: Outcome
   durationMinutes?: number
   timeComplexity?: string
@@ -199,6 +206,8 @@ export interface UpdateAttemptRequest {
   learned?: string
   takeaways?: string
   notes?: string
+  startedAt?: string
+  endedAt?: string
 }
 
 export interface CreateTopicRequest {

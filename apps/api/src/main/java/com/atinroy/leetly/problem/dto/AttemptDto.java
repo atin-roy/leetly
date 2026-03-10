@@ -13,6 +13,7 @@ public record AttemptDto(
         int attemptNumber,
         Language language,
         String code,
+        String approach,
         Outcome outcome,
         Integer durationMinutes,
         List<Mistake> mistakes,
@@ -22,6 +23,8 @@ public record AttemptDto(
         String learned,
         String takeaways,
         String notes,
+        LocalDateTime startedAt,
+        LocalDateTime endedAt,
         LocalDateTime createdDate
 ) {
     public static AttemptDto from(Attempt attempt) {
@@ -31,6 +34,7 @@ public record AttemptDto(
                 attempt.getAttemptNumber(),
                 attempt.getLanguage(),
                 attempt.getCode(),
+                attempt.getApproach(),
                 attempt.getOutcome(),
                 attempt.getDurationMinutes(),
                 attempt.getMistakes(),
@@ -40,6 +44,8 @@ public record AttemptDto(
                 attempt.getLearned(),
                 attempt.getTakeaways(),
                 attempt.getNotes(),
+                attempt.getStartedAt(),
+                attempt.getEndedAt(),
                 attempt.getCreatedDate()
         );
     }

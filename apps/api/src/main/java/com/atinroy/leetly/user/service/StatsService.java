@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -151,7 +152,7 @@ public class StatsService {
                 .orElseThrow(() -> new ResourceNotFoundException("UserStats not found for user: " + user.getId()));
 
         int oldDuration = oldAttempt.getDurationMinutes() != null ? oldAttempt.getDurationMinutes() : 0;
-        int newDuration = newRequest.durationMinutes() != null ? newRequest.durationMinutes() : 0;
+        int newDuration = resolveDurationMinutes(newRequest);
         stats.setTotalTimeMinutes(Math.max(0, stats.getTotalTimeMinutes() + newDuration - oldDuration));
 
         updateMistakeBreakdown(stats, oldAttempt.getMistakes(), -1);
@@ -185,6 +186,19 @@ public class StatsService {
         } else if (!oldAccepted && newAccepted) {
             upsertDailyStat(user, 0, true, attemptDate, 0);
         }
+    }
+
+    private int resolveDurationMinutes(LogAttemptRequest request) {
+        LocalDateTime startedAt = request.startedAt();
+        LocalDateTime endedAt = request.endedAt();
+
+        if (startedAt != null && endedAt != null && !endedAt.isBefore(startedAt)) {
+            long seconds = Duration.between(startedAt, endedAt).getSeconds();
+            if (seconds <= 0) return 0;
+            return Math.max(1, (int) Math.ceil(seconds / 60.0));
+        }
+
+        return request.durationMinutes() != null ? request.durationMinutes() : 0;
     }
 
     private void recalculateStats(User user, UserStats stats) {

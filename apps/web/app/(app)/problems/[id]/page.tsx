@@ -135,11 +135,12 @@ function SelectorGrid({
 
 // ── Code Block ────────────────────────────────────────────────────────────────
 
-function CodeBlock({ language, code }: { language: string; code: string }) {
+function CodeBlock({ language, code }: { language: string; code: string | null }) {
   const [copied, setCopied] = useState(false)
+  const content = code?.trim() ? code : "// No code captured for this attempt."
 
   async function handleCopy() {
-    await navigator.clipboard.writeText(code)
+    await navigator.clipboard.writeText(content)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
@@ -159,7 +160,7 @@ function CodeBlock({ language, code }: { language: string; code: string }) {
         </button>
       </div>
       <pre className="overflow-x-auto p-3 text-xs leading-relaxed font-mono max-h-64 overflow-y-auto">
-        <code>{code}</code>
+        <code>{content}</code>
       </pre>
     </div>
   )
@@ -220,10 +221,18 @@ function AttemptCard({
       <div className="px-4 py-3 space-y-3">
         <p className="text-xs text-muted-foreground">
           {format(new Date(attempt.createdDate), "MMM d, yyyy 'at' h:mm a")}
-          {attempt.durationMinutes && ` · ${attempt.durationMinutes}m`}
+          {attempt.startedAt && ` · Started ${format(new Date(attempt.startedAt), "h:mm a")}`}
+          {attempt.endedAt && ` · Ended ${format(new Date(attempt.endedAt), "h:mm a")}`}
+          {attempt.durationMinutes != null && ` · ${attempt.durationMinutes}m`}
           {attempt.timeComplexity && ` · T: ${attempt.timeComplexity}`}
           {attempt.spaceComplexity && ` · S: ${attempt.spaceComplexity}`}
         </p>
+        {attempt.approach && (
+          <div className="space-y-1">
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Approach</p>
+            <p className="text-sm whitespace-pre-wrap">{attempt.approach}</p>
+          </div>
+        )}
         <CodeBlock language={attempt.language} code={attempt.code} />
         {(attempt.learned || attempt.takeaways || attempt.notes) && (
           <div className="space-y-1.5 text-sm">

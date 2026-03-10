@@ -174,8 +174,8 @@ class StatsServiceTest {
         oldAttempt.setDurationMinutes(30);
 
         LogAttemptRequest newRequest = new LogAttemptRequest(
-                null, null, Outcome.WRONG_ANSWER, 45, List.of(),
-                null, null, null, null, null, null);
+                null, null, null, Outcome.WRONG_ANSWER, 45, List.of(),
+                null, null, null, null, null, null, null, null);
 
         statsService.adjustOnAttemptUpdate(user, oldAttempt, newRequest);
 
