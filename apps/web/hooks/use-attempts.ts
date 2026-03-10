@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react"
 import {
   deleteAttempt,
   getAttempts,
+  getMistakes,
   logAttempt,
   updateAttempt,
 } from "@/lib/api"
@@ -16,6 +17,16 @@ export function useAttempts(problemId: number) {
     queryKey: ["attempts", problemId],
     queryFn: () => getAttempts(session?.accessToken, problemId),
     enabled: !!session?.accessToken && !!problemId,
+  })
+}
+
+export function useMistakeOptions() {
+  const { data: session } = useSession()
+  return useQuery({
+    queryKey: ["mistakes"],
+    queryFn: () => getMistakes(session?.accessToken),
+    enabled: !!session?.accessToken,
+    staleTime: 5 * 60 * 1000,
   })
 }
 
@@ -49,6 +60,7 @@ export function useUpdateAttempt(problemId: number) {
       qc.invalidateQueries({ queryKey: ["attempts", problemId] })
       qc.invalidateQueries({ queryKey: ["problems", problemId] })
       qc.invalidateQueries({ queryKey: ["problems"] })
+      qc.invalidateQueries({ queryKey: ["stats"] })
     },
   })
 }

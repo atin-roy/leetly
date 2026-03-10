@@ -2,12 +2,12 @@
 
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useProblems } from "@/hooks/use-problems"
 import { cn } from "@/lib/utils"
-import { useUserStats } from "@/hooks/use-stats"
-import { EMPTY_USER_STATS } from "@/lib/stats"
+import { getSolvedCountByDifficulty } from "@/lib/stats"
 
 export function DifficultyBreakdown() {
-  const { data: stats, isLoading } = useUserStats()
+  const { data: problemPage, isLoading } = useProblems({ size: 1000 })
 
   if (isLoading) {
     return (
@@ -19,24 +19,24 @@ export function DifficultyBreakdown() {
     )
   }
 
-  const safeStats = stats ?? EMPTY_USER_STATS
+  const problems = problemPage?.content ?? []
 
   const difficulties = [
     {
       label: "Easy",
-      solved: safeStats.easySolved,
+      solved: getSolvedCountByDifficulty(problems, "EASY"),
       colorText: "text-green-500",
       colorBar: "bg-green-500",
     },
     {
       label: "Medium",
-      solved: safeStats.mediumSolved,
+      solved: getSolvedCountByDifficulty(problems, "MEDIUM"),
       colorText: "text-yellow-500",
       colorBar: "bg-yellow-500",
     },
     {
       label: "Hard",
-      solved: safeStats.hardSolved,
+      solved: getSolvedCountByDifficulty(problems, "HARD"),
       colorText: "text-red-500",
       colorBar: "bg-red-500",
     },

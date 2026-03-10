@@ -6,6 +6,7 @@ import type {
   CreateTopicRequest,
   DailyStatDto,
   Language,
+  MistakeOptionDto,
   LogAttemptRequest,
   NoteDto,
   NoteFilters,
@@ -245,6 +246,12 @@ export function getDailyStats(
   from.setDate(from.getDate() - (days ?? 365))
   const fmt = (d: Date) => d.toISOString().split("T")[0]
   return apiFetch(`/api/me/stats/daily?from=${fmt(from)}&to=${fmt(to)}`, token)
+}
+
+export function getMistakes(
+  token: string | undefined,
+): Promise<MistakeOptionDto[]> {
+  return apiFetch("/api/mistakes", token)
 }
 
 // ─── Problem Lists ────────────────────────────────────────────────────────────

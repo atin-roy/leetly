@@ -29,6 +29,18 @@ export type Outcome =
   | "RUNTIME_ERROR"
   | "NOT_COMPLETED"
 
+export type MistakeType =
+  | "WRONG_PATTERN"
+  | "OFF_BY_ONE"
+  | "MISSED_EDGE_CASE"
+  | "FORGOT_BASE_CASE"
+  | "WRONG_DATA_STRUCTURE"
+  | "OVERCOMPLICATED"
+  | "TIMEOUT"
+  | "OVERFLOW"
+  | "WRONG_INITIALIZATION"
+  | "INCORRECT_LOGIC"
+
 export type NoteTag =
   | "GENERAL"
   | "INTERVIEW"
@@ -63,10 +75,9 @@ export interface PatternDto {
   namedAlgorithm: boolean
 }
 
-export interface Mistake {
-  id: number
-  type: string
-  description: string
+export interface MistakeOptionDto {
+  value: MistakeType
+  label: string
 }
 
 export interface AttemptDto {
@@ -78,7 +89,7 @@ export interface AttemptDto {
   approach: string | null
   outcome: Outcome
   durationMinutes: number | null
-  mistakes: Mistake[]
+  mistakes: MistakeType[]
   timeComplexity: string | null
   spaceComplexity: string | null
   aiReview: string | null
@@ -186,6 +197,7 @@ export interface LogAttemptRequest {
   approach?: string
   outcome: Outcome
   durationMinutes?: number
+  mistakes?: MistakeType[]
   timeComplexity?: string
   spaceComplexity?: string
   learned?: string
@@ -201,6 +213,7 @@ export interface UpdateAttemptRequest {
   approach?: string
   outcome?: Outcome
   durationMinutes?: number
+  mistakes?: MistakeType[]
   timeComplexity?: string
   spaceComplexity?: string
   learned?: string

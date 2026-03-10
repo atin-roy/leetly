@@ -28,10 +28,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Skeleton } from "@/components/ui/skeleton"
 import { Textarea } from "@/components/ui/textarea"
-import { useLogAttempt, useUpdateAttempt } from "@/hooks/use-attempts"
+import { useLogAttempt, useMistakeOptions, useUpdateAttempt } from "@/hooks/use-attempts"
 import { useSettings } from "@/hooks/use-settings"
-import type { AttemptDto, Language } from "@/lib/types"
+import type { AttemptDto, Language, MistakeType } from "@/lib/types"
 
 const LANGUAGES = [
   "JAVA", "PYTHON", "JAVASCRIPT", "TYPESCRIPT",
@@ -80,12 +81,26 @@ const SPACE_COMPLEXITIES = [
   "O(n^3)",
 ] as const
 
+const MISTAKE_LABELS: Record<MistakeType, string> = {
+  WRONG_PATTERN: "Wrong Pattern",
+  OFF_BY_ONE: "Off By One",
+  MISSED_EDGE_CASE: "Missed Edge Case",
+  FORGOT_BASE_CASE: "Forgot Base Case",
+  WRONG_DATA_STRUCTURE: "Wrong Data Structure",
+  OVERCOMPLICATED: "Overcomplicated",
+  TIMEOUT: "Timeout",
+  OVERFLOW: "Overflow",
+  WRONG_INITIALIZATION: "Wrong Initialization",
+  INCORRECT_LOGIC: "Incorrect Logic",
+}
+
 const schema = z.object({
   language: z.enum(LANGUAGES),
   outcome: z.enum(["ACCEPTED", "WRONG_ANSWER", "TIME_LIMIT_EXCEEDED", "MEMORY_LIMIT_EXCEEDED", "RUNTIME_ERROR", "NOT_COMPLETED"]),
   code: z.string().optional(),
   approach: z.string().optional(),
   durationMinutes: z.number().int().min(0).optional(),
+  mistakes: z.array(z.string()).default([]),
   timeComplexity: z.string().optional(),
   spaceComplexity: z.string().optional(),
   learned: z.string().optional(),
@@ -112,6 +127,7 @@ function getDefaultValues(preferredLanguage?: Language, attempt?: AttemptDto): F
       code: attempt.code ?? "",
       approach: attempt.approach ?? "",
       durationMinutes: attempt.durationMinutes ?? undefined,
+      mistakes: attempt.mistakes ?? [],
       timeComplexity: attempt.timeComplexity ?? undefined,
       spaceComplexity: attempt.spaceComplexity ?? undefined,
       learned: attempt.learned ?? "",
@@ -128,6 +144,7 @@ function getDefaultValues(preferredLanguage?: Language, attempt?: AttemptDto): F
     code: "",
     approach: "",
     durationMinutes: undefined,
+    mistakes: [],
     timeComplexity: undefined,
     spaceComplexity: undefined,
     learned: "",
@@ -216,6 +233,7 @@ function normalizeText(value?: string) {
 export function AttemptForm({ open, onOpenChange, problemId, attempt }: Props) {
   const isEdit = !!attempt
   const { data: settings } = useSettings()
+  const { data: mistakeOptions, isLoading: mistakesLoading } = useMistakeOptions()
   const logMutation = useLogAttempt(problemId)
   const updateMutation = useUpdateAttempt(problemId)
   const [nowMs, setNowMs] = useState(() => Date.now())
@@ -274,6 +292,7 @@ export function AttemptForm({ open, onOpenChange, problemId, attempt }: Props) {
       code: normalizeText(values.code),
       approach: normalizeText(values.approach),
       durationMinutes: values.durationMinutes,
+      mistakes: values.mistakes as MistakeType[],
       timeComplexity: values.timeComplexity || undefined,
       spaceComplexity: values.spaceComplexity || undefined,
       learned: normalizeText(values.learned),
@@ -463,6 +482,59 @@ export function AttemptForm({ open, onOpenChange, problemId, attempt }: Props) {
               </div>
 
               <div className="flex min-h-0 flex-col gap-4 p-6">
+                <FormField
+                  control={form.control}
+                  name="mistakes"
+                  render={({ field }) => {
+                    const selectedMistakes = field.value ?? []
+
+                    function toggleMistake(mistake: string) {
+                      const nextValue = selectedMistakes.includes(mistake)
+                        ? selectedMistakes.filter((value) => value !== mistake)
+                        : [...selectedMistakes, mistake]
+                      field.onChange(nextValue)
+                    }
+
+                    return (
+                      <FormItem>
+                        <FormLabel>Mistakes</FormLabel>
+                        <FormControl>
+                          <div className="rounded-lg border bg-muted/20 p-3">
+                            {mistakesLoading ? (
+                              <div className="grid gap-2 sm:grid-cols-2">
+                                {Array.from({ length: 6 }).map((_, index) => (
+                                  <Skeleton key={index} className="h-9 w-full" />
+                                ))}
+                              </div>
+                            ) : mistakeOptions?.length ? (
+                              <div className="flex flex-wrap gap-2">
+                                {mistakeOptions.map((mistake) => {
+                                  const active = selectedMistakes.includes(mistake.value)
+                                  return (
+                                    <Button
+                                      key={mistake.value}
+                                      type="button"
+                                      size="sm"
+                                      variant={active ? "default" : "outline"}
+                                      onClick={() => toggleMistake(mistake.value)}
+                                      className="justify-start"
+                                    >
+                                      {mistake.label || MISTAKE_LABELS[mistake.value]}
+                                    </Button>
+                                  )
+                                })}
+                              </div>
+                            ) : (
+                              <p className="text-sm text-muted-foreground">No mistake options available.</p>
+                            )}
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )
+                  }}
+                />
+
                 <FormField
                   control={form.control}
                   name="learned"

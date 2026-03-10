@@ -3,13 +3,26 @@
 import { CheckCircle2, Flame, Sun, Trophy, Zap } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useProblems } from "@/hooks/use-problems"
 import { useUserStats } from "@/hooks/use-stats"
-import { EMPTY_USER_STATS } from "@/lib/stats"
+import { useDailyStats } from "@/hooks/use-stats"
+import {
+  getCurrentStreak,
+  getFirstAttemptSolveCount,
+  getLongestStreak,
+  getMasteredCount,
+  getSolvedThisMonth,
+  getSolvedThisWeek,
+  getSolvedCountByDifficulty,
+  getTotalSolvedCount,
+} from "@/lib/stats"
 
 export function StatsCards() {
-  const { data: s, isLoading } = useUserStats()
+  const { data: problemPage, isLoading: problemsLoading } = useProblems({ size: 1000 })
+  const { data: dailyStats, isLoading: dailyStatsLoading } = useDailyStats(365)
+  const { data: stats } = useUserStats()
 
-  if (isLoading) {
+  if (problemsLoading || dailyStatsLoading) {
     return (
       <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
         {Array.from({ length: 5 }).map((_, i) => (
@@ -19,45 +32,49 @@ export function StatsCards() {
     )
   }
 
-  const stats = s ?? EMPTY_USER_STATS
-
-  const totalSolved =
-    stats.totalSolved + stats.totalSolvedWithHelp + stats.totalMastered
+  const problems = problemPage?.content ?? []
+  const totalSolved = getTotalSolvedCount(problems)
+  const currentStreak = getCurrentStreak(dailyStats)
+  const longestStreak = getLongestStreak(dailyStats)
+  const solvedThisWeek = getSolvedThisWeek(dailyStats)
+  const solvedThisMonth = getSolvedThisMonth(dailyStats)
+  const masteredCount = getMasteredCount(problems)
+  const firstAttemptSolves = getFirstAttemptSolveCount(stats)
 
   const cards = [
     {
       title: "Total Solved",
       value: totalSolved,
       icon: CheckCircle2,
-      sub: `${stats.easySolved}E · ${stats.mediumSolved}M · ${stats.hardSolved}H`,
+      sub: `${getSolvedCountByDifficulty(problems, "EASY")}E · ${getSolvedCountByDifficulty(problems, "MEDIUM")}M · ${getSolvedCountByDifficulty(problems, "HARD")}H`,
       color: "text-green-500",
     },
     {
       title: "Current Streak",
-      value: `${stats.currentStreak}d`,
+      value: `${currentStreak}d`,
       icon: Flame,
-      sub: `Longest: ${stats.longestStreak} days`,
+      sub: `Longest: ${longestStreak} days`,
       color: "text-orange-500",
     },
     {
       title: "This Week",
-      value: stats.solvedThisWeek,
+      value: solvedThisWeek,
       icon: Sun,
-      sub: `${stats.solvedThisMonth} this month`,
+      sub: `${solvedThisMonth} this month`,
       color: "text-sky-500",
     },
     {
       title: "This Month",
-      value: stats.solvedThisMonth,
+      value: solvedThisMonth,
       icon: Zap,
-      sub: `${stats.solvedThisWeek} this week`,
+      sub: `${solvedThisWeek} this week`,
       color: "text-blue-500",
     },
     {
       title: "Mastered",
-      value: stats.totalMastered,
+      value: masteredCount,
       icon: Trophy,
-      sub: `${stats.firstAttemptSolves} first-try solves`,
+      sub: `${firstAttemptSolves} first-try solves`,
       color: "text-yellow-500",
     },
   ]
