@@ -15,7 +15,7 @@ import { useNotes, useCreateNote, useUpdateNote } from "@/hooks/use-notes"
 import type { NoteDto, NoteTag, ProblemFilters as Filters, ProblemSummaryDto } from "@/lib/types"
 
 const PAGE_SIZE = 20
-const DEFAULT_FILTERS: Filters = { page: 0, size: PAGE_SIZE }
+const DEFAULT_FILTERS: Filters = { page: 0, size: PAGE_SIZE, sort: "createdDate,desc" }
 
 export default function ProblemsPage() {
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS)

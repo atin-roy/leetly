@@ -34,6 +34,8 @@ const STATUSES: { value: ProblemStatus; label: string }[] = [
 ]
 
 const SORT_OPTIONS: { value: string; label: string }[] = [
+  { value: "createdDate,desc", label: "Recently Added" },
+  { value: "createdDate,asc", label: "Oldest First" },
   { value: "leetcodeId,asc", label: "ID ↑" },
   { value: "leetcodeId,desc", label: "ID ↓" },
   { value: "title,asc", label: "Name A → Z" },
