@@ -166,6 +166,10 @@ function getInitials(name: string) {
   return name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
 }
 
+function isMissingThemeSaveEndpoint(error: unknown) {
+  return error instanceof Error && error.message.startsWith("404:")
+}
+
 function normalizeProfile(values?: {
   displayName?: string | null
   bio?: string | null
@@ -563,6 +567,7 @@ export default function AccountPage() {
 
     try {
       const operations: Promise<unknown>[] = []
+      let themeSaveError: unknown = null
 
       if (profileChanged) {
         const payload: UpdateProfileRequest = {
@@ -591,7 +596,17 @@ export default function AccountPage() {
 
       if (themeChanged) {
         const nextThemeIndex = THEMES.findIndex((theme) => theme.id === selectedThemeId)
-        operations.push(themeMutation.mutateAsync(nextThemeIndex >= 0 ? nextThemeIndex + 1 : null))
+        operations.push(
+          themeMutation
+            .mutateAsync(nextThemeIndex >= 0 ? nextThemeIndex + 1 : null)
+            .catch((error) => {
+              if (isMissingThemeSaveEndpoint(error)) {
+                themeSaveError = error
+                return null
+              }
+              throw error
+            }),
+        )
       }
 
       await Promise.all(operations)
@@ -603,8 +618,18 @@ export default function AccountPage() {
         }
       }
 
+      if (themeSaveError) {
+        toast.warning("Profile saved, but theme sync is not available yet")
+        return
+      }
+
       toast.success("Account saved")
-    } catch {
+    } catch (error) {
+      if (isMissingThemeSaveEndpoint(error)) {
+        toast.warning("Theme saved locally, but server sync is not available yet")
+        return
+      }
+
       toast.error("Failed to save changes")
     }
   }
