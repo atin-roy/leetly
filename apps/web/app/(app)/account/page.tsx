@@ -1,10 +1,9 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useSession, signOut } from "next-auth/react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import type { QueryObserverResult } from "@tanstack/react-query"
 import { z } from "zod"
 import { LogOut, User } from "lucide-react"
 import { toast } from "sonner"
@@ -38,10 +37,16 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import { useProfile, useUpdateProfile } from "@/hooks/use-profile"
-import { useSettings, useUpdateDailyGoal, useUpdateLanguage, useUpdateTimezone } from "@/hooks/use-settings"
+import {
+  useSettings,
+  useUpdateDailyGoal,
+  useUpdateLanguage,
+  useUpdateTheme,
+  useUpdateTimezone,
+} from "@/hooks/use-settings"
 import { useTheme } from "@/hooks/use-theme"
-import { THEMES } from "@/lib/themes"
-import type { Language, UpdateProfileRequest, UserSettingsDto } from "@/lib/types"
+import { THEMES, type ThemeId } from "@/lib/themes"
+import type { Language, UpdateProfileRequest } from "@/lib/types"
 
 const LANGUAGES: Language[] = [
   "JAVA",
@@ -161,51 +166,32 @@ function getInitials(name: string) {
   return name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
 }
 
-function ProfileForm() {
-  const { data: session } = useSession()
-  const { data: profile, isLoading } = useProfile()
-  const { mutateAsync: updateProfile, isPending } = useUpdateProfile()
-
-  const form = useForm<ProfileFormValues>({
-    resolver: zodResolver(profileSchema),
-    defaultValues: {
-      displayName: "",
-      bio: "",
-      progressPublic: true,
-      streakPublic: true,
-      listsPublic: false,
-      notesPublic: false,
-    },
-  })
-
-  useEffect(() => {
-    if (profile) {
-      form.reset({
-        displayName: profile.displayName ?? "",
-        bio: profile.bio ?? "",
-        progressPublic: profile.progressPublic,
-        streakPublic: profile.streakPublic,
-        listsPublic: profile.listsPublic,
-        notesPublic: profile.notesPublic,
-      })
-    }
-  }, [profile, form])
-
-  async function onSubmit(values: ProfileFormValues) {
-    const payload: UpdateProfileRequest = {
-      ...values,
-      displayName: values.displayName || null,
-      bio: values.bio || null,
-    }
-
-    try {
-      await updateProfile(payload)
-      toast.success("Profile saved")
-    } catch {
-      toast.error("Failed to save profile")
-    }
+function normalizeProfile(values?: {
+  displayName?: string | null
+  bio?: string | null
+  progressPublic?: boolean | null
+  streakPublic?: boolean | null
+  listsPublic?: boolean | null
+  notesPublic?: boolean | null
+}): ProfileFormValues {
+  return {
+    displayName: values?.displayName ?? "",
+    bio: values?.bio ?? "",
+    progressPublic: values?.progressPublic ?? true,
+    streakPublic: values?.streakPublic ?? true,
+    listsPublic: values?.listsPublic ?? false,
+    notesPublic: values?.notesPublic ?? false,
   }
+}
 
+function ProfileSection({
+  form,
+  isLoading,
+}: {
+  form: ReturnType<typeof useForm<ProfileFormValues>>
+  isLoading: boolean
+}) {
+  const { data: session } = useSession()
   if (!session) return null
 
   const name = session.user?.name ?? ""
@@ -214,7 +200,7 @@ function ProfileForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <div className="space-y-6">
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Account</CardTitle>
@@ -312,68 +298,18 @@ function ProfileForm() {
             ))}
           </CardContent>
         </Card>
-
-        <div className="flex justify-end">
-          <Button type="submit" disabled={isPending || isLoading}>
-            {isPending ? "Saving…" : "Save profile"}
-          </Button>
-        </div>
-      </form>
+      </div>
     </Form>
   )
 }
 
-function PreferencesFormContent({
-  settings,
-  refetch,
+function PreferencesSection({
+  form,
+  isLoading,
 }: {
-  settings: UserSettingsDto | undefined
-  refetch: () => Promise<QueryObserverResult<UserSettingsDto>>
+  form: ReturnType<typeof useForm<SettingsFormValues>>
+  isLoading: boolean
 }) {
-  const languageMutation = useUpdateLanguage()
-  const goalMutation = useUpdateDailyGoal()
-  const timezoneMutation = useUpdateTimezone()
-  const isSaving = languageMutation.isPending || goalMutation.isPending || timezoneMutation.isPending
-
-  const form = useForm<SettingsFormValues>({
-    resolver: zodResolver(settingsSchema),
-    defaultValues: normalizeSettings(settings),
-  })
-
-  useEffect(() => {
-    if (settings) {
-      form.reset(normalizeSettings(settings))
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [settings])
-
-  async function onSubmit(values: SettingsFormValues) {
-    try {
-      let changed = false
-      if (values.preferredLanguage !== settings?.preferredLanguage) {
-        changed = true
-        await languageMutation.mutateAsync(values.preferredLanguage)
-      }
-      if (values.dailyGoal !== settings?.dailyGoal) {
-        changed = true
-        await goalMutation.mutateAsync(values.dailyGoal)
-      }
-      if (values.timezone !== settings?.timezone) {
-        changed = true
-        await timezoneMutation.mutateAsync(values.timezone)
-      }
-      if (changed) {
-        const latest = await refetch()
-        if (latest.data) {
-          form.reset(normalizeSettings(latest.data))
-        }
-        toast.success("Preferences saved")
-      }
-    } catch {
-      toast.error("Failed to save preferences")
-    }
-  }
-
   return (
     <Card>
       <CardHeader>
@@ -382,7 +318,7 @@ function PreferencesFormContent({
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <div className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <FormField
                 control={form.control}
@@ -390,7 +326,7 @@ function PreferencesFormContent({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Preferred language</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select disabled={isLoading} onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue />
@@ -422,6 +358,7 @@ function PreferencesFormContent({
                         max={50}
                         className="w-24"
                         placeholder="problems / day"
+                        disabled={isLoading}
                         value={Number.isFinite(field.value) ? field.value : ""}
                         onChange={(e) => {
                           const raw = e.target.value
@@ -448,7 +385,7 @@ function PreferencesFormContent({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Timezone</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select disabled={isLoading} onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select timezone" />
@@ -466,27 +403,11 @@ function PreferencesFormContent({
                 </FormItem>
               )}
             />
-
-            <div className="flex justify-end">
-              <Button type="submit" disabled={isSaving}>
-                {isSaving ? "Saving…" : "Save preferences"}
-              </Button>
-            </div>
-          </form>
+          </div>
         </Form>
       </CardContent>
     </Card>
   )
-}
-
-function PreferencesForm() {
-  const { data: settings, isPending, refetch } = useSettings()
-
-  if (isPending) {
-    return <Skeleton className="h-64 w-full" />
-  }
-
-  return <PreferencesFormContent settings={settings} refetch={refetch} />
 }
 
 function ThemeSwatch({ t, active }: { t: (typeof THEMES)[number]; active: boolean }) {
@@ -510,6 +431,9 @@ function ThemeSwatch({ t, active }: { t: (typeof THEMES)[number]; active: boolea
           <div className="h-1 w-full rounded-sm" style={{ background: t.preview.fg, opacity: 0.25 }} />
           <div className="h-1 w-5/6 rounded-sm" style={{ background: t.preview.fg, opacity: 0.25 }} />
           <div className="h-1 w-2/3 rounded-sm" style={{ background: t.preview.fg, opacity: 0.25 }} />
+          <div className="h-4 rounded-md border p-1" style={{ background: t.preview.card, borderColor: t.preview.border }}>
+            <div className="h-full w-full rounded-sm" style={{ background: t.preview.border, opacity: 0.35 }} />
+          </div>
           <div className="mt-auto h-3.5 w-10 rounded-sm" style={{ background: t.preview.primary }} />
         </div>
       </div>
@@ -517,9 +441,13 @@ function ThemeSwatch({ t, active }: { t: (typeof THEMES)[number]; active: boolea
   )
 }
 
-function AppearanceCard() {
-  const { themeId, setTheme } = useTheme()
-
+function AppearanceCard({
+  themeId,
+  onSelect,
+}: {
+  themeId: ThemeId
+  onSelect: (themeId: ThemeId) => void
+}) {
   return (
     <Card>
       <CardHeader>
@@ -532,7 +460,7 @@ function AppearanceCard() {
             <button
               key={theme.id}
               type="button"
-              onClick={() => setTheme(theme.id)}
+              onClick={() => onSelect(theme.id)}
               className="flex flex-col items-center gap-2 rounded-xl p-1.5 transition-all hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >
               <ThemeSwatch t={theme} active={themeId === theme.id} />
@@ -549,23 +477,176 @@ function AppearanceCard() {
 }
 
 export default function AccountPage() {
+  const { data: profile, isLoading: isProfileLoading } = useProfile()
+  const { mutateAsync: updateProfile, isPending: isProfileSaving } = useUpdateProfile()
+  const { data: settings, isPending: isSettingsLoading, refetch } = useSettings()
+  const languageMutation = useUpdateLanguage()
+  const goalMutation = useUpdateDailyGoal()
+  const timezoneMutation = useUpdateTimezone()
+  const themeMutation = useUpdateTheme()
+  const { themeId: appliedThemeId, setTheme } = useTheme()
+  const [selectedThemeId, setSelectedThemeId] = useState<ThemeId>(appliedThemeId)
+
+  const profileForm = useForm<ProfileFormValues>({
+    resolver: zodResolver(profileSchema),
+    defaultValues: normalizeProfile(),
+  })
+  const settingsForm = useForm<SettingsFormValues>({
+    resolver: zodResolver(settingsSchema),
+    defaultValues: normalizeSettings(),
+  })
+
+  useEffect(() => {
+    if (profile) {
+      profileForm.reset(normalizeProfile(profile))
+    }
+  }, [profile, profileForm])
+
+  useEffect(() => {
+    if (settings) {
+      settingsForm.reset(normalizeSettings(settings))
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settings])
+
+  useEffect(() => {
+    setSelectedThemeId(appliedThemeId)
+  }, [appliedThemeId])
+
+  const isSaving =
+    isProfileSaving ||
+    languageMutation.isPending ||
+    goalMutation.isPending ||
+    timezoneMutation.isPending ||
+    themeMutation.isPending
+
+  function handleThemeSelect(themeId: ThemeId) {
+    setSelectedThemeId(themeId)
+    setTheme(themeId, { persist: false })
+  }
+
+  async function handleSave() {
+    const [isProfileValid, isSettingsValid] = await Promise.all([
+      profileForm.trigger(),
+      settingsForm.trigger(),
+    ])
+
+    if (!isProfileValid || !isSettingsValid) return
+
+    const profileValues = profileForm.getValues()
+    const settingsValues = settingsForm.getValues()
+    const normalizedProfile = normalizeProfile(profile)
+    const normalizedSettings = normalizeSettings(settings)
+    const persistedThemeId = settings?.themeId && settings.themeId > 0 && settings.themeId <= THEMES.length
+      ? THEMES[settings.themeId - 1].id
+      : "default"
+
+    const profileChanged =
+      profileValues.displayName !== normalizedProfile.displayName ||
+      profileValues.bio !== normalizedProfile.bio ||
+      profileValues.progressPublic !== normalizedProfile.progressPublic ||
+      profileValues.streakPublic !== normalizedProfile.streakPublic ||
+      profileValues.listsPublic !== normalizedProfile.listsPublic ||
+      profileValues.notesPublic !== normalizedProfile.notesPublic
+
+    const settingsChanged =
+      settingsValues.preferredLanguage !== normalizedSettings.preferredLanguage ||
+      settingsValues.dailyGoal !== normalizedSettings.dailyGoal ||
+      settingsValues.timezone !== normalizedSettings.timezone
+
+    const themeChanged = selectedThemeId !== persistedThemeId
+
+    if (!profileChanged && !settingsChanged && !themeChanged) {
+      toast.message("No changes to save")
+      return
+    }
+
+    try {
+      const operations: Promise<unknown>[] = []
+
+      if (profileChanged) {
+        const payload: UpdateProfileRequest = {
+          ...profileValues,
+          displayName: profileValues.displayName || null,
+          bio: profileValues.bio || null,
+        }
+        operations.push(
+          updateProfile(payload).then((updatedProfile) => {
+            profileForm.reset(normalizeProfile(updatedProfile))
+          }),
+        )
+      }
+
+      if (settingsValues.preferredLanguage !== normalizedSettings.preferredLanguage) {
+        operations.push(languageMutation.mutateAsync(settingsValues.preferredLanguage))
+      }
+
+      if (settingsValues.dailyGoal !== normalizedSettings.dailyGoal) {
+        operations.push(goalMutation.mutateAsync(settingsValues.dailyGoal))
+      }
+
+      if (settingsValues.timezone !== normalizedSettings.timezone) {
+        operations.push(timezoneMutation.mutateAsync(settingsValues.timezone))
+      }
+
+      if (themeChanged) {
+        const nextThemeIndex = THEMES.findIndex((theme) => theme.id === selectedThemeId)
+        operations.push(themeMutation.mutateAsync(nextThemeIndex >= 0 ? nextThemeIndex + 1 : null))
+      }
+
+      await Promise.all(operations)
+
+      if (settingsChanged || themeChanged) {
+        const latest = await refetch()
+        if (latest.data) {
+          settingsForm.reset(normalizeSettings(latest.data))
+        }
+      }
+
+      toast.success("Account saved")
+    } catch {
+      toast.error("Failed to save changes")
+    }
+  }
+
+  if (isSettingsLoading) {
+    return (
+      <div className="mx-auto max-w-2xl space-y-6">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Account</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Manage your profile, preferences, and appearance in one place.
+          </p>
+        </div>
+        <Skeleton className="h-96 w-full" />
+        <Skeleton className="h-56 w-full" />
+        <Skeleton className="h-64 w-full" />
+      </div>
+    )
+  }
+
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Account</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Manage your profile, preferences, and appearance in one place.
-        </p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Account</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Manage your profile, preferences, and appearance in one place.
+          </p>
+        </div>
+        <Button onClick={handleSave} disabled={isSaving || isProfileLoading || isSettingsLoading}>
+          {isSaving ? "Saving…" : "Save changes"}
+        </Button>
       </div>
-      <ProfileForm />
-      <AppearanceCard />
-      <PreferencesForm />
+      <ProfileSection form={profileForm} isLoading={isProfileLoading} />
+      <AppearanceCard themeId={selectedThemeId} onSelect={handleThemeSelect} />
+      <PreferencesSection form={settingsForm} isLoading={isSettingsLoading} />
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Session</CardTitle>
           <CardDescription>Sign out of your Leetly account.</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex justify-end">
           <Button variant="destructive" onClick={() => signOut({ callbackUrl: "/" })}>
             <LogOut className="mr-2 h-4 w-4" />
             Sign Out

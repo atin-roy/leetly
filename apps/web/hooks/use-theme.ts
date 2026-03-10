@@ -3,22 +3,25 @@
 import { useEffect, useMemo, useState } from "react"
 import { useSession } from "next-auth/react"
 import { updateUserTheme } from "@/lib/api"
-import { THEMES, THEME_STORAGE_KEY } from "@/lib/themes"
+import { THEMES, THEME_STORAGE_KEY, type ThemeId } from "@/lib/themes"
 
 export function useTheme() {
   const { data: session } = useSession()
   const userKey = useMemo(() => session?.user?.email?.toLowerCase() ?? null, [session])
 
-  const [themeId, setThemeIdState] = useState<string>(() => {
+  const [themeId, setThemeIdState] = useState<ThemeId>(() => {
     if (typeof window === "undefined") return THEMES[0].id
-    return localStorage.getItem(THEME_STORAGE_KEY) ?? THEMES[0].id
+    const stored = localStorage.getItem(THEME_STORAGE_KEY)
+    return (THEMES.find((theme) => theme.id === stored)?.id ?? THEMES[0].id) as ThemeId
   })
 
-  const effectiveThemeId =
+  const effectiveThemeId: ThemeId =
     typeof window === "undefined"
       ? themeId
       : userKey
-        ? localStorage.getItem(`${THEME_STORAGE_KEY}:${userKey}`) ?? themeId
+        ? ((THEMES.find(
+            (theme) => theme.id === localStorage.getItem(`${THEME_STORAGE_KEY}:${userKey}`),
+          )?.id ?? themeId) as ThemeId)
         : themeId
 
   // Apply theme data attribute whenever themeId changes
@@ -26,7 +29,7 @@ export function useTheme() {
     document.documentElement.setAttribute("data-theme", effectiveThemeId)
   }, [effectiveThemeId])
 
-  function setTheme(id: string) {
+  function setTheme(id: ThemeId, options?: { persist?: boolean }) {
     setThemeIdState(id)
 
     if (typeof window !== "undefined") {
@@ -37,8 +40,8 @@ export function useTheme() {
       }
     }
 
-    // Also persist to backend if authenticated.
-    if (session?.accessToken) {
+    // Also persist to backend if authenticated unless explicitly skipped.
+    if (options?.persist !== false && session?.accessToken) {
       const themeIndex = THEMES.findIndex((t) => t.id === id)
       if (themeIndex >= 0) {
         updateUserTheme(session.accessToken, themeIndex + 1).catch(() => {

@@ -1,4 +1,12 @@
-export type ThemeId = "default" | "void" | "ember" | "arctic" | "dusk"
+export type ThemeId =
+  | "default"
+  | "void"
+  | "ember"
+  | "arctic"
+  | "dusk"
+  | "forest"
+  | "signal"
+  | "paper"
 
 export interface Theme {
   id: ThemeId
@@ -71,14 +79,53 @@ export const THEMES: Theme[] = [
   {
     id: "dusk",
     name: "Dusk",
-    description: "Warm amber candlelight",
+    description: "Desert noir with bronze glow",
     preview: {
-      bg: "oklch(0.17 0.03 65)",
-      sidebar: "oklch(0.14 0.03 65)",
-      card: "oklch(0.22 0.03 65)",
-      primary: "oklch(0.78 0.18 65)",
-      fg: "oklch(0.95 0.02 75)",
-      border: "oklch(0.30 0.03 65)",
+      bg: "oklch(0.18 0.02 30)",
+      sidebar: "oklch(0.14 0.018 28)",
+      card: "oklch(0.23 0.022 30)",
+      primary: "oklch(0.72 0.15 38)",
+      fg: "oklch(0.95 0.01 70)",
+      border: "oklch(0.31 0.02 30)",
+    },
+  },
+  {
+    id: "forest",
+    name: "Forest",
+    description: "Mossy green terminal calm",
+    preview: {
+      bg: "oklch(0.19 0.03 155)",
+      sidebar: "oklch(0.15 0.028 155)",
+      card: "oklch(0.24 0.03 155)",
+      primary: "oklch(0.77 0.16 145)",
+      fg: "oklch(0.95 0.02 140)",
+      border: "oklch(0.31 0.03 155)",
+    },
+  },
+  {
+    id: "signal",
+    name: "Signal",
+    description: "High-contrast cyber teal",
+    preview: {
+      bg: "oklch(0.18 0.02 225)",
+      sidebar: "oklch(0.14 0.018 225)",
+      card: "oklch(0.23 0.02 225)",
+      primary: "oklch(0.78 0.18 205)",
+      fg: "oklch(0.96 0.01 220)",
+      border: "oklch(0.31 0.02 225)",
+    },
+  },
+  {
+    id: "paper",
+    name: "Paper",
+    description: "Soft cream with ink blue",
+    preview: {
+      bg: "oklch(0.97 0.015 95)",
+      sidebar: "oklch(0.92 0.02 95)",
+      card: "oklch(0.99 0.01 95)",
+      primary: "oklch(0.42 0.09 250)",
+      fg: "oklch(0.24 0.03 255)",
+      border: "oklch(0.88 0.02 95)",
     },
   },
 ]
