@@ -33,7 +33,7 @@ public class ProblemController {
     @GetMapping
     public PagedResponse<ProblemSummaryDto> findAll(
             @AuthenticationPrincipal Jwt jwt,
-            @PageableDefault(size = 20, sort = "leetcodeId", direction = Sort.Direction.ASC) Pageable pageable,
+            @PageableDefault(size = 20, sort = "createdDate", direction = Sort.Direction.DESC) Pageable pageable,
             @RequestParam(required = false) String difficulty,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) Long topicId,

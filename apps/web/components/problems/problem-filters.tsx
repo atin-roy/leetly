@@ -19,6 +19,8 @@ interface Props {
   onReset: () => void
 }
 
+const DEFAULT_SORT = "createdDate,desc"
+
 const DIFFICULTIES: { value: Difficulty; label: string }[] = [
   { value: "EASY", label: "Easy" },
   { value: "MEDIUM", label: "Medium" },
@@ -56,7 +58,7 @@ export function ProblemFilters({ filters, onChange, onReset }: Props) {
     filters.topicId ||
     filters.patternId ||
     filters.search ||
-    filters.sort
+    (filters.sort && filters.sort !== DEFAULT_SORT)
 
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -147,16 +149,15 @@ export function ProblemFilters({ filters, onChange, onReset }: Props) {
       </Select>
 
       <Select
-        value={filters.sort ?? "none"}
+        value={filters.sort ?? DEFAULT_SORT}
         onValueChange={(v) =>
-          onChange({ sort: v === "none" ? undefined : v, page: 0 })
+          onChange({ sort: v, page: 0 })
         }
       >
         <SelectTrigger className="w-44">
           <SelectValue placeholder="Sort by" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="none">Sort by Default</SelectItem>
           {SORT_OPTIONS.map(({ value, label }) => (
             <SelectItem key={value} value={value}>
               {label}
