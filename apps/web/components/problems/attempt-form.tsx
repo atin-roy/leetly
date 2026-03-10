@@ -156,10 +156,35 @@ function formatElapsed(totalSeconds: number) {
   return `${minutes}m ${seconds}s`
 }
 
+function parseLocalTimestamp(value?: string) {
+  if (!value) return undefined
+
+  const match = value.match(
+    /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?$/,
+  )
+
+  if (match) {
+    const [, year, month, day, hour, minute, second = "0"] = match
+    return new Date(
+      Number(year),
+      Number(month) - 1,
+      Number(day),
+      Number(hour),
+      Number(minute),
+      Number(second),
+    )
+  }
+
+  const parsed = new Date(value)
+  return Number.isNaN(parsed.getTime()) ? undefined : parsed
+}
+
 function getElapsedSeconds(startedAt?: string, endedAt?: string, nowMs?: number) {
   if (!startedAt) return 0
-  const startMs = new Date(startedAt).getTime()
-  const endMs = endedAt ? new Date(endedAt).getTime() : nowMs ?? Date.now()
+  const startMs = parseLocalTimestamp(startedAt)?.getTime() ?? Number.NaN
+  const endMs = endedAt
+    ? (parseLocalTimestamp(endedAt)?.getTime() ?? Number.NaN)
+    : nowMs ?? Date.now()
 
   if (Number.isNaN(startMs) || Number.isNaN(endMs) || endMs < startMs) return 0
   return Math.floor((endMs - startMs) / 1000)
@@ -167,11 +192,20 @@ function getElapsedSeconds(startedAt?: string, endedAt?: string, nowMs?: number)
 
 function formatTimestamp(value?: string) {
   if (!value) return "Not set"
-  return format(new Date(value), "MMM d, yyyy h:mm:ss a")
+  const parsed = parseLocalTimestamp(value)
+  return parsed ? format(parsed, "MMM d, yyyy h:mm:ss a") : "Not set"
 }
 
 function createLocalTimestamp() {
-  return new Date().toISOString().slice(0, 19)
+  const date = new Date()
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, "0")
+  const day = String(date.getDate()).padStart(2, "0")
+  const hours = String(date.getHours()).padStart(2, "0")
+  const minutes = String(date.getMinutes()).padStart(2, "0")
+  const seconds = String(date.getSeconds()).padStart(2, "0")
+
+  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`
 }
 
 function normalizeText(value?: string) {
@@ -265,13 +299,13 @@ export function AttemptForm({ open, onOpenChange, problemId, attempt }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="h-[88vh] max-w-[96vw] p-0 sm:max-w-6xl">
+      <DialogContent className="flex h-[88vh] max-h-[88vh] max-w-[96vw] flex-col gap-0 overflow-hidden p-0 sm:max-w-6xl">
         <DialogHeader className="border-b px-6 py-5">
           <DialogTitle>{isEdit ? "Edit Attempt" : "Log Attempt"}</DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="flex h-full min-h-0 flex-col">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex min-h-0 flex-1 flex-col overflow-hidden">
             <div className="grid shrink-0 gap-4 border-b px-6 py-4 md:grid-cols-2 xl:grid-cols-[1fr_1fr_1fr_1fr_1.5fr]">
               <FormField
                 control={form.control}
@@ -412,14 +446,14 @@ export function AttemptForm({ open, onOpenChange, problemId, attempt }: Props) {
                   control={form.control}
                   name="code"
                   render={({ field }) => (
-                    <FormItem className="flex min-h-0 flex-col">
+                    <FormItem className="flex min-h-0 flex-1 flex-col">
                       <FormLabel>Code</FormLabel>
                       <FormControl>
                         <Textarea
                           {...field}
                           value={field.value ?? ""}
                           placeholder="Paste your solution here..."
-                          className="min-h-0 flex-1 resize-none font-mono text-sm"
+                          className="min-h-0 h-full flex-1 resize-none font-mono text-sm"
                         />
                       </FormControl>
                       <FormMessage />
