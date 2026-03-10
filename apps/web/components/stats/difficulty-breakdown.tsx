@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
 import { useUserStats } from "@/hooks/use-stats"
+import { EMPTY_USER_STATS } from "@/lib/stats"
 
 export function DifficultyBreakdown() {
   const { data: stats, isLoading } = useUserStats()
@@ -18,24 +19,24 @@ export function DifficultyBreakdown() {
     )
   }
 
-  if (!stats) return null
+  const safeStats = stats ?? EMPTY_USER_STATS
 
   const difficulties = [
     {
       label: "Easy",
-      solved: stats.easySolved,
+      solved: safeStats.easySolved,
       colorText: "text-green-500",
       colorBar: "bg-green-500",
     },
     {
       label: "Medium",
-      solved: stats.mediumSolved,
+      solved: safeStats.mediumSolved,
       colorText: "text-yellow-500",
       colorBar: "bg-yellow-500",
     },
     {
       label: "Hard",
-      solved: stats.hardSolved,
+      solved: safeStats.hardSolved,
       colorText: "text-red-500",
       colorBar: "bg-red-500",
     },
