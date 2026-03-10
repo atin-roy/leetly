@@ -1,4 +1,4 @@
 ALTER TABLE attempts
-    ADD COLUMN approach TEXT,
-    ADD COLUMN started_at TIMESTAMP,
-    ADD COLUMN ended_at TIMESTAMP;
+    ADD COLUMN IF NOT EXISTS approach TEXT,
+    ADD COLUMN IF NOT EXISTS started_at TIMESTAMP,
+    ADD COLUMN IF NOT EXISTS ended_at TIMESTAMP;
