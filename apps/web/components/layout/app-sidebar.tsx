@@ -10,9 +10,8 @@ import {
   Code2,
   List,
   LogOut,
-  Settings,
   StickyNote,
-  User,
+  UserCircle2,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useSidebar } from "./sidebar-context"
@@ -22,8 +21,7 @@ const navItems = [
   { href: "/problems", label: "Problems", icon: Code2 },
   { href: "/lists", label: "My Lists", icon: List },
   { href: "/notes", label: "Notes", icon: StickyNote },
-  { href: "/profile", label: "Profile", icon: User },
-  { href: "/settings", label: "Settings", icon: Settings },
+  { href: "/account", label: "Account", icon: UserCircle2 },
 ]
 
 export function AppSidebar() {
@@ -96,4 +94,3 @@ export function AppSidebar() {
     </aside>
   )
 }
-

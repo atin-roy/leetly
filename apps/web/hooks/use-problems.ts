@@ -10,6 +10,7 @@ import {
   createPattern,
   createProblem,
   createTopic,
+  deleteProblem,
   getPatterns,
   getProblem,
   getProblems,
@@ -131,6 +132,21 @@ export function useCreateProblem() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["problems"] })
       qc.invalidateQueries({ queryKey: ["lists"] })
+    },
+  })
+}
+
+export function useDeleteProblem() {
+  const { data: session } = useSession()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (problemId: number) => deleteProblem(session?.accessToken, problemId),
+    onSuccess: (_, problemId) => {
+      qc.removeQueries({ queryKey: ["problems", problemId] })
+      qc.invalidateQueries({ queryKey: ["problems"] })
+      qc.invalidateQueries({ queryKey: ["lists"] })
+      qc.invalidateQueries({ queryKey: ["stats"] })
+      qc.invalidateQueries({ queryKey: ["notes"] })
     },
   })
 }

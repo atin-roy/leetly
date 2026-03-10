@@ -87,6 +87,15 @@ export function getProblem(
   return apiFetch(`/api/problems/${id}`, token)
 }
 
+export function deleteProblem(
+  token: string | undefined,
+  id: number,
+): Promise<void> {
+  return apiFetch(`/api/problems/${id}`, token, {
+    method: "DELETE",
+  })
+}
+
 export function updateProblemStatus(
   token: string | undefined,
   id: number,
