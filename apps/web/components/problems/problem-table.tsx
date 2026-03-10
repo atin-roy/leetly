@@ -2,8 +2,9 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Check, ExternalLink, StickyNote, Trash2 } from "lucide-react"
+import { Check, ExternalLink, Plus, StickyNote, Trash2 } from "lucide-react"
 import { toast } from "sonner"
+import { Button } from "@/components/ui/button"
 import {
   Table,
   TableBody,
@@ -20,11 +21,12 @@ import {
 } from "@/components/ui/popover"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useUpdateProblemStatus } from "@/hooks/use-problems"
+import { AttemptForm } from "./attempt-form"
 import { DifficultyBadge } from "./difficulty-badge"
 import { statusLabels, statusStyles } from "./status-badge"
 import type { ProblemStatus, ProblemSummaryDto } from "@/lib/types"
 
-const COLS = 7
+const COLS = 8
 const ROW_H = "h-11"
 const STATUSES: ProblemStatus[] = [
   "UNSEEN",
@@ -127,6 +129,7 @@ export function ProblemTable({
   notedProblemIds,
 }: Props) {
   const router = useRouter()
+  const [attemptProblem, setAttemptProblem] = useState<ProblemSummaryDto | null>(null)
 
   const header = (
     <TableHeader>
@@ -137,6 +140,7 @@ export function ProblemTable({
         <TableHead className="w-20 text-center">Note</TableHead>
         <TableHead className="w-28 text-center">Difficulty</TableHead>
         <TableHead className="w-40 text-center">Status</TableHead>
+        <TableHead className="w-32 text-center">Attempt</TableHead>
         <TableHead className="w-10" />
       </TableRow>
     </TableHeader>
@@ -165,89 +169,111 @@ export function ProblemTable({
   const fillerCount = Math.max(0, pageSize - rows.length)
 
   return (
-    <Table>
-      {header}
-      <TableBody>
-        {rows.length === 0 ? (
-          <>
-            <TableRow className={`${ROW_H} pointer-events-none select-none`}>
-              <TableCell colSpan={COLS} className="text-center text-sm text-muted-foreground">
-                No problems found.
-              </TableCell>
-            </TableRow>
-            {Array.from({ length: pageSize - 1 }).map((_, i) => (
-              <FillerRow key={i} />
-            ))}
-          </>
-        ) : (
-          <>
-            {rows.map((p) => {
-              const hasNote = notedProblemIds?.has(p.id) ?? false
-              return (
-                <TableRow
-                  key={p.id}
-                  className={`${ROW_H} group cursor-pointer`}
-                  onClick={(e) => {
-                    if (isInteractiveTarget(e.target)) return
-                    router.push(`/problems/${p.id}`)
-                  }}
-                >
-                  <TableCell className="font-mono text-sm text-muted-foreground">
-                    {p.leetcodeId}
-                  </TableCell>
-                  <TableCell className="font-medium">{p.title}</TableCell>
-                  <TableCell className="text-center" data-interactive="true" onClick={(e) => e.stopPropagation()}>
-                    <a
-                      href={p.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      data-interactive="true"
-                      className="inline-flex text-muted-foreground hover:text-foreground"
-                    >
-                      <ExternalLink className="h-4 w-4" />
-                    </a>
-                  </TableCell>
-                  <TableCell className="text-center" data-interactive="true" onClick={(e) => e.stopPropagation()}>
-                    <button
-                      onClick={() => onNoteClick?.(p)}
-                      data-interactive="true"
-                      className={
-                        hasNote
-                          ? "inline-flex text-primary hover:text-primary/70"
-                          : "inline-flex text-muted-foreground hover:text-foreground disabled:opacity-30"
-                      }
-                      disabled={!onNoteClick}
-                      title={hasNote ? "Edit note" : "Add note"}
-                    >
-                      <StickyNote className={`h-4 w-4 ${hasNote ? "fill-primary/20" : ""}`} />
-                    </button>
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <DifficultyBadge difficulty={p.difficulty} />
-                  </TableCell>
-                  <TableCell className="text-center" data-interactive="true" onClick={(e) => e.stopPropagation()}>
-                    <StatusCell problem={p} />
-                  </TableCell>
-                  <TableCell className="text-center" data-interactive="true" onClick={(e) => e.stopPropagation()}>
-                    <button
-                      onClick={() => onDelete?.(p)}
-                      data-interactive="true"
-                      disabled={!onDelete}
-                      title="Remove problem"
-                      className="inline-flex opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive disabled:pointer-events-none"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </TableCell>
-                </TableRow>
-              )
-            })}
-            {Array.from({ length: fillerCount }).map((_, i) => (
-              <FillerRow key={i} />
-            ))}
-          </>
-        )}
-      </TableBody>
-    </Table>
+    <>
+      <Table>
+        {header}
+        <TableBody>
+          {rows.length === 0 ? (
+            <>
+              <TableRow className={`${ROW_H} pointer-events-none select-none`}>
+                <TableCell colSpan={COLS} className="text-center text-sm text-muted-foreground">
+                  No problems found.
+                </TableCell>
+              </TableRow>
+              {Array.from({ length: pageSize - 1 }).map((_, i) => (
+                <FillerRow key={i} />
+              ))}
+            </>
+          ) : (
+            <>
+              {rows.map((p) => {
+                const hasNote = notedProblemIds?.has(p.id) ?? false
+                return (
+                  <TableRow
+                    key={p.id}
+                    className={`${ROW_H} group cursor-pointer`}
+                    onClick={(e) => {
+                      if (isInteractiveTarget(e.target)) return
+                      router.push(`/problems/${p.id}`)
+                    }}
+                  >
+                    <TableCell className="font-mono text-sm text-muted-foreground">
+                      {p.leetcodeId}
+                    </TableCell>
+                    <TableCell className="font-medium">{p.title}</TableCell>
+                    <TableCell className="text-center" data-interactive="true" onClick={(e) => e.stopPropagation()}>
+                      <a
+                        href={p.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        data-interactive="true"
+                        className="inline-flex text-muted-foreground hover:text-foreground"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                      </a>
+                    </TableCell>
+                    <TableCell className="text-center" data-interactive="true" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        onClick={() => onNoteClick?.(p)}
+                        data-interactive="true"
+                        className={
+                          hasNote
+                            ? "inline-flex text-primary hover:text-primary/70"
+                            : "inline-flex text-muted-foreground hover:text-foreground disabled:opacity-30"
+                        }
+                        disabled={!onNoteClick}
+                        title={hasNote ? "Edit note" : "Add note"}
+                      >
+                        <StickyNote className={`h-4 w-4 ${hasNote ? "fill-primary/20" : ""}`} />
+                      </button>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <DifficultyBadge difficulty={p.difficulty} />
+                    </TableCell>
+                    <TableCell className="text-center" data-interactive="true" onClick={(e) => e.stopPropagation()}>
+                      <StatusCell problem={p} />
+                    </TableCell>
+                    <TableCell className="text-center" data-interactive="true" onClick={(e) => e.stopPropagation()}>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        data-interactive="true"
+                        className="h-8 px-2"
+                        onClick={() => setAttemptProblem(p)}
+                      >
+                        <Plus className="mr-1 h-3.5 w-3.5" />
+                        Log Attempt
+                      </Button>
+                    </TableCell>
+                    <TableCell className="text-center" data-interactive="true" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        onClick={() => onDelete?.(p)}
+                        data-interactive="true"
+                        disabled={!onDelete}
+                        title="Remove problem"
+                        className="inline-flex opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive disabled:pointer-events-none"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
+              {Array.from({ length: fillerCount }).map((_, i) => (
+                <FillerRow key={i} />
+              ))}
+            </>
+          )}
+        </TableBody>
+      </Table>
+      <AttemptForm
+        open={attemptProblem !== null}
+        onOpenChange={(open) => {
+          if (!open) setAttemptProblem(null)
+        }}
+        problemId={attemptProblem?.id ?? 0}
+      />
+    </>
   )
 }

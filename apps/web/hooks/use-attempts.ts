@@ -28,6 +28,7 @@ export function useLogAttempt(problemId: number) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["attempts", problemId] })
       qc.invalidateQueries({ queryKey: ["problems", problemId] })
+      qc.invalidateQueries({ queryKey: ["problems"] })
       qc.invalidateQueries({ queryKey: ["stats"] })
     },
   })
@@ -47,6 +48,7 @@ export function useUpdateAttempt(problemId: number) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["attempts", problemId] })
       qc.invalidateQueries({ queryKey: ["problems", problemId] })
+      qc.invalidateQueries({ queryKey: ["problems"] })
     },
   })
 }
@@ -60,6 +62,7 @@ export function useDeleteAttempt(problemId: number) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["attempts", problemId] })
       qc.invalidateQueries({ queryKey: ["problems", problemId] })
+      qc.invalidateQueries({ queryKey: ["problems"] })
       qc.invalidateQueries({ queryKey: ["stats"] })
     },
   })
