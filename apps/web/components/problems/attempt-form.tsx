@@ -100,7 +100,7 @@ const schema = z.object({
   code: z.string().optional(),
   approach: z.string().optional(),
   durationMinutes: z.number().int().min(0).optional(),
-  mistakes: z.array(z.string()).default([]),
+  mistakes: z.array(z.string()),
   timeComplexity: z.string().optional(),
   spaceComplexity: z.string().optional(),
   learned: z.string().optional(),
