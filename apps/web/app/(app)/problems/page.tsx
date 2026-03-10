@@ -6,6 +6,14 @@ import { AlertCircle } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ProblemFilters } from "@/components/problems/problem-filters"
 import { ProblemTable } from "@/components/problems/problem-table"
@@ -40,6 +48,7 @@ export default function ProblemsPage() {
   }, [notesData])
   const [noteDialogOpen, setNoteDialogOpen] = useState(false)
   const [selectedProblem, setSelectedProblem] = useState<ProblemSummaryDto | undefined>()
+  const [pendingDeleteProblem, setPendingDeleteProblem] = useState<ProblemSummaryDto | null>(null)
 
   const problems = pagedResponse?.content ?? []
   const page = pagedResponse?.page ?? 0
@@ -82,12 +91,16 @@ export default function ProblemsPage() {
     return createProblemMutation.mutateAsync(p)
   }
 
-  async function handleDelete(problem: ProblemSummaryDto) {
-    if (!confirm(`Delete "${problem.title}" from your problems?`)) return
+  function handleDelete(problem: ProblemSummaryDto) {
+    setPendingDeleteProblem(problem)
+  }
 
+  async function confirmDelete() {
+    if (!pendingDeleteProblem) return
     try {
-      await deleteProblemMutation.mutateAsync(problem.id)
+      await deleteProblemMutation.mutateAsync(pendingDeleteProblem.id)
       toast.success("Problem deleted")
+      setPendingDeleteProblem(null)
     } catch {
       toast.error("Failed to delete problem")
     }
@@ -199,6 +212,39 @@ export default function ProblemsPage() {
         defaultTitle={selectedProblem?.title}
         onSave={handleNoteSave}
       />
+      <Dialog
+        open={pendingDeleteProblem !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingDeleteProblem(null)
+        }}
+      >
+        <DialogContent showCloseButton={!deleteProblemMutation.isPending}>
+          <DialogHeader>
+            <DialogTitle>Delete problem?</DialogTitle>
+            <DialogDescription>
+              {pendingDeleteProblem
+                ? `Remove "${pendingDeleteProblem.title}" from your problems list. This action cannot be undone.`
+                : "Remove this problem from your problems list."}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setPendingDeleteProblem(null)}
+              disabled={deleteProblemMutation.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmDelete}
+              disabled={deleteProblemMutation.isPending}
+            >
+              {deleteProblemMutation.isPending ? "Deleting…" : "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
