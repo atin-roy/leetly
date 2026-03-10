@@ -2,7 +2,6 @@ package com.atinroy.leetly.problem.repository;
 
 import com.atinroy.leetly.user.model.User;
 import jakarta.persistence.LockModeType;
-import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -19,7 +18,6 @@ public interface ProblemRepository extends JpaRepository<Problem, Long>, JpaSpec
 
     Optional<Problem> findByIdAndUser(Long id, User user);
 
-    @EntityGraph(attributePaths = {"topics", "patterns"})
     @Query("SELECT DISTINCT p FROM Problem p WHERE p.user = :user")
     List<Problem> findAllByUser(@Param("user") User user);
 
