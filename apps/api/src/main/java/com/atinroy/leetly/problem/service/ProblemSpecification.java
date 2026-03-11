@@ -41,30 +41,18 @@ public final class ProblemSpecification {
         if (search != null && !search.isBlank()) {
             String normalizedSearch = search.trim();
             String loweredSearch = normalizedSearch.toLowerCase();
-            Long leetcodeId = parseLeetcodeId(normalizedSearch);
 
             spec = spec.and((root, query, cb) -> {
                 var titleMatch = cb.like(cb.lower(root.get("title")), "%" + loweredSearch + "%");
-
-                if (leetcodeId == null) {
-                    return titleMatch;
-                }
+                var leetcodeIdMatch = cb.like(root.get("leetcodeId").as(String.class), "%" + normalizedSearch + "%");
 
                 return cb.or(
                         titleMatch,
-                        cb.equal(root.get("leetcodeId"), leetcodeId)
+                        leetcodeIdMatch
                 );
             });
         }
 
         return spec;
-    }
-
-    private static Long parseLeetcodeId(String search) {
-        try {
-            return Long.parseLong(search);
-        } catch (NumberFormatException ignored) {
-            return null;
-        }
     }
 }
