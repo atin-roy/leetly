@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { AlertCircle } from "lucide-react"
 import { toast } from "sonner"
@@ -25,9 +25,37 @@ import type { NoteDto, NoteTag, ProblemFilters as Filters, ProblemSummaryDto } f
 
 const PAGE_SIZE = 20
 const DEFAULT_FILTERS: Filters = { page: 0, size: PAGE_SIZE, sort: "createdDate,desc" }
+const PROBLEMS_FILTERS_STORAGE_KEY = "leetly:problems-filters"
+
+function sanitizeStoredFilters(value: unknown): Filters {
+  if (!value || typeof value !== "object") return DEFAULT_FILTERS
+
+  const record = value as Record<string, unknown>
+  return {
+    page: typeof record.page === "number" && record.page >= 0 ? record.page : DEFAULT_FILTERS.page,
+    size: typeof record.size === "number" && record.size > 0 ? record.size : DEFAULT_FILTERS.size,
+    sort: typeof record.sort === "string" && record.sort.length > 0 ? record.sort : DEFAULT_FILTERS.sort,
+    difficulty: typeof record.difficulty === "string" ? record.difficulty as Filters["difficulty"] : undefined,
+    status: typeof record.status === "string" ? record.status as Filters["status"] : undefined,
+    topicId: typeof record.topicId === "number" ? record.topicId : undefined,
+    patternId: typeof record.patternId === "number" ? record.patternId : undefined,
+    search: typeof record.search === "string" && record.search.length > 0 ? record.search : undefined,
+  }
+}
+
+function readStoredFilters(storageKey: string) {
+  if (typeof window === "undefined") return DEFAULT_FILTERS
+
+  try {
+    const stored = localStorage.getItem(storageKey)
+    return stored ? sanitizeStoredFilters(JSON.parse(stored)) : DEFAULT_FILTERS
+  } catch {
+    return DEFAULT_FILTERS
+  }
+}
 
 export default function ProblemsPage() {
-  const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS)
+  const [filters, setFilters] = useState<Filters>(() => readStoredFilters(PROBLEMS_FILTERS_STORAGE_KEY))
   const { data: pagedResponse, error, isError, isLoading } = useProblems(filters)
   const createProblemMutation = useCreateProblem()
   const deleteProblemMutation = useDeleteProblem()
@@ -54,6 +82,12 @@ export default function ProblemsPage() {
   const page = pagedResponse?.page ?? 0
   const totalPages = pagedResponse?.totalPages ?? 1
   const totalElements = pagedResponse?.totalElements ?? 0
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+
+    localStorage.setItem(PROBLEMS_FILTERS_STORAGE_KEY, JSON.stringify(filters))
+  }, [filters])
 
   function handleChange(partial: Partial<Filters>) {
     setFilters((f) => ({ ...f, ...partial }))
