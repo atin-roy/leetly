@@ -21,7 +21,7 @@ import { AddProblemDialog } from "@/components/problems/add-problem-dialog"
 import { NoteEditorDialog } from "@/components/notes/note-editor-dialog"
 import { useCreateProblem, useDeleteProblem, useProblems } from "@/hooks/use-problems"
 import { useNotes, useCreateNote, useUpdateNote } from "@/hooks/use-notes"
-import type { NoteDto, NoteTag, ProblemFilters as Filters, ProblemSummaryDto } from "@/lib/types"
+import type { CreateProblemRequest, NoteDto, NoteTag, ProblemFilters as Filters, ProblemSummaryDto } from "@/lib/types"
 
 const PAGE_SIZE = 20
 const DEFAULT_FILTERS: Filters = { page: 0, size: PAGE_SIZE, sort: "createdDate,desc" }
@@ -121,7 +121,7 @@ export default function ProblemsPage() {
     }
   }
 
-  async function handleAdd(p: Omit<ProblemSummaryDto, "id" | "status" | "lastAttemptedAt">): Promise<ProblemSummaryDto> {
+  async function handleAdd(p: CreateProblemRequest): Promise<ProblemSummaryDto> {
     return createProblemMutation.mutateAsync(p)
   }
 

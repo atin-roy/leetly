@@ -42,6 +42,9 @@ public class Problem extends BaseEntity {
     @Column(name = "last_attempted_at")
     private LocalDateTime lastAttemptedAt;
 
+    @Column(name = "ai_review", columnDefinition = "TEXT")
+    private String aiReview;
+
     @OneToMany(mappedBy = "problem", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @BatchSize(size = 20)
     private List<Attempt> attempts = new ArrayList<>();

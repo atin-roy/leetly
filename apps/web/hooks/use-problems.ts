@@ -17,9 +17,11 @@ import {
   getTopics,
   removeProblemPattern,
   removeProblemTopics,
+  updateProblemAiReview,
   updateProblemStatus,
 } from "@/lib/api"
 import type {
+  CreateProblemRequest,
   PagedResponse,
   ProblemDetailDto,
   ProblemFilters,
@@ -128,7 +130,7 @@ export function useCreateProblem() {
   const { data: session } = useSession()
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (body: Omit<ProblemSummaryDto, "id" | "status" | "lastAttemptedAt">) =>
+    mutationFn: (body: CreateProblemRequest) =>
       createProblem(session?.accessToken, body),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["problems"] })
@@ -214,6 +216,22 @@ export function useUpdateProblemStatus(problemId: number) {
       qc.invalidateQueries({ queryKey: ["problems"] })
       qc.invalidateQueries({ queryKey: ["lists"] })
       qc.invalidateQueries({ queryKey: ["stats"] })
+    },
+  })
+}
+
+export function useUpdateProblemAiReview(problemId: number) {
+  const { data: session } = useSession()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (aiReview: string | null) =>
+      updateProblemAiReview(session?.accessToken, problemId, { aiReview }),
+    onSuccess: (updatedProblem) => {
+      qc.setQueryData<ProblemDetailDto | undefined>(
+        ["problems", problemId],
+        (current) => current ? { ...current, aiReview: updatedProblem.aiReview } : current,
+      )
+      qc.invalidateQueries({ queryKey: ["problems", problemId] })
     },
   })
 }

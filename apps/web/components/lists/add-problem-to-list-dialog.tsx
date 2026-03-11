@@ -18,7 +18,7 @@ import { DifficultyBadge } from "@/components/problems/difficulty-badge"
 import { fetchLeetCodeProblem, parseProblemInput, type FetchedProblem } from "@/lib/leetcode"
 import { useAddProblemToList } from "@/hooks/use-lists"
 import { useCreateProblem } from "@/hooks/use-problems"
-import type { ProblemSummaryDto } from "@/lib/types"
+import type { CreateProblemRequest, ProblemSummaryDto } from "@/lib/types"
 
 interface AddProblemToListDialogProps {
   listId: number
@@ -237,7 +237,7 @@ export function AddProblemToListDialog({
     }, 500)
   }
 
-  async function handleCreateAndAdd(problem: Omit<ProblemSummaryDto, "id" | "status" | "lastAttemptedAt">) {
+  async function handleCreateAndAdd(problem: CreateProblemRequest) {
     try {
       const created = await createProblemMutation.mutateAsync(problem)
       await addMutation.mutateAsync({

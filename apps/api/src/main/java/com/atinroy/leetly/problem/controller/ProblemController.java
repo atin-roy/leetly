@@ -17,6 +17,7 @@ import com.atinroy.leetly.problem.dto.CreateProblemRequest;
 import com.atinroy.leetly.problem.dto.ProblemDetailDto;
 import com.atinroy.leetly.problem.dto.ProblemSummaryDto;
 import com.atinroy.leetly.problem.dto.RemoveTopicsRequest;
+import com.atinroy.leetly.problem.dto.UpdateProblemAiReviewRequest;
 import com.atinroy.leetly.problem.dto.UpdateStatusRequest;
 import com.atinroy.leetly.problem.mapper.ProblemMapper;
 import com.atinroy.leetly.problem.service.ProblemService;
@@ -74,6 +75,15 @@ public class ProblemController {
     public ProblemSummaryDto updateStatus(@AuthenticationPrincipal Jwt jwt, @PathVariable long id, @Valid @RequestBody UpdateStatusRequest request) {
         User user = userService.getOrCreate(jwt.getSubject());
         return problemMapper.toSummaryDto(problemService.updateStatus(id, request.status(), user));
+    }
+
+    @PatchMapping("/{id}/ai-review")
+    public ProblemDetailDto updateAiReview(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable long id,
+            @RequestBody UpdateProblemAiReviewRequest request) {
+        User user = userService.getOrCreate(jwt.getSubject());
+        return problemMapper.toDetailDto(problemService.updateAiReview(id, request.aiReview(), user));
     }
 
     @PostMapping("/{id}/topics/{topicId}")

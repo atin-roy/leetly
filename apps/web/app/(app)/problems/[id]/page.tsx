@@ -28,6 +28,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { DifficultyBadge } from "@/components/problems/difficulty-badge"
 import { StatusBadge } from "@/components/problems/status-badge"
 import { AttemptForm } from "@/components/problems/attempt-form"
+import { CopyProblemButton } from "@/components/problems/copy-problem-button"
 import { NoteEditorDialog } from "@/components/notes/note-editor-dialog"
 import {
   useProblem,
@@ -37,6 +38,7 @@ import {
   useCreateTopic,
   useCreatePattern,
   useUpdateProblemStatus,
+  useUpdateProblemAiReview,
   useAddTopic,
   useRemoveTopics,
   useAddPattern,
@@ -341,6 +343,8 @@ export default function ProblemDetailPage({
   const [noteDialogOpen, setNoteDialogOpen] = useState(false)
   const createNoteMutation = useCreateNote()
   const updateNoteMutation = useUpdateNote()
+  const updateAiReviewMutation = useUpdateProblemAiReview(id)
+  const [aiReviewDraft, setAiReviewDraft] = useState<string | null>(null)
 
   // Mutations
   const statusMutation = useUpdateProblemStatus(id)
@@ -543,6 +547,18 @@ export default function ProblemDetailPage({
     }
   }
 
+  async function handleAiReviewSave() {
+    const nextAiReview = (aiReviewDraft ?? problem?.aiReview ?? "").trim() || null
+
+    try {
+      await updateAiReviewMutation.mutateAsync(nextAiReview)
+      setAiReviewDraft(null)
+      toast.success("AI review saved")
+    } catch {
+      toast.error("Failed to save AI review")
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -561,6 +577,8 @@ export default function ProblemDetailPage({
     )
   }
 
+  const aiReviewValue = aiReviewDraft ?? problem.aiReview ?? ""
+
   return (
     <div className="space-y-6 max-w-3xl mx-auto">
       {/* Back */}
@@ -572,11 +590,18 @@ export default function ProblemDetailPage({
       </Button>
 
       {/* Header */}
-      <div className="relative flex items-start justify-center text-center">
-        <div>
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0 flex-1 text-center">
           <p className="font-mono text-sm text-muted-foreground">#{problem.leetcodeId}</p>
           <h1 className="text-2xl font-semibold">{problem.title}</h1>
         </div>
+        <CopyProblemButton
+          problemId={id}
+          problem={problem}
+          notes={notesData?.content}
+          variant="outline"
+          className="shrink-0"
+        />
       </div>
 
       {/* Properties — Obsidian metadata style */}
@@ -750,6 +775,29 @@ export default function ProblemDetailPage({
               Add a note
             </button>
           )}
+        </MetaRow>
+
+        <MetaRow label="ai review">
+          <div className="space-y-2">
+            <Textarea
+              value={aiReviewValue}
+              onChange={(e) => setAiReviewDraft(e.target.value)}
+              className="min-h-28"
+              placeholder="Store an AI-generated review, interview feedback, or revision plan for this problem."
+            />
+            <div className="flex justify-end">
+              <Button
+                size="sm"
+                onClick={handleAiReviewSave}
+                disabled={
+                  updateAiReviewMutation.isPending ||
+                  aiReviewValue === (problem.aiReview ?? "")
+                }
+              >
+                {updateAiReviewMutation.isPending ? "Saving..." : "Save AI Review"}
+              </Button>
+            </div>
+          </div>
         </MetaRow>
 
       </div>

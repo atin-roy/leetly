@@ -15,10 +15,10 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { fetchLeetCodeProblem, parseProblemInput, type FetchedProblem } from "@/lib/leetcode"
 import { DifficultyBadge } from "./difficulty-badge"
-import type { ProblemSummaryDto } from "@/lib/types"
+import type { CreateProblemRequest, ProblemSummaryDto } from "@/lib/types"
 
 interface Props {
-  onAdd: (problem: Omit<ProblemSummaryDto, "id" | "status" | "lastAttemptedAt">) => Promise<ProblemSummaryDto>
+  onAdd: (problem: CreateProblemRequest) => Promise<ProblemSummaryDto>
   /** Maps leetcodeId → internal problem id for duplicate detection */
   existingProblems: Map<number, number>
   triggerLabel?: string

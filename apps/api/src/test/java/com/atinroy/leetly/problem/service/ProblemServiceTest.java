@@ -60,7 +60,7 @@ class ProblemServiceTest {
         when(problemListRepository.save(any(ProblemList.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         Problem created = problemService.create(
-                new CreateProblemRequest(1L, "Two Sum", "https://leetcode.com/problems/two-sum/", Difficulty.EASY),
+                new CreateProblemRequest(1L, "Two Sum", "https://leetcode.com/problems/two-sum/", Difficulty.EASY, null),
                 user
         );
 

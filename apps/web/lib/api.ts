@@ -1,6 +1,7 @@
 import { format } from "date-fns"
 import type {
   AttemptDto,
+  CreateProblemRequest,
   CreateListRequest,
   CreateNoteRequest,
   CreatePatternRequest,
@@ -21,6 +22,7 @@ import type {
   TopicDto,
   UpdateAttemptRequest,
   UpdateNoteRequest,
+  UpdateProblemAiReviewRequest,
   UpdateProfileRequest,
   UserProfileDto,
   UserSettingsDto,
@@ -74,7 +76,7 @@ export function getProblems(
 
 export function createProblem(
   token: string | undefined,
-  body: Omit<ProblemSummaryDto, "id" | "status" | "lastAttemptedAt">,
+  body: CreateProblemRequest,
 ): Promise<ProblemSummaryDto> {
   return apiFetch("/api/problems", token, {
     method: "POST",
@@ -124,6 +126,17 @@ export function updateProblemStatus(
   return apiFetch(`/api/problems/${id}/status`, token, {
     method: "PATCH",
     body: JSON.stringify({ status }),
+  })
+}
+
+export function updateProblemAiReview(
+  token: string | undefined,
+  id: number,
+  body: UpdateProblemAiReviewRequest,
+): Promise<ProblemDetailDto> {
+  return apiFetch(`/api/problems/${id}/ai-review`, token, {
+    method: "PATCH",
+    body: JSON.stringify(body),
   })
 }
 

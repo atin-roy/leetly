@@ -23,11 +23,12 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import { useUpdateProblemStatus } from "@/hooks/use-problems"
 import { AttemptForm } from "./attempt-form"
+import { CopyProblemButton } from "./copy-problem-button"
 import { DifficultyBadge } from "./difficulty-badge"
 import { statusLabels, statusStyles } from "./status-badge"
 import type { ProblemStatus, ProblemSummaryDto } from "@/lib/types"
 
-const COLS = 9
+const COLS = 10
 const ROW_H = "h-11"
 const STATUSES: ProblemStatus[] = [
   "UNSEEN",
@@ -147,6 +148,7 @@ export function ProblemTable({
         <TableHead className="w-20 text-center">Note</TableHead>
         <TableHead className="w-28 text-center">Difficulty</TableHead>
         <TableHead className="w-40 text-center">Status</TableHead>
+        <TableHead className="w-36 text-center">AI Export</TableHead>
         <TableHead className="w-32 text-center">Attempt</TableHead>
         <TableHead className="w-10" />
       </TableRow>
@@ -242,6 +244,9 @@ export function ProblemTable({
                     </TableCell>
                     <TableCell className="text-center" data-interactive="true" onClick={(e) => e.stopPropagation()}>
                       <StatusCell problem={p} />
+                    </TableCell>
+                    <TableCell className="text-center" data-interactive="true" onClick={(e) => e.stopPropagation()}>
+                      <CopyProblemButton problemId={p.id} />
                     </TableCell>
                     <TableCell className="text-center" data-interactive="true" onClick={(e) => e.stopPropagation()}>
                       <Button

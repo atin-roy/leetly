@@ -119,6 +119,7 @@ export interface ProblemDetailDto {
   difficulty: Difficulty
   status: ProblemStatus
   lastAttemptedAt: string | null
+  aiReview: string | null
   topics: TopicDto[]
   patterns: PatternDto[]
   relatedProblems: ProblemSummaryDto[]
@@ -241,6 +242,18 @@ export interface CreateNoteRequest {
   tag: NoteTag
   title: string
   content: string
+}
+
+export interface CreateProblemRequest {
+  leetcodeId: number
+  title: string
+  url: string
+  difficulty: Difficulty
+  aiReview?: string | null
+}
+
+export interface UpdateProblemAiReviewRequest {
+  aiReview?: string | null
 }
 
 export interface UpdateNoteRequest {
