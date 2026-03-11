@@ -25,6 +25,7 @@ function formatDuration(minutes: number | null) {
 function formatAttempt(attempt: AttemptDto) {
   return [
     `Attempt #${attempt.attemptNumber}`,
+    `Attempt ID: ${attempt.id}`,
     `Created: ${formatDateTime(attempt.createdDate)}`,
     `Language: ${formatEnumLabel(attempt.language)}`,
     `Outcome: ${formatEnumLabel(attempt.outcome)}`,
@@ -35,7 +36,7 @@ function formatAttempt(attempt: AttemptDto) {
     `Space Complexity: ${attempt.spaceComplexity || "Not set"}`,
     `Mistakes: ${attempt.mistakes.length ? attempt.mistakes.map(formatEnumLabel).join(", ") : "None"}`,
     `Approach:\n${attempt.approach || "None"}`,
-    `AI Review:\n${attempt.aiReview || "None"}`,
+    `Code Review:\n${attempt.aiReview || "None"}`,
     `What I Learned:\n${attempt.learned || "None"}`,
     `Takeaways:\n${attempt.takeaways || "None"}`,
     `Notes:\n${attempt.notes || "None"}`,
@@ -52,19 +53,24 @@ function formatNote(note: NoteDto) {
   ].join("\n")
 }
 
-export function formatProblemForClipboard(problem: ProblemDetailDto, notes: NoteDto[]) {
+export function formatProblemForClipboard(
+  problem: ProblemDetailDto,
+  notes: NoteDto[],
+  listNames: string[] = [],
+) {
   return [
-    "Problem Export for AI Review",
+    "Problem Details Export",
     `LeetCode ID: ${problem.leetcodeId}`,
     `Title: ${problem.title}`,
     `URL: ${problem.url}`,
     `Difficulty: ${formatEnumLabel(problem.difficulty)}`,
     `Status: ${formatEnumLabel(problem.status)}`,
     `Last Attempted: ${formatDateTime(problem.lastAttemptedAt)}`,
+    `Lists: ${listNames.length ? listNames.join(", ") : "None"}`,
     `Topics: ${problem.topics.length ? problem.topics.map((topic) => topic.name).join(", ") : "None"}`,
     `Patterns: ${problem.patterns.length ? problem.patterns.map((pattern) => pattern.name).join(", ") : "None"}`,
     `Related Problems: ${problem.relatedProblems.length ? problem.relatedProblems.map((related) => `#${related.leetcodeId} ${related.title}`).join(", ") : "None"}`,
-    `Problem AI Review:\n${problem.aiReview || "None"}`,
+    `Problem Code Review:\n${problem.aiReview || "None"}`,
     "",
     "Notes",
     notes.length ? notes.map(formatNote).join("\n\n---\n\n") : "No problem notes.",

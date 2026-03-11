@@ -5,14 +5,15 @@ import { Check, Copy } from "lucide-react"
 import { useSession } from "next-auth/react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
-import { getNotes, getProblem } from "@/lib/api"
+import { getNotes, getProblem, getProblemLists } from "@/lib/api"
 import { formatProblemForClipboard } from "@/lib/problem-export"
-import type { NoteDto, ProblemDetailDto } from "@/lib/types"
+import type { NoteDto, ProblemDetailDto, ProblemListDto } from "@/lib/types"
 
 interface Props {
   problemId: number
   problem?: ProblemDetailDto
   notes?: NoteDto[]
+  listNames?: string[]
   size?: "sm" | "default" | "icon"
   variant?:
     | "default"
@@ -31,12 +32,13 @@ export function CopyProblemButton({
   problemId,
   problem,
   notes,
+  listNames,
   size = "sm",
   variant = "ghost",
   className,
   showText = true,
-  label = "Copy for AI",
-  title = "Copy full problem details for AI",
+  label = "Copy details",
+  title = "Copy full problem details",
 }: Props) {
   const { data: session } = useSession()
   const [isCopying, setIsCopying] = useState(false)
@@ -49,7 +51,10 @@ export function CopyProblemButton({
     try {
       const problemDetail = problem ?? await getProblem(session?.accessToken, problemId)
       const problemNotes = notes ?? (await getNotes(session?.accessToken, { problemId })).content
-      const payload = formatProblemForClipboard(problemDetail, problemNotes)
+      const problemListNames = listNames ?? (await getProblemLists(session?.accessToken))
+        .filter((list: ProblemListDto) => list.problems.some((candidate) => candidate.id === problemId))
+        .map((list: ProblemListDto) => list.name)
+      const payload = formatProblemForClipboard(problemDetail, problemNotes, problemListNames)
 
       await navigator.clipboard.writeText(payload)
       setCopied(true)

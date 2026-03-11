@@ -304,7 +304,7 @@ function AttemptCard({
         {(attempt.learned || attempt.takeaways || attempt.notes || attempt.aiReview) && (
           <div className="space-y-1.5 text-sm">
             {attempt.aiReview && (
-              <p><span className="font-medium">AI Review: </span>{attempt.aiReview}</p>
+              <p><span className="font-medium">Code Review: </span>{attempt.aiReview}</p>
             )}
             {attempt.learned && (
               <p><span className="font-medium">Learned: </span>{attempt.learned}</p>
@@ -553,9 +553,9 @@ export default function ProblemDetailPage({
     try {
       await updateAiReviewMutation.mutateAsync(nextAiReview)
       setAiReviewDraft(null)
-      toast.success("AI review saved")
+      toast.success("Code review saved")
     } catch {
-      toast.error("Failed to save AI review")
+      toast.error("Failed to save code review")
     }
   }
 
@@ -578,6 +578,7 @@ export default function ProblemDetailPage({
   }
 
   const aiReviewValue = aiReviewDraft ?? problem.aiReview ?? ""
+  const problemListNames = problemLists.map((list) => list.name)
 
   return (
     <div className="space-y-6 max-w-3xl mx-auto">
@@ -600,6 +601,7 @@ export default function ProblemDetailPage({
             problemId={id}
             problem={problem}
             notes={notesData?.content}
+            listNames={problemListNames}
             variant="outline"
             className="shrink-0"
             label="Copy details"
@@ -763,7 +765,7 @@ export default function ProblemDetailPage({
       <div className="space-y-3 rounded-lg border p-4">
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-            AI Review
+            Code Review
           </h2>
           <Button
             variant="outline"
@@ -774,7 +776,7 @@ export default function ProblemDetailPage({
               aiReviewValue === (problem.aiReview ?? "")
             }
           >
-            {problem.aiReview ? "Save AI Review" : "Create AI Review"}
+            {problem.aiReview ? "Edit" : "Create"}
           </Button>
         </div>
         <div className="space-y-2">
@@ -782,7 +784,7 @@ export default function ProblemDetailPage({
             value={aiReviewValue}
             onChange={(e) => setAiReviewDraft(e.target.value)}
             className="min-h-32"
-            placeholder="Store an AI-generated review, interview feedback, or revision plan for this problem."
+            placeholder="Store a code review, interview feedback, or revision plan for this problem."
           />
         </div>
       </div>

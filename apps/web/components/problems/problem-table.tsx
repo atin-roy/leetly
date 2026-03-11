@@ -167,7 +167,7 @@ export function ProblemTable({
         <TableHead className="w-20 text-center">Note</TableHead>
         <TableHead className="w-28 text-center">Difficulty</TableHead>
         <TableHead className="w-40 text-center">Status</TableHead>
-        <TableHead className="w-36 text-center">AI Export</TableHead>
+        <TableHead className="w-24 text-center">Export Details</TableHead>
         <TableHead className="w-32 text-center">Attempt</TableHead>
         <TableHead className="w-10" />
       </TableRow>
@@ -275,7 +275,12 @@ export function ProblemTable({
                           <StatusCell problem={p} />
                         </TableCell>
                         <TableCell className="text-center" data-interactive="true" onClick={(e) => e.stopPropagation()}>
-                          <CopyProblemButton problemId={p.id} />
+                          <CopyProblemButton
+                            problemId={p.id}
+                            size="icon"
+                            showText={false}
+                            title="Copy full problem details"
+                          />
                         </TableCell>
                         <TableCell className="text-center" data-interactive="true" onClick={(e) => e.stopPropagation()}>
                           <Button
