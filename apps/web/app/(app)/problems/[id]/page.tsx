@@ -11,6 +11,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
@@ -24,6 +25,14 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { Textarea } from "@/components/ui/textarea"
 import { DifficultyBadge } from "@/components/problems/difficulty-badge"
 import { StatusBadge } from "@/components/problems/status-badge"
@@ -102,6 +111,23 @@ function formatDuration(minutes: number | null) {
   const hours = Math.floor(minutes / 60)
   const remainingMinutes = minutes % 60
   return remainingMinutes === 0 ? `${hours}h` : `${hours}h ${remainingMinutes}m`
+}
+
+function getOutcomeBadgeClass(outcome: AttemptDto["outcome"]) {
+  return outcome === "ACCEPTED"
+    ? "border-green-200 bg-green-50 text-green-700"
+    : "border-red-200 bg-red-50 text-red-700"
+}
+
+function formatAttemptComplexities(attempt: AttemptDto) {
+  const time = attempt.timeComplexity ?? "?"
+  const space = attempt.spaceComplexity ?? "?"
+  return `${time} / ${space}`
+}
+
+function formatAttemptMistakes(attempt: AttemptDto) {
+  if (attempt.mistakes.length === 0) return "None"
+  return attempt.mistakes.map((mistake) => MISTAKE_LABELS[mistake] ?? mistake).join(", ")
 }
 
 function AttemptStat({
@@ -207,59 +233,24 @@ function CodeBlock({ language, code }: { language: string; code: string | null }
   )
 }
 
-// ── Attempt Card ──────────────────────────────────────────────────────────────
-
-function AttemptCard({
+function AttemptDetails({
   attempt,
-  problemId,
-  onEdit,
 }: {
   attempt: AttemptDto
-  problemId: number
-  onEdit: (a: AttemptDto) => void
 }) {
-  const deleteMutation = useDeleteAttempt(problemId)
-
-  async function handleDelete() {
-    if (!confirm("Delete this attempt?")) return
-    try {
-      await deleteMutation.mutateAsync(attempt.id)
-      toast.success("Attempt deleted")
-    } catch {
-      toast.error("Failed to delete attempt")
-    }
-  }
-
   return (
-    <div className="group rounded-lg border">
-      <div className="flex items-center justify-between px-4 py-3 border-b">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium">Attempt #{attempt.attemptNumber}</span>
-          <Badge
-            variant="outline"
-            className={
-              attempt.outcome === "ACCEPTED"
-                ? "border-green-200 bg-green-50 text-green-700"
-                : "border-red-200 bg-red-50 text-red-700"
-            }
-          >
-            {OUTCOME_LABELS[attempt.outcome] ?? attempt.outcome}
-          </Badge>
-          <Badge variant="secondary">{attempt.language}</Badge>
-        </div>
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <Button variant="ghost" size="sm" onClick={() => onEdit(attempt)}>Edit</Button>
-          <Button
-            variant="ghost" size="sm"
-            className="text-destructive"
-            onClick={handleDelete}
-            disabled={deleteMutation.isPending}
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-          </Button>
-        </div>
+    <div className="space-y-4">
+      <div className="flex items-center gap-2">
+        <span className="text-sm font-medium">Attempt #{attempt.attemptNumber}</span>
+        <Badge
+          variant="outline"
+          className={getOutcomeBadgeClass(attempt.outcome)}
+        >
+          {OUTCOME_LABELS[attempt.outcome] ?? attempt.outcome}
+        </Badge>
+        <Badge variant="secondary">{attempt.language}</Badge>
       </div>
-      <div className="px-4 py-3 space-y-3">
+      <div className="space-y-3">
         <p className="text-xs text-muted-foreground">
           {format(new Date(attempt.createdDate), "MMM d, yyyy 'at' h:mm a")}
           {attempt.startedAt && ` · Started ${format(new Date(attempt.startedAt), "h:mm a")}`}
@@ -322,6 +313,51 @@ function AttemptCard({
   )
 }
 
+function AttemptDetailDialog({
+  attempt,
+  open,
+  onOpenChange,
+  onEdit,
+  onDelete,
+  isDeleting,
+}: {
+  attempt: AttemptDto | null
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  onEdit: (attempt: AttemptDto) => void
+  onDelete: (attempt: AttemptDto) => void
+  isDeleting: boolean
+}) {
+  if (!attempt) return null
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-4xl">
+        <DialogHeader>
+          <DialogTitle>Attempt #{attempt.attemptNumber}</DialogTitle>
+          <DialogDescription>
+            Full attempt details, notes, review, and submitted code.
+          </DialogDescription>
+        </DialogHeader>
+        <AttemptDetails attempt={attempt} />
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onEdit(attempt)}>
+            Edit
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={() => onDelete(attempt)}
+            disabled={isDeleting}
+          >
+            <Trash2 className="mr-1.5 h-4 w-4" />
+            Delete
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function ProblemDetailPage({
@@ -336,6 +372,7 @@ export default function ProblemDetailPage({
   // Attempt form
   const [attemptFormOpen, setAttemptFormOpen] = useState(false)
   const [editingAttempt, setEditingAttempt] = useState<AttemptDto | undefined>()
+  const [selectedAttempt, setSelectedAttempt] = useState<AttemptDto | null>(null)
 
   // Note
   const { data: notesData } = useNotes({ problemId: id })
@@ -355,6 +392,7 @@ export default function ProblemDetailPage({
   const removePatternMutation = useRemovePattern(id)
   const createPatternMutation = useCreatePattern()
   const addRelatedMutation = useAddRelatedProblem(id)
+  const deleteAttemptMutation = useDeleteAttempt(id)
 
   // Lists
   const { data: allLists } = useProblemLists()
@@ -385,6 +423,16 @@ export default function ProblemDetailPage({
   function handleLogAttempt() {
     setEditingAttempt(undefined)
     setAttemptFormOpen(true)
+  }
+
+  async function handleDeleteAttempt(attempt: AttemptDto) {
+    try {
+      await deleteAttemptMutation.mutateAsync(attempt.id)
+      setSelectedAttempt(null)
+      toast.success("Attempt deleted")
+    } catch {
+      toast.error("Failed to delete attempt")
+    }
   }
 
   async function handleNoteSave({ tag, title, content }: { tag: NoteTag; title: string; content: string }) {
@@ -579,6 +627,9 @@ export default function ProblemDetailPage({
 
   const aiReviewValue = aiReviewDraft ?? problem.aiReview ?? ""
   const problemListNames = problemLists.map((list) => list.name)
+  const attempts = [...problem.attempts].sort(
+    (a, b) => new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime(),
+  )
 
   return (
     <div className="space-y-6 max-w-3xl mx-auto">
@@ -836,15 +887,46 @@ export default function ProblemDetailPage({
             </Button>
           </div>
         ) : (
-          <div className="space-y-3">
-            {[...problem.attempts].reverse().map((a) => (
-              <AttemptCard
-                key={a.id}
-                attempt={a}
-                problemId={id}
-                onEdit={(a) => { setEditingAttempt(a); setAttemptFormOpen(true) }}
-              />
-            ))}
+          <div className="rounded-lg border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-20">#</TableHead>
+                  <TableHead className="w-32">Result</TableHead>
+                  <TableHead>Complexities</TableHead>
+                  <TableHead>Mistakes</TableHead>
+                  <TableHead className="w-28 text-right">Time</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {attempts.map((attempt) => (
+                  <TableRow
+                    key={attempt.id}
+                    className="cursor-pointer"
+                    onClick={() => setSelectedAttempt(attempt)}
+                  >
+                    <TableCell className="font-medium">#{attempt.attemptNumber}</TableCell>
+                    <TableCell>
+                      <Badge
+                        variant="outline"
+                        className={getOutcomeBadgeClass(attempt.outcome)}
+                      >
+                        {OUTCOME_LABELS[attempt.outcome] ?? attempt.outcome}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {formatAttemptComplexities(attempt)}
+                    </TableCell>
+                    <TableCell className="max-w-md truncate text-sm text-muted-foreground">
+                      {formatAttemptMistakes(attempt)}
+                    </TableCell>
+                    <TableCell className="text-right text-sm text-muted-foreground">
+                      {formatDuration(attempt.durationMinutes) ?? "—"}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
         )}
       </div>
@@ -854,6 +936,21 @@ export default function ProblemDetailPage({
         onOpenChange={setAttemptFormOpen}
         problemId={id}
         attempt={editingAttempt}
+      />
+
+      <AttemptDetailDialog
+        attempt={selectedAttempt}
+        open={selectedAttempt !== null}
+        onOpenChange={(open) => {
+          if (!open) setSelectedAttempt(null)
+        }}
+        onEdit={(attempt) => {
+          setSelectedAttempt(null)
+          setEditingAttempt(attempt)
+          setAttemptFormOpen(true)
+        }}
+        onDelete={handleDeleteAttempt}
+        isDeleting={deleteAttemptMutation.isPending}
       />
 
       <Dialog open={topicModalOpen} onOpenChange={setTopicModalOpen}>

@@ -7,6 +7,14 @@ import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
@@ -105,6 +113,7 @@ export default function NotesPage() {
   const [formOpen, setFormOpen] = useState(false)
   const [selectedNote, setSelectedNote] = useState<NoteDto | undefined>()
   const [dialogMode, setDialogMode] = useState<"view" | "edit">("view")
+  const [deleteNoteId, setDeleteNoteId] = useState<number | null>(null)
 
   const notes = pagedResponse?.content ?? []
   const page = pagedResponse?.page ?? 0
@@ -126,10 +135,11 @@ export default function NotesPage() {
     setFormOpen(true)
   }
 
-  async function handleDelete(id: number) {
-    if (!confirm("Delete this note?")) return
+  async function handleDelete() {
+    if (deleteNoteId == null) return
     try {
-      await deleteNoteMutation.mutateAsync(id)
+      await deleteNoteMutation.mutateAsync(deleteNoteId)
+      setDeleteNoteId(null)
       toast.success("Note deleted")
     } catch {
       toast.error("Failed to delete note")
@@ -240,7 +250,7 @@ export default function NotesPage() {
               note={note}
               onClick={() => handleView(note)}
               onEdit={() => handleEdit(note)}
-              onDelete={() => handleDelete(note.id)}
+              onDelete={() => setDeleteNoteId(note.id)}
             />
           ))}
         </div>
@@ -281,6 +291,29 @@ export default function NotesPage() {
         initialMode={dialogMode}
         onSave={handleSave}
       />
+
+      <Dialog open={deleteNoteId !== null} onOpenChange={(open) => !open && setDeleteNoteId(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete note</DialogTitle>
+            <DialogDescription>
+              This will permanently remove the note from your workspace.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteNoteId(null)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={deleteNoteMutation.isPending}
+            >
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
