@@ -667,7 +667,11 @@ export default function ProblemDetailPage({
         {/* Status */}
         <MetaRow label="status">
           <Select value={problem.status} onValueChange={(v) => statusMutation.mutate(v)}>
-            <SelectTrigger className="h-auto w-fit border-0 p-0 shadow-none focus:ring-0 [&>svg]:ml-1 [&>svg]:h-3 [&>svg]:w-3 [&>svg]:opacity-50">
+            <SelectTrigger
+              hideIcon
+              disabled={statusMutation.isPending}
+              className="h-auto w-fit cursor-pointer border-0 bg-transparent p-0 shadow-none transition-opacity hover:opacity-80 focus-visible:ring-0 data-[state=open]:opacity-80"
+            >
               <SelectValue>
                 <StatusBadge status={problem.status} />
               </SelectValue>

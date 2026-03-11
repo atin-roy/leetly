@@ -1,4 +1,5 @@
 import { Badge } from "@/components/ui/badge"
+import { cn } from "@/lib/utils"
 import type { ProblemStatus } from "@/lib/types"
 
 const styles: Record<ProblemStatus, string> = {
@@ -19,9 +20,15 @@ const labels: Record<ProblemStatus, string> = {
 
 export { labels as statusLabels, styles as statusStyles }
 
-export function StatusBadge({ status }: { status: ProblemStatus }) {
+export function StatusBadge({
+  status,
+  className,
+}: {
+  status: ProblemStatus
+  className?: string
+}) {
   return (
-    <Badge variant="outline" className={styles[status]}>
+    <Badge variant="outline" className={cn(styles[status], className)}>
       {labels[status]}
     </Badge>
   )
