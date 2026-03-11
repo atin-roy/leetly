@@ -9,6 +9,9 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 
 import java.util.Optional;
 
@@ -67,5 +70,32 @@ class ProblemServiceTest {
         ArgumentCaptor<ProblemList> listCaptor = ArgumentCaptor.forClass(ProblemList.class);
         verify(problemListRepository).save(listCaptor.capture());
         assertThat(listCaptor.getValue().getProblems()).contains(created);
+    }
+
+    @Test
+    void findAll_treatsNeverAttemptedProblemsAsOldest() {
+        User user = new User();
+        user.setId(1L);
+
+        when(problemRepository.findAll(any(), any(org.springframework.data.domain.Pageable.class)))
+                .thenReturn(new PageImpl<>(java.util.List.of()));
+
+        problemService.findAll(
+                user,
+                PageRequest.of(0, 20, Sort.by(Sort.Order.desc("lastAttemptedAt"))),
+                null,
+                null,
+                null,
+                null,
+                null
+        );
+
+        ArgumentCaptor<org.springframework.data.domain.Pageable> pageableCaptor =
+                ArgumentCaptor.forClass(org.springframework.data.domain.Pageable.class);
+        verify(problemRepository).findAll(any(), pageableCaptor.capture());
+
+        Sort.Order appliedOrder = pageableCaptor.getValue().getSort().getOrderFor("lastAttemptedAt");
+        assertThat(appliedOrder).isNotNull();
+        assertThat(appliedOrder.getNullHandling()).isEqualTo(Sort.NullHandling.NULLS_LAST);
     }
 }

@@ -4,9 +4,11 @@ import com.atinroy.leetly.common.exception.ResourceNotFoundException;
 import com.atinroy.leetly.user.model.ProblemList;
 import com.atinroy.leetly.user.repository.ProblemListRepository;
 import com.atinroy.leetly.user.model.User;
+import org.springframework.data.domain.PageRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,7 +35,29 @@ public class ProblemService {
     public Page<Problem> findAll(User user, Pageable pageable, String difficulty, String status, Long topicId, Long patternId, String search) {
         Specification<Problem> filters = ProblemSpecification.buildSpec(difficulty, status, topicId, patternId, search);
         Specification<Problem> ownedByUser = (root, query, cb) -> cb.equal(root.get("user"), user);
-        return problemRepository.findAll(ownedByUser.and(filters), pageable);
+        return problemRepository.findAll(ownedByUser.and(filters), normalizeSort(pageable));
+    }
+
+    private Pageable normalizeSort(Pageable pageable) {
+        List<Sort.Order> orders = pageable.getSort().stream()
+                .map(this::normalizeOrder)
+                .toList();
+
+        if (orders.isEmpty()) {
+            return pageable;
+        }
+
+        return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by(orders));
+    }
+
+    private Sort.Order normalizeOrder(Sort.Order order) {
+        if (!"lastAttemptedAt".equals(order.getProperty())) {
+            return order;
+        }
+
+        return order.isAscending()
+                ? order.nullsFirst()
+                : order.nullsLast();
     }
 
     @Transactional(readOnly = true)
