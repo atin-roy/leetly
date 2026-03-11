@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { format } from "date-fns"
 import { useRouter } from "next/navigation"
-import { Check, ExternalLink, Plus, StickyNote, Trash2 } from "lucide-react"
+import { Check, ExternalLink, NotebookPen, Plus, SquareArrowOutUpRight, StickyNote, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import {
@@ -15,6 +15,13 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu"
 import {
   Popover,
   PopoverContent,
@@ -64,6 +71,14 @@ function FillerRow() {
 function formatLastAttempt(value: string | null) {
   if (!value) return "Never"
   return format(new Date(value), "MMM d, yyyy")
+}
+
+function getProblemHref(problemId: number) {
+  return `/problems/${problemId}`
+}
+
+function openProblemInNewTab(problemId: number) {
+  window.open(getProblemHref(problemId), "_blank", "noopener,noreferrer")
 }
 
 function StatusCell({ problem }: { problem: ProblemSummaryDto }) {
@@ -138,6 +153,10 @@ export function ProblemTable({
   const router = useRouter()
   const [attemptProblem, setAttemptProblem] = useState<ProblemSummaryDto | null>(null)
 
+  function openProblem(problemId: number) {
+    router.push(getProblemHref(problemId))
+  }
+
   const header = (
     <TableHeader>
       <TableRow>
@@ -198,81 +217,124 @@ export function ProblemTable({
               {rows.map((p) => {
                 const hasNote = notedProblemIds?.has(p.id) ?? false
                 return (
-                  <TableRow
-                    key={p.id}
-                    className={`${ROW_H} group cursor-pointer`}
-                    onClick={(e) => {
-                      if (isInteractiveTarget(e.target)) return
-                      router.push(`/problems/${p.id}`)
-                    }}
-                  >
-                    <TableCell className="font-mono text-sm text-muted-foreground">
-                      {p.leetcodeId}
-                    </TableCell>
-                    <TableCell className="font-medium">{p.title}</TableCell>
-                    <TableCell className="text-center text-sm text-muted-foreground">
-                      {formatLastAttempt(p.lastAttemptedAt)}
-                    </TableCell>
-                    <TableCell className="text-center" data-interactive="true" onClick={(e) => e.stopPropagation()}>
-                      <a
-                        href={p.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        data-interactive="true"
-                        className="inline-flex text-muted-foreground hover:text-foreground"
+                  <ContextMenu key={p.id}>
+                    <ContextMenuTrigger asChild>
+                      <TableRow
+                        className={`${ROW_H} group cursor-pointer`}
+                        onClick={(e) => {
+                          if (isInteractiveTarget(e.target)) return
+                          openProblem(p.id)
+                        }}
+                        onMouseDown={(e) => {
+                          if (e.button !== 1 || isInteractiveTarget(e.target)) return
+                          e.preventDefault()
+                        }}
+                        onAuxClick={(e) => {
+                          if (e.button !== 1 || isInteractiveTarget(e.target)) return
+                          e.preventDefault()
+                          openProblemInNewTab(p.id)
+                        }}
                       >
-                        <ExternalLink className="h-4 w-4" />
-                      </a>
-                    </TableCell>
-                    <TableCell className="text-center" data-interactive="true" onClick={(e) => e.stopPropagation()}>
-                      <button
-                        onClick={() => onNoteClick?.(p)}
-                        data-interactive="true"
-                        className={
-                          hasNote
-                            ? "inline-flex text-primary hover:text-primary/70"
-                            : "inline-flex text-muted-foreground hover:text-foreground disabled:opacity-30"
-                        }
-                        disabled={!onNoteClick}
-                        title={hasNote ? "Edit note" : "Add note"}
-                      >
-                        <StickyNote className={`h-4 w-4 ${hasNote ? "fill-primary/20" : ""}`} />
-                      </button>
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <DifficultyBadge difficulty={p.difficulty} />
-                    </TableCell>
-                    <TableCell className="text-center" data-interactive="true" onClick={(e) => e.stopPropagation()}>
-                      <StatusCell problem={p} />
-                    </TableCell>
-                    <TableCell className="text-center" data-interactive="true" onClick={(e) => e.stopPropagation()}>
-                      <CopyProblemButton problemId={p.id} />
-                    </TableCell>
-                    <TableCell className="text-center" data-interactive="true" onClick={(e) => e.stopPropagation()}>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        data-interactive="true"
-                        className="h-8 px-2"
-                        onClick={() => setAttemptProblem(p)}
-                      >
-                        <Plus className="mr-1 h-3.5 w-3.5" />
-                        Log Attempt
-                      </Button>
-                    </TableCell>
-                    <TableCell className="text-center" data-interactive="true" onClick={(e) => e.stopPropagation()}>
-                      <button
-                        onClick={() => onDelete?.(p)}
-                        data-interactive="true"
+                        <TableCell className="font-mono text-sm text-muted-foreground">
+                          {p.leetcodeId}
+                        </TableCell>
+                        <TableCell className="font-medium">{p.title}</TableCell>
+                        <TableCell className="text-center text-sm text-muted-foreground">
+                          {formatLastAttempt(p.lastAttemptedAt)}
+                        </TableCell>
+                        <TableCell className="text-center" data-interactive="true" onClick={(e) => e.stopPropagation()}>
+                          <a
+                            href={p.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            data-interactive="true"
+                            className="inline-flex text-muted-foreground hover:text-foreground"
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                          </a>
+                        </TableCell>
+                        <TableCell className="text-center" data-interactive="true" onClick={(e) => e.stopPropagation()}>
+                          <button
+                            onClick={() => onNoteClick?.(p)}
+                            data-interactive="true"
+                            className={
+                              hasNote
+                                ? "inline-flex text-primary hover:text-primary/70"
+                                : "inline-flex text-muted-foreground hover:text-foreground disabled:opacity-30"
+                            }
+                            disabled={!onNoteClick}
+                            title={hasNote ? "Edit note" : "Add note"}
+                          >
+                            <StickyNote className={`h-4 w-4 ${hasNote ? "fill-primary/20" : ""}`} />
+                          </button>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <DifficultyBadge difficulty={p.difficulty} />
+                        </TableCell>
+                        <TableCell className="text-center" data-interactive="true" onClick={(e) => e.stopPropagation()}>
+                          <StatusCell problem={p} />
+                        </TableCell>
+                        <TableCell className="text-center" data-interactive="true" onClick={(e) => e.stopPropagation()}>
+                          <CopyProblemButton problemId={p.id} />
+                        </TableCell>
+                        <TableCell className="text-center" data-interactive="true" onClick={(e) => e.stopPropagation()}>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            data-interactive="true"
+                            className="h-8 px-2"
+                            onClick={() => setAttemptProblem(p)}
+                          >
+                            <Plus className="mr-1 h-3.5 w-3.5" />
+                            Log Attempt
+                          </Button>
+                        </TableCell>
+                        <TableCell className="text-center" data-interactive="true" onClick={(e) => e.stopPropagation()}>
+                          <button
+                            onClick={() => onDelete?.(p)}
+                            data-interactive="true"
+                            disabled={!onDelete}
+                            title="Remove problem"
+                            className="inline-flex opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive disabled:pointer-events-none"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </TableCell>
+                      </TableRow>
+                    </ContextMenuTrigger>
+                    <ContextMenuContent className="w-56">
+                      <ContextMenuItem onClick={() => openProblem(p.id)}>
+                        <NotebookPen />
+                        Open problem detail
+                      </ContextMenuItem>
+                      <ContextMenuItem onClick={() => openProblemInNewTab(p.id)}>
+                        <SquareArrowOutUpRight />
+                        Open problem detail in new tab
+                      </ContextMenuItem>
+                      <ContextMenuItem onClick={() => window.open(p.url, "_blank", "noopener,noreferrer")}>
+                        <ExternalLink />
+                        Open LeetCode in new tab
+                      </ContextMenuItem>
+                      <ContextMenuSeparator />
+                      <ContextMenuItem onClick={() => setAttemptProblem(p)}>
+                        <Plus />
+                        Log attempt
+                      </ContextMenuItem>
+                      <ContextMenuItem disabled={!onNoteClick} onClick={() => onNoteClick?.(p)}>
+                        <StickyNote />
+                        {hasNote ? "Edit note" : "Add note"}
+                      </ContextMenuItem>
+                      <ContextMenuItem
+                        variant="destructive"
                         disabled={!onDelete}
-                        title="Remove problem"
-                        className="inline-flex opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive disabled:pointer-events-none"
+                        onClick={() => onDelete?.(p)}
                       >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </TableCell>
-                  </TableRow>
+                        <Trash2 />
+                        Remove problem
+                      </ContextMenuItem>
+                    </ContextMenuContent>
+                  </ContextMenu>
                 )
               })}
               {Array.from({ length: fillerCount }).map((_, i) => (
