@@ -127,6 +127,211 @@
   }
 }
 
+@layer components {
+  .markdown-content {
+    @apply text-sm leading-7;
+    color: color-mix(in oklab, var(--foreground) 92%, transparent);
+  }
+
+  .markdown-content > :first-child {
+    @apply mt-0;
+  }
+
+  .markdown-content > :last-child {
+    @apply mb-0;
+  }
+
+  .markdown-content h1,
+  .markdown-content h2,
+  .markdown-content h3,
+  .markdown-content h4,
+  .markdown-content h5,
+  .markdown-content h6 {
+    @apply scroll-m-20 font-semibold tracking-tight;
+  }
+
+  .markdown-content h1 {
+    @apply mb-4 mt-8 border-b pb-2 text-3xl;
+    color: var(--foreground);
+  }
+
+  .markdown-content h2 {
+    @apply mb-3 mt-7 text-2xl;
+    color: var(--primary);
+  }
+
+  .markdown-content h3 {
+    @apply mb-3 mt-6 text-xl;
+    color: var(--chart-2);
+  }
+
+  .markdown-content h4 {
+    @apply mb-2 mt-5 text-lg;
+    color: var(--chart-3);
+  }
+
+  .markdown-content h5,
+  .markdown-content h6 {
+    @apply mb-2 mt-4 text-base;
+    color: var(--accent);
+  }
+
+  .markdown-content p,
+  .markdown-content ul,
+  .markdown-content ol,
+  .markdown-content blockquote,
+  .markdown-content table,
+  .markdown-content pre {
+    @apply my-4;
+  }
+
+  .markdown-content strong {
+    @apply font-semibold;
+    color: var(--foreground);
+  }
+
+  .markdown-content em {
+    @apply italic;
+  }
+
+  .markdown-content a {
+    @apply font-medium underline decoration-2 underline-offset-4 transition-colors;
+    color: var(--primary);
+  }
+
+  .markdown-content a:hover {
+    color: var(--accent);
+  }
+
+  .markdown-content ul {
+    @apply list-disc pl-6;
+  }
+
+  .markdown-content ol {
+    @apply list-decimal pl-6;
+  }
+
+  .markdown-content li {
+    @apply my-1;
+  }
+
+  .markdown-content hr {
+    @apply my-6 border-0 border-t;
+    border-color: color-mix(in oklab, var(--border) 88%, transparent);
+  }
+
+  .markdown-content blockquote {
+    @apply rounded-r-xl border-l-4 py-1 pl-4;
+    border-color: color-mix(in oklab, var(--primary) 60%, var(--border));
+    background: color-mix(in oklab, var(--muted) 72%, transparent);
+    color: var(--muted-foreground);
+  }
+
+  .markdown-content code:not(pre code) {
+    @apply rounded-md px-1.5 py-0.5 font-mono text-[0.85em];
+    background: color-mix(in oklab, var(--muted) 88%, transparent);
+    color: color-mix(in oklab, var(--foreground) 96%, var(--primary));
+  }
+
+  .markdown-content table {
+    @apply w-full border-collapse overflow-hidden rounded-lg border text-left text-sm;
+    border-color: color-mix(in oklab, var(--border) 88%, transparent);
+  }
+
+  .markdown-content thead {
+    background: color-mix(in oklab, var(--muted) 84%, transparent);
+  }
+
+  .markdown-content th,
+  .markdown-content td {
+    @apply px-3 py-2 align-top;
+    border-color: color-mix(in oklab, var(--border) 88%, transparent);
+  }
+
+  .markdown-content th {
+    @apply font-semibold;
+    color: var(--foreground);
+  }
+
+  .markdown-content tbody tr + tr td {
+    @apply border-t;
+  }
+
+  .code-highlight {
+    background: color-mix(in oklab, var(--muted) 70%, var(--card));
+    border-color: color-mix(in oklab, var(--border) 88%, transparent);
+  }
+
+  .code-highlight__header {
+    background: color-mix(in oklab, var(--muted) 82%, transparent);
+  }
+
+  .hljs {
+    color: color-mix(in oklab, var(--foreground) 94%, transparent);
+  }
+
+  .hljs-subst,
+  .hljs-punctuation {
+    color: color-mix(in oklab, var(--foreground) 92%, transparent);
+  }
+
+  .hljs-comment,
+  .hljs-quote {
+    color: var(--muted-foreground);
+    font-style: italic;
+  }
+
+  .hljs-keyword,
+  .hljs-selector-tag,
+  .hljs-meta .hljs-keyword,
+  .hljs-doctag {
+    color: var(--primary);
+  }
+
+  .hljs-title,
+  .hljs-section,
+  .hljs-selector-id,
+  .hljs-selector-class {
+    color: var(--chart-1);
+  }
+
+  .hljs-attr,
+  .hljs-attribute,
+  .hljs-property,
+  .hljs-variable {
+    color: var(--chart-3);
+  }
+
+  .hljs-string,
+  .hljs-char,
+  .hljs-regexp,
+  .hljs-template-tag {
+    color: var(--chart-2);
+  }
+
+  .hljs-number,
+  .hljs-literal,
+  .hljs-symbol,
+  .hljs-bullet {
+    color: var(--chart-5);
+  }
+
+  .hljs-type,
+  .hljs-built_in,
+  .hljs-class .hljs-title,
+  .hljs-title.class_ {
+    color: var(--chart-4);
+  }
+
+  .hljs-addition {
+    color: var(--chart-2);
+  }
+
+  .hljs-deletion {
+    color: var(--destructive);
+  }
+}
+
 /* ─── Predefined themes ───────────────────────────────────────────────────── */
 /* Each theme is a COMPLETE color override — all backgrounds, foregrounds,     */
 /* cards, sidebar, charts. Theme rules come last so they win over :root/.dark. */

@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { BookOpen, ArrowLeft, Github } from "lucide-react"
+import { BookOpen, ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { Metadata } from "next"
 

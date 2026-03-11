@@ -3,7 +3,7 @@
 import { use, useState } from "react"
 import Link from "next/link"
 import { format } from "date-fns"
-import { ArrowLeft, Check, Copy, ExternalLink, Plus, StickyNote, Trash2, X } from "lucide-react"
+import { ArrowLeft, ExternalLink, Plus, StickyNote, Trash2, X } from "lucide-react"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -34,6 +34,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Textarea } from "@/components/ui/textarea"
+import { CodeBlock as HighlightedCodeBlock } from "@/components/ui/code-block"
 import { DifficultyBadge } from "@/components/problems/difficulty-badge"
 import { StatusBadge } from "@/components/problems/status-badge"
 import { AttemptForm } from "@/components/problems/attempt-form"
@@ -202,34 +203,23 @@ function SelectorGrid({
 
 // ── Code Block ────────────────────────────────────────────────────────────────
 
-function CodeBlock({ language, code }: { language: string; code: string | null }) {
-  const [copied, setCopied] = useState(false)
+function AttemptCodeBlock({
+  language,
+  code,
+}: {
+  language: string
+  code: string | null
+}) {
   const content = code?.trim() ? code : "// No code captured for this attempt."
 
-  async function handleCopy() {
-    await navigator.clipboard.writeText(content)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
-
   return (
-    <div className="rounded-md border overflow-hidden">
-      <div className="flex items-center justify-between bg-muted px-3 py-1.5 border-b">
-        <span className="text-xs font-medium text-muted-foreground">
-          {language.charAt(0) + language.slice(1).toLowerCase()}
-        </span>
-        <button
-          onClick={handleCopy}
-          className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-        >
-          {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-          {copied ? "Copied" : "Copy"}
-        </button>
-      </div>
-      <pre className="overflow-x-auto p-3 text-xs leading-relaxed font-mono max-h-64 overflow-y-auto">
-        <code>{content}</code>
-      </pre>
-    </div>
+    <HighlightedCodeBlock
+      chrome
+      showCopyButton
+      code={content}
+      language={language}
+      preClassName="max-h-64 overflow-y-auto"
+    />
   )
 }
 
@@ -291,7 +281,7 @@ function AttemptDetails({
             <p className="text-sm whitespace-pre-wrap">{attempt.approach}</p>
           </div>
         )}
-        <CodeBlock language={attempt.language} code={attempt.code} />
+          <AttemptCodeBlock language={attempt.language} code={attempt.code} />
         {(attempt.learned || attempt.takeaways || attempt.notes || attempt.aiReview) && (
           <div className="space-y-1.5 text-sm">
             {attempt.aiReview && (
