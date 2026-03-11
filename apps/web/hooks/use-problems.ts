@@ -91,6 +91,7 @@ export function useProblems(filters?: ProblemFilters) {
     ],
     queryFn: () => getProblems(session?.accessToken, normalized),
     enabled: !!session?.accessToken,
+    placeholderData: (previousData) => previousData,
   })
 }
 

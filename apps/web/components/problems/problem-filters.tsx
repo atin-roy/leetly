@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { Search, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -51,6 +52,19 @@ const SORT_OPTIONS: { value: string; label: string }[] = [
 export function ProblemFilters({ filters, onChange, onReset }: Props) {
   const { data: topics } = useTopics()
   const { data: patterns } = usePatterns()
+  const [searchValue, setSearchValue] = useState(filters.search ?? "")
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      const normalized = searchValue.trim()
+      const nextSearch = normalized || undefined
+      if (nextSearch !== filters.search) {
+        onChange({ search: nextSearch, page: 0 })
+      }
+    }, 250)
+
+    return () => window.clearTimeout(timeout)
+  }, [filters.search, onChange, searchValue])
 
   const hasFilters =
     filters.difficulty ||
@@ -65,9 +79,9 @@ export function ProblemFilters({ filters, onChange, onReset }: Props) {
       <div className="relative flex-1 min-w-48">
         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Search problems..."
-          value={filters.search ?? ""}
-          onChange={(e) => onChange({ search: e.target.value || undefined, page: 0 })}
+          placeholder="Search by name or ID..."
+          value={searchValue}
+          onChange={(e) => setSearchValue(e.target.value)}
           className="pl-8"
         />
       </div>
@@ -167,7 +181,14 @@ export function ProblemFilters({ filters, onChange, onReset }: Props) {
       </Select>
 
       {hasFilters && (
-        <Button variant="ghost" size="sm" onClick={onReset}>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => {
+            setSearchValue("")
+            onReset()
+          }}
+        >
           <X className="mr-1 h-3 w-3" />
           Clear
         </Button>

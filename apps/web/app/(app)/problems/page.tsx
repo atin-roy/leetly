@@ -108,7 +108,7 @@ export default function ProblemsPage() {
 
   const existingProblems = new Map(problems.map((p) => [p.leetcodeId, p.id]))
 
-  if (isLoading) {
+  if (isLoading && !pagedResponse) {
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between">
