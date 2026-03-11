@@ -67,7 +67,7 @@ export function MistakesChart() {
                 </span>
               </span>
             </div>
-            <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+            <div className="h-2.5 w-full overflow-hidden rounded-full bg-muted">
               <div
                 className="h-full rounded-full bg-destructive/70"
                 style={{ width: `${(count / max) * 100}%` }}

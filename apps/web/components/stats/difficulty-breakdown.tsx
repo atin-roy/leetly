@@ -58,7 +58,7 @@ export function DifficultyBreakdown() {
               {label}
             </p>
             <p className="mt-1.5 text-3xl font-bold">{solved}</p>
-            <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+            <div className="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-muted">
               <div
                 className={cn("h-full rounded-full", colorBar)}
                 style={{

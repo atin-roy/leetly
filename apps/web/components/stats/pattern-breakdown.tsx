@@ -53,7 +53,7 @@ export function PatternBreakdown() {
               <span className="truncate text-muted-foreground">{label}</span>
               <span className="font-medium tabular-nums">{count}</span>
             </div>
-            <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+            <div className="h-2.5 w-full overflow-hidden rounded-full bg-muted">
               <div
                 className="h-full rounded-full bg-primary/80"
                 style={{ width: `${(count / max) * 100}%` }}

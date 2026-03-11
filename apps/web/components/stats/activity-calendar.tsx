@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import { format, subDays } from "date-fns"
 import { cn } from "@/lib/utils"
 import {
@@ -12,19 +12,37 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useDailyStats } from "@/hooks/use-stats"
 
 const DAYS = 90
-const BAR_W = 10
+const MIN_BAR_W = 12
 const BAR_GAP = 3
-const CHART_H = 120
+const CHART_H = 132
 
 export function ActivityBar() {
-  const scrollRef = useRef<HTMLDivElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [containerWidth, setContainerWidth] = useState<number | null>(null)
   const { data: dailyStats, isLoading } = useDailyStats(DAYS)
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollLeft = scrollRef.current.scrollWidth
+    const node = containerRef.current
+    if (!node) {
+      return
     }
-  }, [dailyStats])
+
+    const updateWidth = () => {
+      setContainerWidth(node.clientWidth)
+    }
+
+    updateWidth()
+
+    const observer = new ResizeObserver(() => {
+      updateWidth()
+    })
+
+    observer.observe(node)
+
+    return () => {
+      observer.disconnect()
+    }
+  }, [])
 
   if (isLoading) {
     return <Skeleton className="h-[140px] w-full" />
@@ -52,34 +70,34 @@ export function ActivityBar() {
   })
 
   const maxCount = Math.max(...data.map((d) => d.count), 1)
-  const totalWidth = data.length * (BAR_W + BAR_GAP) - BAR_GAP
+  const visibleBars = containerWidth
+    ? Math.max(1, Math.floor((containerWidth + BAR_GAP) / (MIN_BAR_W + BAR_GAP)))
+    : DAYS
+  const visibleData = data.slice(-Math.min(DAYS, visibleBars))
 
   return (
-    <div ref={scrollRef} className="overflow-x-auto [&::-webkit-scrollbar]:hidden [scrollbar-width:none]">
-      <div style={{ width: totalWidth, minWidth: "100%" }}>
+    <div ref={containerRef} className="w-full overflow-hidden">
+      <div className="w-full">
         {/* Bars */}
         <div
-          className="flex items-end gap-[3px]"
-          style={{ height: CHART_H }}
+          className="grid items-end gap-[3px]"
+          style={{
+            height: CHART_H,
+            gridTemplateColumns: `repeat(${visibleData.length}, minmax(0, 1fr))`,
+          }}
         >
-          {data.map((d) => {
+          {visibleData.map((d) => {
             const barH =
               d.count === 0 ? 2 : Math.max((d.count / maxCount) * CHART_H, 4)
             return (
               <Tooltip key={d.date}>
                 <TooltipTrigger asChild>
                   <div
-                    className="flex-none cursor-default"
-                    style={{
-                      width: BAR_W,
-                      height: "100%",
-                      display: "flex",
-                      alignItems: "flex-end",
-                    }}
+                    className="flex h-full min-w-0 cursor-default items-end"
                   >
                     <div
                       className={cn(
-                        "w-full rounded-[2px] transition-opacity hover:opacity-80",
+                        "w-full rounded-[3px] transition-opacity hover:opacity-80",
                         d.count === 0
                           ? "bg-muted"
                           : d.count <= 2
@@ -102,12 +120,16 @@ export function ActivityBar() {
         </div>
 
         {/* Month labels */}
-        <div className="mt-1.5 flex gap-[3px]">
-          {data.map((d) => (
+        <div
+          className="mt-1.5 grid gap-[3px]"
+          style={{
+            gridTemplateColumns: `repeat(${visibleData.length}, minmax(0, 1fr))`,
+          }}
+        >
+          {visibleData.map((d) => (
             <div
               key={d.date}
-              className="flex-none text-[10px] leading-none text-muted-foreground"
-              style={{ width: BAR_W }}
+              className="min-w-0 text-[10px] leading-none text-muted-foreground"
             >
               {d.dayOfMonth === 1 ? d.monthLabel : ""}
             </div>
