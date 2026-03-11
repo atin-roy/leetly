@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { format } from "date-fns"
 import { useRouter } from "next/navigation"
 import { Check, ExternalLink, Plus, StickyNote, Trash2 } from "lucide-react"
 import { toast } from "sonner"
@@ -26,7 +27,7 @@ import { DifficultyBadge } from "./difficulty-badge"
 import { statusLabels, statusStyles } from "./status-badge"
 import type { ProblemStatus, ProblemSummaryDto } from "@/lib/types"
 
-const COLS = 8
+const COLS = 9
 const ROW_H = "h-11"
 const STATUSES: ProblemStatus[] = [
   "UNSEEN",
@@ -57,6 +58,11 @@ function FillerRow() {
       ))}
     </TableRow>
   )
+}
+
+function formatLastAttempt(value: string | null) {
+  if (!value) return "Never"
+  return format(new Date(value), "MMM d, yyyy")
 }
 
 function StatusCell({ problem }: { problem: ProblemSummaryDto }) {
@@ -136,6 +142,7 @@ export function ProblemTable({
       <TableRow>
         <TableHead className="w-16">#</TableHead>
         <TableHead>Title</TableHead>
+        <TableHead className="w-36 text-center">Last Attempt</TableHead>
         <TableHead className="w-24 text-center">LeetCode</TableHead>
         <TableHead className="w-20 text-center">Note</TableHead>
         <TableHead className="w-28 text-center">Difficulty</TableHead>
@@ -201,6 +208,9 @@ export function ProblemTable({
                       {p.leetcodeId}
                     </TableCell>
                     <TableCell className="font-medium">{p.title}</TableCell>
+                    <TableCell className="text-center text-sm text-muted-foreground">
+                      {formatLastAttempt(p.lastAttemptedAt)}
+                    </TableCell>
                     <TableCell className="text-center" data-interactive="true" onClick={(e) => e.stopPropagation()}>
                       <a
                         href={p.url}
