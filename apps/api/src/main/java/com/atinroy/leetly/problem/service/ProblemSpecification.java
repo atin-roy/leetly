@@ -44,7 +44,8 @@ public final class ProblemSpecification {
 
             spec = spec.and((root, query, cb) -> {
                 var titleMatch = cb.like(cb.lower(root.get("title")), "%" + loweredSearch + "%");
-                var leetcodeIdMatch = cb.like(root.get("leetcodeId").as(String.class), "%" + normalizedSearch + "%");
+                var leetcodeIdAsText = cb.function("concat", String.class, cb.literal(""), root.get("leetcodeId"));
+                var leetcodeIdMatch = cb.like(leetcodeIdAsText, "%" + normalizedSearch + "%");
 
                 return cb.or(
                         titleMatch,
