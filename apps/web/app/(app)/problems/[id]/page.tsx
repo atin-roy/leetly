@@ -590,18 +590,22 @@ export default function ProblemDetailPage({
       </Button>
 
       {/* Header */}
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0 flex-1 text-center">
+      <div className="space-y-3 text-center">
+        <div className="min-w-0">
           <p className="font-mono text-sm text-muted-foreground">#{problem.leetcodeId}</p>
-          <h1 className="text-2xl font-semibold">{problem.title}</h1>
+          <div className="mt-1 flex flex-wrap items-center justify-center gap-3">
+            <h1 className="text-2xl font-semibold">{problem.title}</h1>
+            <CopyProblemButton
+              problemId={id}
+              problem={problem}
+              notes={notesData?.content}
+              variant="outline"
+              className="shrink-0"
+              label="Copy details"
+              title="Copy problem details"
+            />
+          </div>
         </div>
-        <CopyProblemButton
-          problemId={id}
-          problem={problem}
-          notes={notesData?.content}
-          variant="outline"
-          className="shrink-0"
-        />
       </div>
 
       {/* Properties — Obsidian metadata style */}
@@ -754,35 +758,20 @@ export default function ProblemDetailPage({
           </div>
         </MetaRow>
 
-        {/* Note */}
-        <MetaRow label="note">
-          {note ? (
-            <button
-              onClick={() => setNoteDialogOpen(true)}
-              className="w-full text-left rounded-md hover:bg-muted/60 py-0.5 transition-colors"
-            >
-              <p className="text-xs font-medium leading-snug">{note.title}</p>
-              <p className="mt-0.5 text-xs text-muted-foreground line-clamp-2 leading-relaxed">
-                {note.content}
-              </p>
-            </button>
-          ) : (
-            <button
-              onClick={() => setNoteDialogOpen(true)}
-              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <StickyNote className="h-3.5 w-3.5" />
-              Add a note
-            </button>
-          )}
-        </MetaRow>
+      </div>
 
-        <MetaRow label="ai review">
+      {problem.aiReview && (
+        <div className="space-y-3 rounded-lg border p-4">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+              AI Review
+            </h2>
+          </div>
           <div className="space-y-2">
             <Textarea
               value={aiReviewValue}
               onChange={(e) => setAiReviewDraft(e.target.value)}
-              className="min-h-28"
+              className="min-h-32"
               placeholder="Store an AI-generated review, interview feedback, or revision plan for this problem."
             />
             <div className="flex justify-end">
@@ -798,9 +787,28 @@ export default function ProblemDetailPage({
               </Button>
             </div>
           </div>
-        </MetaRow>
+        </div>
+      )}
 
-      </div>
+      {note && (
+        <div className="space-y-3 rounded-lg border p-4">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+              Note
+            </h2>
+            <Button variant="outline" size="sm" onClick={() => setNoteDialogOpen(true)}>
+              <StickyNote className="mr-1.5 h-4 w-4" />
+              Edit Note
+            </Button>
+          </div>
+          <div className="space-y-2">
+            <p className="text-sm font-medium leading-snug">{note.title}</p>
+            <p className="text-sm whitespace-pre-wrap leading-relaxed text-muted-foreground">
+              {note.content}
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Attempts */}
       <div className="space-y-3">

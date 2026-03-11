@@ -23,6 +23,8 @@ interface Props {
     | "link"
   className?: string
   showText?: boolean
+  label?: string
+  title?: string
 }
 
 export function CopyProblemButton({
@@ -33,6 +35,8 @@ export function CopyProblemButton({
   variant = "ghost",
   className,
   showText = true,
+  label = "Copy for AI",
+  title = "Copy full problem details for AI",
 }: Props) {
   const { data: session } = useSession()
   const [isCopying, setIsCopying] = useState(false)
@@ -67,10 +71,10 @@ export function CopyProblemButton({
       disabled={isCopying}
       data-interactive="true"
       className={className}
-      title="Copy full problem details for AI"
+      title={title}
     >
       {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-      {showText ? <span>{copied ? "Copied" : isCopying ? "Copying..." : "Copy for AI"}</span> : null}
+      {showText ? <span>{copied ? "Copied" : isCopying ? "Copying..." : label}</span> : null}
     </Button>
   )
 }

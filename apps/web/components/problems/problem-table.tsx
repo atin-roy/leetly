@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { format } from "date-fns"
 import { useRouter } from "next/navigation"
-import { Check, ExternalLink, NotebookPen, Plus, SquareArrowOutUpRight, StickyNote, Trash2 } from "lucide-react"
+import { Check, ExternalLink, Plus, SquareArrowOutUpRight, StickyNote, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import {
@@ -304,17 +304,13 @@ export function ProblemTable({
                       </TableRow>
                     </ContextMenuTrigger>
                     <ContextMenuContent className="w-56">
-                      <ContextMenuItem onClick={() => openProblem(p.id)}>
-                        <NotebookPen />
-                        Open problem detail
-                      </ContextMenuItem>
                       <ContextMenuItem onClick={() => openProblemInNewTab(p.id)}>
                         <SquareArrowOutUpRight />
-                        Open problem detail in new tab
+                        Open problem detail
                       </ContextMenuItem>
                       <ContextMenuItem onClick={() => window.open(p.url, "_blank", "noopener,noreferrer")}>
                         <ExternalLink />
-                        Open LeetCode in new tab
+                        Open in LeetCode
                       </ContextMenuItem>
                       <ContextMenuSeparator />
                       <ContextMenuItem onClick={() => setAttemptProblem(p)}>
