@@ -7,10 +7,11 @@ import {
   createProblemList,
   deleteProblemList,
   getProblemList,
+  getProblemListProblems,
   getProblemLists,
   removeProblemFromList,
 } from "@/lib/api"
-import type { CreateListRequest } from "@/lib/types"
+import type { CreateListRequest, PagedResponse, ProblemFilters, ProblemSummaryDto } from "@/lib/types"
 
 export function useProblemLists() {
   const { data: session } = useSession()
@@ -27,6 +28,43 @@ export function useProblemList(id: number) {
     queryKey: ["lists", id],
     queryFn: () => getProblemList(session?.accessToken, id),
     enabled: !!session?.accessToken && !!id,
+  })
+}
+
+function normalizeFilters(filters?: ProblemFilters): ProblemFilters {
+  return {
+    difficulty: filters?.difficulty,
+    status: filters?.status,
+    topicId: filters?.topicId,
+    patternId: filters?.patternId,
+    search: filters?.search?.trim() || undefined,
+    page: filters?.page ?? 0,
+    size: filters?.size ?? 20,
+    sort: filters?.sort,
+  }
+}
+
+export function useProblemListProblems(id: number, filters?: ProblemFilters) {
+  const { data: session } = useSession()
+  const normalized = normalizeFilters(filters)
+
+  return useQuery({
+    queryKey: [
+      "lists",
+      id,
+      "problems",
+      normalized.difficulty ?? null,
+      normalized.status ?? null,
+      normalized.topicId ?? null,
+      normalized.patternId ?? null,
+      normalized.search ?? null,
+      normalized.page,
+      normalized.size,
+      normalized.sort ?? null,
+    ],
+    queryFn: () => getProblemListProblems(session?.accessToken, id, normalized),
+    enabled: !!session?.accessToken && !!id,
+    placeholderData: (previousData: PagedResponse<ProblemSummaryDto> | undefined) => previousData,
   })
 }
 

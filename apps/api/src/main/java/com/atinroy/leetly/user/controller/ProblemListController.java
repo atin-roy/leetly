@@ -1,7 +1,13 @@
 package com.atinroy.leetly.user.controller;
 
+import com.atinroy.leetly.common.model.PagedResponse;
+import com.atinroy.leetly.problem.dto.ProblemSummaryDto;
+import com.atinroy.leetly.problem.mapper.ProblemMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -24,6 +30,7 @@ public class ProblemListController {
     private final UserService userService;
     private final ProblemListService problemListService;
     private final ProblemListMapper problemListMapper;
+    private final ProblemMapper problemMapper;
 
     @GetMapping
     @Transactional(readOnly = true)
@@ -37,6 +44,23 @@ public class ProblemListController {
     public ProblemListDto findById(@AuthenticationPrincipal Jwt jwt, @PathVariable long id) {
         User user = userService.getOrCreate(jwt.getSubject());
         return problemListMapper.toDto(problemListService.findByIdAndUser(id, user));
+    }
+
+    @GetMapping("/{id}/problems")
+    @Transactional(readOnly = true)
+    public PagedResponse<ProblemSummaryDto> findProblems(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable long id,
+            @PageableDefault(size = 20, sort = {"createdDate", "id"}, direction = Sort.Direction.DESC) Pageable pageable,
+            @RequestParam(required = false) String difficulty,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) Long topicId,
+            @RequestParam(required = false) Long patternId,
+            @RequestParam(required = false) String search
+    ) {
+        User user = userService.getOrCreate(jwt.getSubject());
+        return PagedResponse.of(problemListService.findProblems(id, user, pageable, difficulty, status, topicId, patternId, search)
+                .map(problemMapper::toSummaryDto));
     }
 
     @PostMapping

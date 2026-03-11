@@ -89,6 +89,24 @@ export function getProblem(
   return apiFetch(`/api/problems/${id}`, token)
 }
 
+export function getProblemListProblems(
+  token: string | undefined,
+  listId: number,
+  filters?: ProblemFilters,
+): Promise<PagedResponse<ProblemSummaryDto>> {
+  const params = new URLSearchParams()
+  if (filters?.difficulty) params.set("difficulty", filters.difficulty)
+  if (filters?.status) params.set("status", filters.status)
+  if (filters?.topicId) params.set("topicId", String(filters.topicId))
+  if (filters?.patternId) params.set("patternId", String(filters.patternId))
+  if (filters?.search) params.set("search", filters.search)
+  if (filters?.page != null) params.set("page", String(filters.page))
+  if (filters?.size != null) params.set("size", String(filters.size))
+  if (filters?.sort) params.set("sort", filters.sort)
+  const qs = params.toString()
+  return apiFetch(`/api/me/lists/${listId}/problems${qs ? `?${qs}` : ""}`, token)
+}
+
 export function deleteProblem(
   token: string | undefined,
   id: number,
