@@ -593,18 +593,18 @@ export default function ProblemDetailPage({
       <div className="space-y-3 text-center">
         <div className="min-w-0">
           <p className="font-mono text-sm text-muted-foreground">#{problem.leetcodeId}</p>
-          <div className="mt-1 flex flex-wrap items-center justify-center gap-3">
-            <h1 className="text-2xl font-semibold">{problem.title}</h1>
-            <CopyProblemButton
-              problemId={id}
-              problem={problem}
-              notes={notesData?.content}
-              variant="outline"
-              className="shrink-0"
-              label="Copy details"
-              title="Copy problem details"
-            />
-          </div>
+          <h1 className="mt-1 text-2xl font-semibold">{problem.title}</h1>
+        </div>
+        <div className="flex justify-center">
+          <CopyProblemButton
+            problemId={id}
+            problem={problem}
+            notes={notesData?.content}
+            variant="outline"
+            className="shrink-0"
+            label="Copy details"
+            title="Copy problem details"
+          />
         </div>
       </div>
 
@@ -760,55 +760,58 @@ export default function ProblemDetailPage({
 
       </div>
 
-      {problem.aiReview && (
-        <div className="space-y-3 rounded-lg border p-4">
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-              AI Review
-            </h2>
-          </div>
-          <div className="space-y-2">
-            <Textarea
-              value={aiReviewValue}
-              onChange={(e) => setAiReviewDraft(e.target.value)}
-              className="min-h-32"
-              placeholder="Store an AI-generated review, interview feedback, or revision plan for this problem."
-            />
-            <div className="flex justify-end">
-              <Button
-                size="sm"
-                onClick={handleAiReviewSave}
-                disabled={
-                  updateAiReviewMutation.isPending ||
-                  aiReviewValue === (problem.aiReview ?? "")
-                }
-              >
-                {updateAiReviewMutation.isPending ? "Saving..." : "Save AI Review"}
-              </Button>
-            </div>
-          </div>
+      <div className="space-y-3 rounded-lg border p-4">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            AI Review
+          </h2>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleAiReviewSave}
+            disabled={
+              updateAiReviewMutation.isPending ||
+              aiReviewValue === (problem.aiReview ?? "")
+            }
+          >
+            {problem.aiReview ? "Save AI Review" : "Create AI Review"}
+          </Button>
         </div>
-      )}
+        <div className="space-y-2">
+          <Textarea
+            value={aiReviewValue}
+            onChange={(e) => setAiReviewDraft(e.target.value)}
+            className="min-h-32"
+            placeholder="Store an AI-generated review, interview feedback, or revision plan for this problem."
+          />
+        </div>
+      </div>
 
-      {note && (
-        <div className="space-y-3 rounded-lg border p-4">
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-              Note
-            </h2>
-            <Button variant="outline" size="sm" onClick={() => setNoteDialogOpen(true)}>
-              <StickyNote className="mr-1.5 h-4 w-4" />
-              Edit Note
-            </Button>
-          </div>
-          <div className="space-y-2">
-            <p className="text-sm font-medium leading-snug">{note.title}</p>
-            <p className="text-sm whitespace-pre-wrap leading-relaxed text-muted-foreground">
-              {note.content}
-            </p>
-          </div>
+      <div className="space-y-3 rounded-lg border p-4">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            Note
+          </h2>
+          <Button variant="outline" size="sm" onClick={() => setNoteDialogOpen(true)}>
+            <StickyNote className="mr-1.5 h-4 w-4" />
+            {note ? "Edit Note" : "Create Note"}
+          </Button>
         </div>
-      )}
+        <div className="space-y-2">
+          {note ? (
+            <>
+              <p className="text-sm font-medium leading-snug">{note.title}</p>
+              <p className="text-sm whitespace-pre-wrap leading-relaxed text-muted-foreground">
+                {note.content}
+              </p>
+            </>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              No note yet.
+            </p>
+          )}
+        </div>
+      </div>
 
       {/* Attempts */}
       <div className="space-y-3">
