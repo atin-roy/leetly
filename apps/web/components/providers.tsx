@@ -8,6 +8,8 @@ import { Toaster } from "sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { ThemeInitializer } from "@/components/theme-initializer"
 
+const SESSION_REFRESH_INTERVAL_SECONDS = 5 * 60
+
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
     () =>
@@ -22,7 +24,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
   )
 
   return (
-    <SessionProvider>
+    <SessionProvider
+      refetchInterval={SESSION_REFRESH_INTERVAL_SECONDS}
+      refetchWhenOffline={false}
+    >
       <QueryClientProvider client={queryClient}>
         <ThemeInitializer />
         <TooltipProvider>

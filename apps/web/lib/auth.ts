@@ -36,6 +36,20 @@ async function refreshAccessToken(refreshToken: string) {
   }
 }
 
+function formatRefreshError(error: unknown) {
+  if (!error || typeof error !== "object") return "unknown_error"
+
+  const payload = error as Record<string, unknown>
+  const errorCode =
+    typeof payload.error === "string" ? payload.error : "unknown_error"
+  const description =
+    typeof payload.error_description === "string"
+      ? payload.error_description
+      : null
+
+  return description ? `${errorCode}: ${description}` : errorCode
+}
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
     Keycloak({
@@ -82,7 +96,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           expiresAt: refreshed.expiresAt,
           error: undefined,
         }
-      } catch {
+      } catch (error) {
+        console.error(
+          `Keycloak token refresh failed: ${formatRefreshError(error)}`,
+        )
         return { ...token, error: "RefreshTokenError" }
       }
     },
