@@ -4,6 +4,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useUserStats } from "@/hooks/use-stats"
 
+function formatMistakeLabel(label: string) {
+  return label
+    .toLowerCase()
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ")
+}
+
 export function MistakesChart() {
   const { data: stats, isLoading } = useUserStats()
 
@@ -17,7 +25,7 @@ export function MistakesChart() {
     try {
       const parsed = JSON.parse(stats.mistakeBreakdown) as Record<string, number>
       mistakes = Object.entries(parsed)
-        .map(([label, count]) => ({ label, count }))
+        .map(([label, count]) => ({ label: formatMistakeLabel(label), count }))
         .sort((a, b) => b.count - a.count)
     } catch {
       // Invalid JSON — show nothing
