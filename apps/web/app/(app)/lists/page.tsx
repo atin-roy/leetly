@@ -103,7 +103,7 @@ export default function ListsPage() {
       {isLoading ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="h-28" />
+            <Skeleton key={i} className="h-[320px] rounded-2xl" />
           ))}
         </div>
       ) : !lists?.length ? (

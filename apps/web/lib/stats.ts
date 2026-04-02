@@ -26,8 +26,72 @@ export const EMPTY_USER_STATS: UserStatsDto = {
 
 const SOLVED_STATUSES: ProblemStatus[] = ["SOLVED", "SOLVED_WITH_HELP", "MASTERED"]
 
-function isSolvedStatus(status: ProblemStatus) {
+export function isSolvedStatus(status: ProblemStatus) {
   return SOLVED_STATUSES.includes(status)
+}
+
+export interface ListStats {
+  total: number
+  completed: number
+  remaining: number
+  mastered: number
+  attempted: number
+  unseen: number
+  solvedWithHelp: number
+  solved: number
+  completionRate: number
+  byDifficulty: Record<Difficulty, number>
+}
+
+export function getListStats(problems: ProblemSummaryDto[] | undefined): ListStats {
+  const stats: ListStats = {
+    total: 0,
+    completed: 0,
+    remaining: 0,
+    mastered: 0,
+    attempted: 0,
+    unseen: 0,
+    solvedWithHelp: 0,
+    solved: 0,
+    completionRate: 0,
+    byDifficulty: {
+      EASY: 0,
+      MEDIUM: 0,
+      HARD: 0,
+    },
+  }
+
+  for (const problem of problems ?? []) {
+    stats.total += 1
+    stats.byDifficulty[problem.difficulty] += 1
+
+    switch (problem.status) {
+      case "MASTERED":
+        stats.mastered += 1
+        stats.completed += 1
+        break
+      case "SOLVED":
+        stats.solved += 1
+        stats.completed += 1
+        break
+      case "SOLVED_WITH_HELP":
+        stats.solvedWithHelp += 1
+        stats.completed += 1
+        break
+      case "ATTEMPTED":
+        stats.attempted += 1
+        stats.remaining += 1
+        break
+      case "UNSEEN":
+        stats.unseen += 1
+        stats.remaining += 1
+        break
+    }
+  }
+
+  stats.completionRate = stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0
+
+  return stats
 }
 
 export function getSolvedCountByDifficulty(
