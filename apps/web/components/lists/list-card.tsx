@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { useDeleteList } from "@/hooks/use-lists"
-import { getListDisplayName } from "@/lib/list-display"
+import { getListDisplayName, getListHref } from "@/lib/list-display"
 import { getListStats } from "@/lib/stats"
 import { cn } from "@/lib/utils"
 import type { ProblemListDto, ProblemSummaryDto } from "@/lib/types"
@@ -74,7 +74,7 @@ export function ListCard({
             </div>
             <CardTitle className="text-lg leading-tight">
               <Link
-                href={`/lists/${list.id}`}
+                href={getListHref(list)}
                 className="inline-flex items-center gap-1.5 transition-colors hover:text-primary"
               >
                 {displayListName}

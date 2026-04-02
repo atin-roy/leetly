@@ -63,7 +63,7 @@ import {
   useAddProblemToList,
   useRemoveProblemFromList,
 } from "@/hooks/use-lists"
-import { getListDisplayName } from "@/lib/list-display"
+import { getListDisplayName, getListHref } from "@/lib/list-display"
 import type {
   AttemptDto,
   MistakeType,
@@ -767,7 +767,7 @@ export default function ProblemDetailPage({
                 key={l.id}
                 className="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium"
               >
-                <Link href={`/lists/${l.id}`} className="hover:underline">
+                <Link href={getListHref(l)} className="hover:underline">
                   {getListDisplayName(l)}
                 </Link>
                 <button

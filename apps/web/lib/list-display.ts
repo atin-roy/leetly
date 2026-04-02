@@ -14,3 +14,11 @@ export function getListDisplayName(list: Pick<ProblemListDto, "name" | "isDefaul
 export function getListDisplayNameFromName(name: string) {
   return name === DEFAULT_LIST_NAME ? DEFAULT_LIST_DISPLAY_NAME : name
 }
+
+export function getListHref(list: Pick<ProblemListDto, "id" | "name" | "isDefault">) {
+  if (list.isDefault || list.name === DEFAULT_LIST_NAME) {
+    return "/problems"
+  }
+
+  return `/lists/${list.id}`
+}
