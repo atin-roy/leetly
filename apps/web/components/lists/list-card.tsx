@@ -125,7 +125,7 @@ export function ListCard({
           {statItems.map(({ label, value, icon: Icon, tone }) => (
             <div
               key={label}
-              className="rounded-xl border border-border/50 bg-background/80 p-3 shadow-sm"
+              className="flex min-h-[5.5rem] flex-col items-center justify-center rounded-xl border border-border/50 bg-background/80 p-3 text-center shadow-sm"
             >
               <div className={cn("mb-2 inline-flex h-7 w-7 items-center justify-center rounded-lg bg-muted", tone)}>
                 <Icon className="h-3.5 w-3.5" />
