@@ -25,6 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { NoteEditorDialog } from "@/components/notes/note-editor-dialog"
+import { MarkdownContent } from "@/components/ui/markdown-content"
 import { useNotes, useCreateNote, useUpdateNote, useDeleteNote } from "@/hooks/use-notes"
 import type { NoteDto, NoteFilters, NoteTag } from "@/lib/types"
 
@@ -60,7 +61,7 @@ function NoteCard({
 }) {
   return (
     <Card
-      className="group cursor-pointer transition-shadow hover:shadow-md"
+      className="group flex min-h-[19rem] cursor-pointer flex-col transition-shadow hover:shadow-md"
       onClick={onClick}
     >
       <CardHeader className="pb-2">
@@ -94,10 +95,14 @@ function NoteCard({
           </div>
         </div>
       </CardHeader>
-      <CardContent>
-        <p className="line-clamp-3 whitespace-pre-wrap text-sm text-muted-foreground">
-          {note.content}
-        </p>
+      <CardContent className="flex-1">
+        <div className="relative h-full overflow-hidden rounded-md border bg-muted/20 p-4">
+          <MarkdownContent
+            content={note.content}
+            className="text-sm text-muted-foreground [&>h1]:mt-0 [&>h1]:text-xl [&>h1]:pb-1 [&>h2]:mt-4 [&>h2]:text-lg [&>h3]:mt-3 [&>h3]:text-base [&>p]:my-2 [&>ul]:my-2 [&>ol]:my-2 [&>blockquote]:my-2 [&>pre]:my-2 [&>table]:my-2"
+          />
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-card via-card/90 to-transparent" />
+        </div>
       </CardContent>
     </Card>
   )
@@ -170,7 +175,7 @@ export default function NotesPage() {
         <Skeleton className="h-10 w-full" />
         <div className="grid gap-4 sm:grid-cols-2">
           {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-[140px] w-full" />
+            <Skeleton key={i} className="h-[19rem] w-full" />
           ))}
         </div>
       </div>
