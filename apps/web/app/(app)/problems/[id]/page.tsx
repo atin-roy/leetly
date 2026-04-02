@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/table"
 import { Textarea } from "@/components/ui/textarea"
 import { CodeBlock as HighlightedCodeBlock } from "@/components/ui/code-block"
+import { MarkdownContent } from "@/components/ui/markdown-content"
 import { DifficultyBadge } from "@/components/problems/difficulty-badge"
 import { StatusBadge } from "@/components/problems/status-badge"
 import { AttemptForm } from "@/components/problems/attempt-form"
@@ -48,7 +49,6 @@ import {
   useCreateTopic,
   useCreatePattern,
   useUpdateProblemStatus,
-  useUpdateProblemAiReview,
   useAddTopic,
   useRemoveTopics,
   useAddPattern,
@@ -282,11 +282,8 @@ function AttemptDetails({
           </div>
         )}
           <AttemptCodeBlock language={attempt.language} code={attempt.code} />
-        {(attempt.learned || attempt.takeaways || attempt.notes || attempt.aiReview) && (
+        {(attempt.learned || attempt.takeaways || attempt.notes) && (
           <div className="space-y-1.5 text-sm">
-            {attempt.aiReview && (
-              <p><span className="font-medium">Code Review: </span>{attempt.aiReview}</p>
-            )}
             {attempt.learned && (
               <p><span className="font-medium">Learned: </span>{attempt.learned}</p>
             )}
@@ -326,7 +323,7 @@ function AttemptDetailDialog({
         <DialogHeader>
           <DialogTitle>Attempt #{attempt.attemptNumber}</DialogTitle>
           <DialogDescription>
-            Full attempt details, notes, review, and submitted code.
+            Full attempt details, notes, and submitted code.
           </DialogDescription>
         </DialogHeader>
         <AttemptDetails attempt={attempt} />
@@ -370,8 +367,6 @@ export default function ProblemDetailPage({
   const [noteDialogOpen, setNoteDialogOpen] = useState(false)
   const createNoteMutation = useCreateNote()
   const updateNoteMutation = useUpdateNote()
-  const updateAiReviewMutation = useUpdateProblemAiReview(id)
-  const [aiReviewDraft, setAiReviewDraft] = useState<string | null>(null)
 
   // Mutations
   const statusMutation = useUpdateProblemStatus(id)
@@ -585,18 +580,6 @@ export default function ProblemDetailPage({
     }
   }
 
-  async function handleAiReviewSave() {
-    const nextAiReview = (aiReviewDraft ?? problem?.aiReview ?? "").trim() || null
-
-    try {
-      await updateAiReviewMutation.mutateAsync(nextAiReview)
-      setAiReviewDraft(null)
-      toast.success("Code review saved")
-    } catch {
-      toast.error("Failed to save code review")
-    }
-  }
-
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -615,7 +598,6 @@ export default function ProblemDetailPage({
     )
   }
 
-  const aiReviewValue = aiReviewDraft ?? problem.aiReview ?? ""
   const problemListNames = problemLists.map((list) => list.name)
   const attempts = [...problem.attempts].sort(
     (a, b) => new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime(),
@@ -810,33 +792,6 @@ export default function ProblemDetailPage({
       <div className="space-y-3 rounded-lg border p-4">
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-            Code Review
-          </h2>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleAiReviewSave}
-            disabled={
-              updateAiReviewMutation.isPending ||
-              aiReviewValue === (problem.aiReview ?? "")
-            }
-          >
-            {problem.aiReview ? "Edit" : "Create"}
-          </Button>
-        </div>
-        <div className="space-y-2">
-          <Textarea
-            value={aiReviewValue}
-            onChange={(e) => setAiReviewDraft(e.target.value)}
-            className="min-h-32"
-            placeholder="Store a code review, interview feedback, or revision plan for this problem."
-          />
-        </div>
-      </div>
-
-      <div className="space-y-3 rounded-lg border p-4">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             Note
           </h2>
           <Button variant="outline" size="sm" onClick={() => setNoteDialogOpen(true)}>
@@ -848,9 +803,7 @@ export default function ProblemDetailPage({
           {note ? (
             <>
               <p className="text-sm font-medium leading-snug">{note.title}</p>
-              <p className="text-sm whitespace-pre-wrap leading-relaxed text-muted-foreground">
-                {note.content}
-              </p>
+              <MarkdownContent content={note.content} className="text-sm text-muted-foreground" />
             </>
           ) : (
             <p className="text-sm text-muted-foreground">
