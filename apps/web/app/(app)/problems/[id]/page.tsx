@@ -151,10 +151,28 @@ function AttemptStat({
 
 // ── Meta Row ──────────────────────────────────────────────────────────────────
 
-function MetaRow({ label, children }: { label: string; children: React.ReactNode }) {
+function MetaRow({
+  label,
+  children,
+  align = "start",
+}: {
+  label: string
+  children: React.ReactNode
+  align?: "start" | "center"
+}) {
   return (
-    <div className="flex items-start gap-0 px-3 py-2 border-b last:border-b-0">
-      <span className="w-24 shrink-0 text-xs text-muted-foreground pt-0.5 select-none">{label}</span>
+    <div
+      className={`flex gap-0 border-b px-3 py-2 last:border-b-0 ${
+        align === "center" ? "items-center" : "items-start"
+      }`}
+    >
+      <span
+        className={`w-24 shrink-0 select-none text-xs text-muted-foreground ${
+          align === "center" ? "" : "pt-0.5"
+        }`}
+      >
+        {label}
+      </span>
       <div className="flex-1 min-w-0">{children}</div>
     </div>
   )
@@ -638,12 +656,12 @@ export default function ProblemDetailPage({
       <div className="rounded-lg border text-sm">
 
         {/* Status */}
-        <MetaRow label="status">
+        <MetaRow label="status" align="center">
           <Select value={problem.status} onValueChange={(v) => statusMutation.mutate(v)}>
             <SelectTrigger
               hideIcon
               disabled={statusMutation.isPending}
-              className="h-auto w-fit cursor-pointer border-0 bg-transparent p-0 shadow-none transition-opacity hover:opacity-80 focus-visible:ring-0 data-[state=open]:opacity-80"
+              className="inline-flex h-auto w-fit cursor-pointer items-center border-0 bg-transparent p-0 shadow-none transition-opacity hover:opacity-80 focus-visible:ring-0 data-[state=open]:opacity-80"
             >
               <SelectValue>
                 <StatusBadge status={problem.status} />
@@ -660,12 +678,12 @@ export default function ProblemDetailPage({
         </MetaRow>
 
         {/* Difficulty */}
-        <MetaRow label="difficulty">
+        <MetaRow label="difficulty" align="center">
           <DifficultyBadge difficulty={problem.difficulty} />
         </MetaRow>
 
         {/* LeetCode link */}
-        <MetaRow label="leetcode">
+        <MetaRow label="leetcode" align="center">
           <a
             href={problem.url}
             target="_blank"
