@@ -31,7 +31,7 @@ export function AddProblemDialog({
   existingProblems,
   triggerLabel = "New Problem",
   title = "Track a Problem",
-  submitLabel = "Add to My Problems",
+  submitLabel = "Add to All Problems",
 }: Props) {
   const [open, setOpen] = useState(false)
   const [step, setStep] = useState<"form" | "adding" | "added">("form")

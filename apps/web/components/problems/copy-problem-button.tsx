@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { getNotes, getProblem, getProblemLists } from "@/lib/api"
+import { getListDisplayName } from "@/lib/list-display"
 import { formatProblemForClipboard } from "@/lib/problem-export"
 import type { NoteDto, ProblemDetailDto, ProblemListDto } from "@/lib/types"
 
@@ -53,7 +54,7 @@ export function CopyProblemButton({
       const problemNotes = notes ?? (await getNotes(session?.accessToken, { problemId })).content
       const problemListNames = listNames ?? (await getProblemLists(session?.accessToken))
         .filter((list: ProblemListDto) => list.problems.some((candidate) => candidate.id === problemId))
-        .map((list: ProblemListDto) => list.name)
+        .map((list: ProblemListDto) => getListDisplayName(list))
       const payload = formatProblemForClipboard(problemDetail, problemNotes, problemListNames)
 
       await navigator.clipboard.writeText(payload)

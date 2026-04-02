@@ -15,6 +15,7 @@ import { NoteEditorDialog } from "@/components/notes/note-editor-dialog"
 import { useProblemList, useProblemListProblems, useRemoveProblemFromList } from "@/hooks/use-lists"
 import { useProblems } from "@/hooks/use-problems"
 import { useCreateNote, useNotes, useUpdateNote } from "@/hooks/use-notes"
+import { getListDisplayName } from "@/lib/list-display"
 import type { NoteDto, NoteTag, ProblemFilters as Filters, ProblemSummaryDto } from "@/lib/types"
 
 const PAGE_SIZE = 20
@@ -146,6 +147,8 @@ export default function ListDetailPage({
     )
   }
 
+  const displayListName = getListDisplayName(list)
+
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
@@ -158,7 +161,7 @@ export default function ListDetailPage({
       </div>
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">{list.name}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">{displayListName}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {totalElements} problem{totalElements !== 1 ? "s" : ""}
           </p>
@@ -166,7 +169,7 @@ export default function ListDetailPage({
         <div className="flex items-center gap-2">
           <AddProblemToListDialog
             listId={list.id}
-            listName={list.name}
+            listName={displayListName}
             listProblemIds={list.problems.map((problem) => problem.id)}
             problems={allProblems?.content ?? []}
           />

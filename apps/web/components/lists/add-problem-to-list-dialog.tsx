@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { DifficultyBadge } from "@/components/problems/difficulty-badge"
 import { fetchLeetCodeProblem, parseProblemInput, type FetchedProblem } from "@/lib/leetcode"
+import { getListDisplayNameFromName } from "@/lib/list-display"
 import { useAddProblemToList } from "@/hooks/use-lists"
 import { useCreateProblem } from "@/hooks/use-problems"
 import type { CreateProblemRequest, ProblemSummaryDto } from "@/lib/types"
@@ -39,6 +40,7 @@ export function AddProblemToListDialog({
 }: AddProblemToListDialogProps) {
   const addMutation = useAddProblemToList()
   const createProblemMutation = useCreateProblem()
+  const displayListName = getListDisplayNameFromName(listName)
   const [open, setOpen] = useState(false)
   const [newProblemInput, setNewProblemInput] = useState("")
   const [fetchStatus, setFetchStatus] = useState<"idle" | "loading" | "fetched" | "error">("idle")
@@ -244,7 +246,7 @@ export function AddProblemToListDialog({
         listId,
         problemId: created.id,
       })
-      toast.success(`Problem added to ${listName} and My Problems`)
+      toast.success(`Problem added to ${displayListName}`)
       setOpen(false)
       resetNewProblemForm()
       return created
@@ -303,11 +305,11 @@ export function AddProblemToListDialog({
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add Problem to {listName}</DialogTitle>
+          <DialogTitle>Add Problem to {displayListName}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            Paste a LeetCode number or URL. If the problem already exists, it will be linked to this list. If not, it will be created in My Problems and added here.
+            Paste a LeetCode number or URL. If the problem already exists, it will be linked to this list. If not, it will be created and added here.
           </p>
 
           <div className="rounded-lg border border-dashed p-4">
@@ -372,13 +374,13 @@ export function AddProblemToListDialog({
                   <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
                   <div className="space-y-0.5">
                     <p className="text-sm font-medium">
-                      {duplicateIsInList ? "Already in this list" : "Already in My Problems"}
+                      {duplicateIsInList ? "Already in this list" : "Already in All Problems"}
                     </p>
                     <p className="text-xs text-muted-foreground">
                       <span className="font-medium text-foreground">{preview.title}</span>
                       {duplicateIsInList
                         ? " is already in this list."
-                        : " is already tracked in My Problems and will be linked here."}
+                        : " is already tracked in All Problems and will be linked here."}
                     </p>
                   </div>
                 </div>
@@ -431,7 +433,7 @@ export function AddProblemToListDialog({
               ) : duplicateId !== undefined ? (
                 "Link Existing Problem"
               ) : (
-                `Add to ${listName} and My Problems`
+                `Add to ${displayListName}`
               )}
             </Button>
           </div>

@@ -63,6 +63,7 @@ import {
   useAddProblemToList,
   useRemoveProblemFromList,
 } from "@/hooks/use-lists"
+import { getListDisplayName } from "@/lib/list-display"
 import type {
   AttemptDto,
   MistakeType,
@@ -598,7 +599,7 @@ export default function ProblemDetailPage({
     )
   }
 
-  const problemListNames = problemLists.map((list) => list.name)
+  const problemListNames = problemLists.map((list) => getListDisplayName(list))
   const attempts = [...problem.attempts].sort(
     (a, b) => new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime(),
   )
@@ -767,7 +768,7 @@ export default function ProblemDetailPage({
                 className="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium"
               >
                 <Link href={`/lists/${l.id}`} className="hover:underline">
-                  {l.name}
+                  {getListDisplayName(l)}
                 </Link>
                 <button
                   onClick={() => handleRemoveFromList(l.id)}

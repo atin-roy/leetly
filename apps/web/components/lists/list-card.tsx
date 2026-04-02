@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { useDeleteList } from "@/hooks/use-lists"
+import { getListDisplayName } from "@/lib/list-display"
 import { getListStats } from "@/lib/stats"
 import { cn } from "@/lib/utils"
 import type { ProblemListDto, ProblemSummaryDto } from "@/lib/types"
@@ -21,6 +22,7 @@ export function ListCard({
   problems: ProblemSummaryDto[]
 }) {
   const deleteMutation = useDeleteList()
+  const displayListName = getListDisplayName(list)
   const stats = getListStats(list.problems)
   const difficultyItems = [
     { label: "Easy", value: stats.byDifficulty.EASY, tone: "text-emerald-700 dark:text-emerald-400" },
@@ -49,7 +51,7 @@ export function ListCard({
   ]
 
   async function handleDelete() {
-    if (!confirm(`Delete list "${list.name}"?`)) return
+    if (!confirm(`Delete list "${displayListName}"?`)) return
     try {
       await deleteMutation.mutateAsync(list.id)
       toast.success("List deleted")
@@ -75,7 +77,7 @@ export function ListCard({
                 href={`/lists/${list.id}`}
                 className="inline-flex items-center gap-1.5 transition-colors hover:text-primary"
               >
-                {list.name}
+                {displayListName}
                 <ArrowUpRight className="h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100" />
               </Link>
             </CardTitle>
@@ -162,7 +164,7 @@ export function ListCard({
           </p>
           <AddProblemToListDialog
             listId={list.id}
-            listName={list.name}
+            listName={displayListName}
             listProblemIds={list.problems.map((problem) => problem.id)}
             problems={problems}
             buttonVariant="outline"
