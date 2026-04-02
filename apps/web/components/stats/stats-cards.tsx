@@ -1,14 +1,16 @@
 "use client"
 
-import { CheckCircle2, Flame, Sun, Trophy, Zap } from "lucide-react"
+import { CheckCircle2, CircleDashed, Flame, Sun, Trophy } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useUserStats } from "@/hooks/use-stats"
+import { useProblems } from "@/hooks/use-problems"
 
 export function StatsCards() {
   const { data: stats, isLoading } = useUserStats()
+  const { data: problemsPage, isLoading: isLoadingProblems } = useProblems({ page: 0, size: 1 })
 
-  if (isLoading || !stats) {
+  if (isLoading || isLoadingProblems || !stats) {
     return (
       <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
         {Array.from({ length: 5 }).map((_, i) => (
@@ -19,6 +21,8 @@ export function StatsCards() {
   }
 
   const totalSolved = stats.totalSolved + stats.totalSolvedWithHelp + stats.totalMastered
+  const totalProblems = problemsPage?.totalElements ?? totalSolved
+  const totalUnsolved = Math.max(totalProblems - totalSolved, 0)
 
   const cards = [
     {
@@ -27,6 +31,13 @@ export function StatsCards() {
       icon: CheckCircle2,
       sub: `${stats.easySolved}E · ${stats.mediumSolved}M · ${stats.hardSolved}H`,
       color: "text-green-500",
+    },
+    {
+      title: "Unsolved",
+      value: totalUnsolved,
+      icon: CircleDashed,
+      sub: `${totalProblems} total problems`,
+      color: "text-slate-400",
     },
     {
       title: "Current Streak",
@@ -41,13 +52,6 @@ export function StatsCards() {
       icon: Sun,
       sub: `${stats.solvedThisMonth} this month`,
       color: "text-sky-500",
-    },
-    {
-      title: "This Month",
-      value: stats.solvedThisMonth,
-      icon: Zap,
-      sub: `${stats.solvedThisWeek} this week`,
-      color: "text-blue-500",
     },
     {
       title: "Mastered",
