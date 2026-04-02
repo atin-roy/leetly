@@ -61,7 +61,7 @@ function NoteCard({
 }) {
   return (
     <Card
-      className="group flex min-h-[19rem] cursor-pointer flex-col transition-shadow hover:shadow-md"
+      className="group flex min-h-[14rem] cursor-pointer flex-col transition-shadow hover:shadow-md"
       onClick={onClick}
     >
       <CardHeader className="pb-2">
@@ -96,12 +96,12 @@ function NoteCard({
         </div>
       </CardHeader>
       <CardContent className="flex-1">
-        <div className="relative h-full overflow-hidden rounded-md border bg-muted/20 p-4">
+        <div className="relative h-[8.5rem] overflow-hidden rounded-md border bg-muted/20 p-4">
           <MarkdownContent
             content={note.content}
-            className="text-sm text-muted-foreground [&>h1]:mt-0 [&>h1]:text-xl [&>h1]:pb-1 [&>h2]:mt-4 [&>h2]:text-lg [&>h3]:mt-3 [&>h3]:text-base [&>p]:my-2 [&>ul]:my-2 [&>ol]:my-2 [&>blockquote]:my-2 [&>pre]:my-2 [&>table]:my-2"
+            className="text-sm text-muted-foreground [&>h1]:mt-0 [&>h1]:text-lg [&>h1]:pb-1 [&>h2]:mt-3 [&>h2]:text-base [&>h3]:mt-3 [&>h3]:text-sm [&>p]:my-2 [&>ul]:my-2 [&>ol]:my-2 [&>blockquote]:my-2 [&>pre]:my-2 [&>table]:my-2"
           />
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-card via-card/90 to-transparent" />
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-card via-card/90 to-transparent" />
         </div>
       </CardContent>
     </Card>
@@ -175,7 +175,7 @@ export default function NotesPage() {
         <Skeleton className="h-10 w-full" />
         <div className="grid gap-4 sm:grid-cols-2">
           {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-[19rem] w-full" />
+            <Skeleton key={i} className="h-[14rem] w-full" />
           ))}
         </div>
       </div>
