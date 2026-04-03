@@ -1,6 +1,7 @@
 package com.atinroy.leetly.problem.service;
 
 import com.atinroy.leetly.common.exception.ResourceNotFoundException;
+import com.atinroy.leetly.review.service.ReviewService;
 import com.atinroy.leetly.user.service.StatsService;
 import com.atinroy.leetly.user.model.User;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,7 @@ public class AttemptService {
     private final AttemptRepository attemptRepository;
     private final ProblemRepository problemRepository;
     private final StatsService statsService;
+    private final ReviewService reviewService;
 
     @Transactional(readOnly = true)
     public List<Attempt> findByProblem(long problemId, User user) {
@@ -84,6 +86,11 @@ public class AttemptService {
         problemRepository.save(problem);
 
         statsService.updateOnAttempt(user, savedAttempt, isFirstSolve);
+
+        if (isFirstSolve) {
+            reviewService.autoEnrollOnFirstSolve(problem, user);
+        }
+        reviewService.onAttemptLogged(problem, user, savedAttempt);
 
         return savedAttempt;
     }
