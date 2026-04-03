@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { format } from "date-fns"
 import { useRouter } from "next/navigation"
-import { Check, ExternalLink, Plus, SquareArrowOutUpRight, StickyNote, Trash2 } from "lucide-react"
+import { Check, Clock, ExternalLink, Plus, SquareArrowOutUpRight, StickyNote, Trash2, X } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import {
@@ -52,6 +52,9 @@ interface Props {
   onNoteClick?: (problem: ProblemSummaryDto) => void
   onDelete?: (problem: ProblemSummaryDto) => void
   notedProblemIds?: Set<number>
+  onEnrollReview?: (problem: ProblemSummaryDto) => void
+  onRemoveReview?: (problemId: number, cardId: number) => void
+  reviewCardMap?: Map<number, { id: number; due: string; state: string }>
 }
 
 function isInteractiveTarget(target: EventTarget | null) {
@@ -149,6 +152,9 @@ export function ProblemTable({
   onNoteClick,
   onDelete,
   notedProblemIds,
+  onEnrollReview,
+  onRemoveReview,
+  reviewCardMap,
 }: Props) {
   const router = useRouter()
   const [attemptProblem, setAttemptProblem] = useState<ProblemSummaryDto | null>(null)
@@ -326,6 +332,24 @@ export function ProblemTable({
                         <StickyNote />
                         {hasNote ? "Edit note" : "Add note"}
                       </ContextMenuItem>
+                      <ContextMenuSeparator />
+                      {reviewCardMap?.has(p.id) ? (
+                        <ContextMenuItem
+                          disabled={!onRemoveReview}
+                          onClick={() => onRemoveReview?.(p.id, reviewCardMap.get(p.id)!.id)}
+                        >
+                          <X />
+                          Remove from Revision
+                        </ContextMenuItem>
+                      ) : (
+                        <ContextMenuItem
+                          disabled={!onEnrollReview}
+                          onClick={() => onEnrollReview?.(p)}
+                        >
+                          <Clock />
+                          Mark for Revision
+                        </ContextMenuItem>
+                      )}
                       <ContextMenuItem
                         variant="destructive"
                         disabled={!onDelete}

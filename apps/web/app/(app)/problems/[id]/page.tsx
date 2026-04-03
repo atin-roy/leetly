@@ -56,6 +56,8 @@ import {
   useAddRelatedProblem,
 } from "@/hooks/use-problems"
 import { useDeleteAttempt } from "@/hooks/use-attempts"
+import { useEnrollReview, useRemoveReview } from "@/hooks/use-reviews"
+import { QuickReviewButtons } from "@/components/review/quick-review-buttons"
 import { useNotes, useCreateNote, useUpdateNote } from "@/hooks/use-notes"
 import {
   useProblemLists,
@@ -105,6 +107,15 @@ const MISTAKE_LABELS: Record<MistakeType, string> = {
   OVERFLOW: "Overflow",
   WRONG_INITIALIZATION: "Wrong Initialization",
   INCORRECT_LOGIC: "Incorrect Logic",
+}
+
+function formatRelativeDate(date: Date): string {
+  const now = new Date()
+  const diffMs = date.getTime() - now.getTime()
+  const diffDays = Math.ceil(diffMs / 86400000)
+  if (diffDays === 0) return "today"
+  if (diffDays === 1) return "tomorrow"
+  return `in ${diffDays} days`
 }
 
 function formatDuration(minutes: number | null) {
@@ -403,6 +414,10 @@ export default function ProblemDetailPage({
   const createListMutation = useCreateList()
   const addToListMutation = useAddProblemToList()
   const removeFromListMutation = useRemoveProblemFromList()
+
+  // Review
+  const enrollReview = useEnrollReview()
+  const removeReview = useRemoveReview()
 
   // Data for selects
   const { data: allTopics } = useTopics()
@@ -804,6 +819,45 @@ export default function ProblemDetailPage({
               Add
             </button>
           </div>
+        </MetaRow>
+
+        {/* Revision */}
+        <MetaRow label="revision" align="center">
+          {problem.reviewCard ? (
+            <div className="flex items-center gap-3 flex-wrap">
+              <Badge variant="outline" className="text-xs">
+                {problem.reviewCard.state}
+              </Badge>
+              <span className="text-xs text-muted-foreground">
+                {new Date(problem.reviewCard.due) < new Date()
+                  ? `Overdue by ${Math.ceil((Date.now() - new Date(problem.reviewCard.due).getTime()) / 86400000)}d`
+                  : `Due ${formatRelativeDate(new Date(problem.reviewCard.due))}`}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                {problem.reviewCard.reps} reviews
+              </span>
+              {new Date(problem.reviewCard.due) <= new Date() && (
+                <QuickReviewButtons cardId={problem.reviewCard.id} />
+              )}
+              <button
+                onClick={() => removeReview.mutate(problem.reviewCard!.id)}
+                disabled={removeReview.isPending}
+                className="inline-flex text-muted-foreground hover:text-destructive transition-colors"
+                title="Remove from review"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => enrollReview.mutate(problem.id)}
+              disabled={enrollReview.isPending}
+              className="inline-flex items-center gap-1 rounded-full border border-dashed px-2.5 py-0.5 text-xs text-muted-foreground hover:border-foreground hover:text-foreground transition-colors"
+            >
+              <Plus className="h-2.5 w-2.5" />
+              Add to Review
+            </button>
+          )}
         </MetaRow>
 
       </div>
