@@ -124,6 +124,7 @@ export interface ProblemDetailDto {
   patterns: PatternDto[]
   relatedProblems: ProblemSummaryDto[]
   attempts: AttemptDto[]
+  reviewCard: ReviewCardSummary | null
 }
 
 // ─── Note Domain ──────────────────────────────────────────────────────────────
@@ -310,4 +311,67 @@ export interface NoteFilters {
   search?: string
   page?: number
   size?: number
+}
+
+// ─── Review Domain ───────────────────────────────────────────────────────────
+
+export type CardState = "NEW" | "LEARNING" | "REVIEW" | "RELEARNING"
+
+export type Rating = "AGAIN" | "HARD" | "GOOD" | "EASY"
+
+export type ReviewType = "QUICK_ASSESSMENT" | "FULL_ATTEMPT"
+
+export interface ReviewCardSummary {
+  id: number
+  state: string
+  due: string // ISO datetime
+  reps: number
+  lapses: number
+  stability: number
+}
+
+export interface ReviewCardDto {
+  id: number
+  problemId: number
+  leetcodeId: number
+  problemTitle: string
+  problemUrl: string
+  difficulty: Difficulty
+  problemStatus: ProblemStatus
+  state: CardState
+  stability: number
+  fsrsDifficulty: number
+  due: string // ISO datetime
+  lastReview: string | null
+  reps: number
+  lapses: number
+  scheduledDays: number
+  elapsedDays: number
+}
+
+export interface ReviewLogDto {
+  id: number
+  rating: Rating
+  state: CardState
+  stability: number
+  difficulty: number
+  elapsedDays: number
+  scheduledDays: number
+  reviewType: ReviewType
+  attemptId: number | null
+  reviewedAt: string // ISO datetime
+}
+
+export interface ReviewStatsDto {
+  dueNow: number
+  upcoming7Days: number
+  totalEnrolled: number
+}
+
+export interface EnrollReviewRequest {
+  problemId: number
+}
+
+export interface QuickReviewRequest {
+  rating: Rating
 }

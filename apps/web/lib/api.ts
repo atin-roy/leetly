@@ -7,6 +7,7 @@ import type {
   CreatePatternRequest,
   CreateTopicRequest,
   DailyStatDto,
+  EnrollReviewRequest,
   Language,
   MistakeOptionDto,
   LogAttemptRequest,
@@ -18,6 +19,10 @@ import type {
   ProblemFilters,
   ProblemListDto,
   ProblemSummaryDto,
+  QuickReviewRequest,
+  ReviewCardDto,
+  ReviewLogDto,
+  ReviewStatsDto,
   ThemeDto,
   TopicDto,
   UpdateAttemptRequest,
@@ -457,4 +462,59 @@ export function updateUserProfile(
     method: "PUT",
     body: JSON.stringify(body),
   })
+}
+
+// ─── Reviews ─────────────────────────────────────────────────────────────────
+
+export function getReviewCardsDue(
+  token: string | undefined,
+  page?: number,
+  size?: number,
+): Promise<PagedResponse<ReviewCardDto>> {
+  const params = new URLSearchParams()
+  if (page != null) params.set("page", String(page))
+  if (size != null) params.set("size", String(size))
+  const qs = params.toString()
+  return apiFetch(`/api/review-cards/due${qs ? `?${qs}` : ""}`, token)
+}
+
+export function getReviewStats(
+  token: string | undefined,
+): Promise<ReviewStatsDto> {
+  return apiFetch("/api/review-cards/stats", token)
+}
+
+export function enrollReview(
+  token: string | undefined,
+  body: EnrollReviewRequest,
+): Promise<ReviewCardDto> {
+  return apiFetch("/api/review-cards", token, {
+    method: "POST",
+    body: JSON.stringify(body),
+  })
+}
+
+export function removeReview(
+  token: string | undefined,
+  id: number,
+): Promise<void> {
+  return apiFetch(`/api/review-cards/${id}`, token, { method: "DELETE" })
+}
+
+export function quickReview(
+  token: string | undefined,
+  cardId: number,
+  body: QuickReviewRequest,
+): Promise<ReviewCardDto> {
+  return apiFetch(`/api/review-cards/${cardId}/review`, token, {
+    method: "POST",
+    body: JSON.stringify(body),
+  })
+}
+
+export function getReviewHistory(
+  token: string | undefined,
+  cardId: number,
+): Promise<ReviewLogDto[]> {
+  return apiFetch(`/api/review-cards/${cardId}/history`, token)
 }
