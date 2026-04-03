@@ -18,8 +18,25 @@ public record ProblemDetailDto(
         List<TopicDto> topics,
         List<PatternDto> patterns,
         List<ProblemSummaryDto> relatedProblems,
-        List<AttemptDto> attempts
+        List<AttemptDto> attempts,
+        ReviewCardSummary reviewCard
 ) {
+    public record ReviewCardSummary(
+            Long id,
+            String state,
+            LocalDateTime due,
+            int reps,
+            int lapses,
+            double stability
+    ) {}
+
+    public ProblemDetailDto withReviewCard(ReviewCardSummary reviewCard) {
+        return new ProblemDetailDto(
+                id, leetcodeId, title, url, difficulty, status, lastAttemptedAt, aiReview,
+                topics, patterns, relatedProblems, attempts, reviewCard
+        );
+    }
+
     public static ProblemDetailDto from(Problem problem) {
         return new ProblemDetailDto(
                 problem.getId(),
@@ -33,7 +50,8 @@ public record ProblemDetailDto(
                 problem.getTopics().stream().map(TopicDto::from).toList(),
                 problem.getPatterns().stream().map(PatternDto::from).toList(),
                 problem.getRelatedProblems().stream().map(ProblemSummaryDto::from).toList(),
-                problem.getAttempts().stream().map(AttemptDto::from).toList()
+                problem.getAttempts().stream().map(AttemptDto::from).toList(),
+                null
         );
     }
 }

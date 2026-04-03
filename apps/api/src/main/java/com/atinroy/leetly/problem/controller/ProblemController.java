@@ -1,6 +1,8 @@
 package com.atinroy.leetly.problem.controller;
 
 import com.atinroy.leetly.common.model.PagedResponse;
+import com.atinroy.leetly.review.model.ReviewCard;
+import com.atinroy.leetly.review.repository.ReviewCardRepository;
 import com.atinroy.leetly.user.model.User;
 import com.atinroy.leetly.user.service.UserService;
 import jakarta.validation.Valid;
@@ -30,6 +32,7 @@ public class ProblemController {
     private final UserService userService;
     private final ProblemService problemService;
     private final ProblemMapper problemMapper;
+    private final ReviewCardRepository reviewCardRepository;
 
     @GetMapping
     public PagedResponse<ProblemSummaryDto> findAll(
@@ -48,7 +51,13 @@ public class ProblemController {
     @Transactional(readOnly = true)
     public ProblemDetailDto findById(@AuthenticationPrincipal Jwt jwt, @PathVariable long id) {
         User user = userService.getOrCreate(jwt.getSubject());
-        return problemMapper.toDetailDto(problemService.findDetailById(id, user));
+        var problem = problemService.findDetailById(id, user);
+        var dto = problemMapper.toDetailDto(problem);
+        return reviewCardRepository.findByProblemAndUser(problem, user)
+                .map(card -> dto.withReviewCard(new ProblemDetailDto.ReviewCardSummary(
+                        card.getId(), card.getState().name(), card.getDue(),
+                        card.getReps(), card.getLapses(), card.getStability())))
+                .orElse(dto);
     }
 
     @PostMapping
