@@ -2,11 +2,13 @@ package com.atinroy.leetly.problem.service;
 
 import com.atinroy.leetly.common.exception.ResourceNotFoundException;
 import com.atinroy.leetly.config.KeycloakJwtAuthenticationConverter;
+import com.atinroy.leetly.config.SecurityConfig;
 import com.atinroy.leetly.user.model.User;
 import com.atinroy.leetly.user.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -25,6 +27,7 @@ import com.atinroy.leetly.problem.model.Attempt;
  * /api/problems/{problemId}/attempts/{id}.
  */
 @WebMvcTest(AttemptController.class)
+@Import(SecurityConfig.class)
 class AttemptPathIntegrityTest {
 
     @Autowired
@@ -68,7 +71,10 @@ class AttemptPathIntegrityTest {
         when(userService.getOrCreate("user")).thenReturn(user);
 
         Attempt attempt = new Attempt();
-        AttemptDto dto = new AttemptDto(1L, 1L, 1, null, null, null, null, null, null, null, null, null, null, null, null);
+        AttemptDto dto = new AttemptDto(
+                1L, 1L, 1, null, null, null, null, null, null, null, null, null, null, null, null,
+                null, null, null
+        );
         when(attemptService.findByIdAndProblem(5L, 1L, user)).thenReturn(attempt);
         when(attemptMapper.toDto(attempt)).thenReturn(dto);
 

@@ -36,7 +36,7 @@ export function ReviewQueue() {
     return (
       <Card>
         <CardContent className="p-8 text-center text-muted-foreground">
-          No problems due for review. You're all caught up!
+          No problems due for review. You&apos;re all caught up!
         </CardContent>
       </Card>
     )

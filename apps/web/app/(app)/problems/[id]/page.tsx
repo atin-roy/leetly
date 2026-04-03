@@ -636,6 +636,14 @@ export default function ProblemDetailPage({
   const attempts = [...problem.attempts].sort(
     (a, b) => new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime(),
   )
+  const reviewNow = new Date()
+  const reviewDueDate = problem.reviewCard ? new Date(problem.reviewCard.due) : null
+  const isReviewDue = reviewDueDate ? reviewDueDate <= reviewNow : false
+  const reviewDueText = reviewDueDate
+    ? reviewDueDate < reviewNow
+      ? `Overdue by ${Math.ceil((reviewNow.getTime() - reviewDueDate.getTime()) / 86400000)}d`
+      : `Due ${formatRelativeDate(reviewDueDate)}`
+    : null
 
   return (
     <div className="space-y-6 max-w-3xl mx-auto">
@@ -829,14 +837,12 @@ export default function ProblemDetailPage({
                 {problem.reviewCard.state}
               </Badge>
               <span className="text-xs text-muted-foreground">
-                {new Date(problem.reviewCard.due) < new Date()
-                  ? `Overdue by ${Math.ceil((Date.now() - new Date(problem.reviewCard.due).getTime()) / 86400000)}d`
-                  : `Due ${formatRelativeDate(new Date(problem.reviewCard.due))}`}
+                {reviewDueText}
               </span>
               <span className="text-xs text-muted-foreground">
                 {problem.reviewCard.reps} reviews
               </span>
-              {new Date(problem.reviewCard.due) <= new Date() && (
+              {isReviewDue && (
                 <QuickReviewButtons cardId={problem.reviewCard.id} />
               )}
               <button

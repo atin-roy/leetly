@@ -113,8 +113,6 @@ class StatsServiceTest {
         AttemptRepository mockAttemptRepo = mock(AttemptRepository.class);
         Attempt attempt = attempt(Outcome.WRONG_ANSWER, Difficulty.EASY, 1);
         attempt.setId(10L);
-        when(mockAttemptRepo.findByProblemAndUserAndOutcome(any(), any(), any()))
-                .thenReturn(List.of());
 
         statsService.adjustOnAttemptDelete(user, attempt, mockAttemptRepo);
 

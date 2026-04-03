@@ -1,0 +1,21 @@
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost/.well-known/jwks.json
+  datasource:
+    url: jdbc:h2:mem:leetly;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+  flyway:
+    enabled: false
+
+app:
+  keycloak:
+    client-id: leetly-api

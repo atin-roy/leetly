@@ -2,9 +2,11 @@ package com.atinroy.leetly.user.service;
 
 import com.atinroy.leetly.common.exception.ResourceNotFoundException;
 import com.atinroy.leetly.config.KeycloakJwtAuthenticationConverter;
+import com.atinroy.leetly.config.SecurityConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -15,6 +17,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import com.atinroy.leetly.user.controller.ProblemListController;
+import com.atinroy.leetly.problem.mapper.ProblemMapper;
 import com.atinroy.leetly.user.mapper.ProblemListMapper;
 import com.atinroy.leetly.user.model.ProblemList;
 import com.atinroy.leetly.user.model.User;
@@ -24,6 +27,7 @@ import com.atinroy.leetly.user.model.User;
  * attempts to access a list that belongs to another user, preventing IDOR.
  */
 @WebMvcTest(ProblemListController.class)
+@Import(SecurityConfig.class)
 class ProblemListOwnershipTest {
 
     @Autowired
@@ -41,6 +45,9 @@ class ProblemListOwnershipTest {
 
     @MockitoBean
     ProblemListMapper problemListMapper;
+
+    @MockitoBean
+    ProblemMapper problemMapper;
 
     @Test
     void getById_returns404WhenListBelongsToAnotherUser() throws Exception {

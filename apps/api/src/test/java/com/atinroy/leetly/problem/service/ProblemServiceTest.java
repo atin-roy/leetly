@@ -12,6 +12,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.Optional;
 
@@ -77,7 +78,7 @@ class ProblemServiceTest {
         User user = new User();
         user.setId(1L);
 
-        when(problemRepository.findAll(any(), any(org.springframework.data.domain.Pageable.class)))
+        when(problemRepository.findAll(any(Specification.class), any(org.springframework.data.domain.Pageable.class)))
                 .thenReturn(new PageImpl<>(java.util.List.of()));
 
         problemService.findAll(
@@ -92,7 +93,7 @@ class ProblemServiceTest {
 
         ArgumentCaptor<org.springframework.data.domain.Pageable> pageableCaptor =
                 ArgumentCaptor.forClass(org.springframework.data.domain.Pageable.class);
-        verify(problemRepository).findAll(any(), pageableCaptor.capture());
+        verify(problemRepository).findAll(any(Specification.class), pageableCaptor.capture());
 
         Sort.Order appliedOrder = pageableCaptor.getValue().getSort().getOrderFor("lastAttemptedAt");
         assertThat(appliedOrder).isNotNull();

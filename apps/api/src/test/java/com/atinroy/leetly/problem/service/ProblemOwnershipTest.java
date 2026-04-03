@@ -2,11 +2,13 @@ package com.atinroy.leetly.problem.service;
 
 import com.atinroy.leetly.common.exception.ResourceNotFoundException;
 import com.atinroy.leetly.config.KeycloakJwtAuthenticationConverter;
+import com.atinroy.leetly.config.SecurityConfig;
 import com.atinroy.leetly.user.model.User;
 import com.atinroy.leetly.user.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -17,12 +19,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.atinroy.leetly.problem.controller.ProblemController;
 import com.atinroy.leetly.problem.mapper.ProblemMapper;
 import com.atinroy.leetly.problem.model.Problem;
+import com.atinroy.leetly.review.repository.ReviewCardRepository;
 
 /**
  * Verifies that /api/problems/* endpoints return 404 (not 403) when a user
  * accesses a problem they do not own, preventing IDOR.
  */
 @WebMvcTest(ProblemController.class)
+@Import(SecurityConfig.class)
 class ProblemOwnershipTest {
 
     @Autowired
@@ -39,6 +43,9 @@ class ProblemOwnershipTest {
 
     @MockitoBean
     ProblemMapper problemMapper;
+
+    @MockitoBean
+    ReviewCardRepository reviewCardRepository;
 
     @Test
     void getById_returns404WhenProblemBelongsToAnotherUser() throws Exception {
