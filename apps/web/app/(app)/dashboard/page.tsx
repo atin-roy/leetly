@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { ReviewDueCard } from "@/components/stats/review-due-card"
 import { StatsCards } from "@/components/stats/stats-cards"
 import { DifficultyBreakdown } from "@/components/stats/difficulty-breakdown"
 import { ActivityBar } from "@/components/stats/activity-calendar"
@@ -11,6 +12,8 @@ export default function DashboardPage() {
       <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
 
       <StatsCards />
+
+      <ReviewDueCard />
 
       <DifficultyBreakdown />
 

@@ -10,6 +10,7 @@ import {
   Code2,
   List,
   LogOut,
+  RotateCcw,
   StickyNote,
   UserCircle2,
 } from "lucide-react"
@@ -19,6 +20,7 @@ import { useSidebar } from "./sidebar-context"
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: BarChart3 },
   { href: "/problems", label: "Problems", icon: Code2 },
+  { href: "/review", label: "Review", icon: RotateCcw },
   { href: "/lists", label: "My Lists", icon: List },
   { href: "/notes", label: "Notes", icon: StickyNote },
   { href: "/account", label: "Account", icon: UserCircle2 },
