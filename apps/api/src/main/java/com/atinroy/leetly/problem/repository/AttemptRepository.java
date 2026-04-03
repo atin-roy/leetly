@@ -28,4 +28,7 @@ public interface AttemptRepository extends JpaRepository<Attempt, Long> {
 
     @Query("SELECT MAX(a.createdDate) FROM Attempt a WHERE a.problem = :problem AND a.user = :user")
     Optional<LocalDateTime> findMaxCreatedDateByProblemAndUser(@Param("problem") Problem problem, @Param("user") User user);
+
+    @Query("SELECT a.problem.id, COUNT(a) FROM Attempt a WHERE a.problem.id IN :ids AND a.user = :user GROUP BY a.problem.id")
+    List<Object[]> countByProblemIdsAndUser(@Param("ids") List<Long> ids, @Param("user") User user);
 }

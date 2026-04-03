@@ -23,7 +23,9 @@ import static org.mockito.Mockito.when;
 import com.atinroy.leetly.problem.dto.CreateProblemRequest;
 import com.atinroy.leetly.problem.model.Difficulty;
 import com.atinroy.leetly.problem.model.Problem;
+import com.atinroy.leetly.problem.repository.AttemptRepository;
 import com.atinroy.leetly.problem.repository.ProblemRepository;
+import com.atinroy.leetly.review.repository.ReviewCardRepository;
 
 @ExtendWith(MockitoExtension.class)
 class ProblemServiceTest {
@@ -39,6 +41,12 @@ class ProblemServiceTest {
 
     @Mock
     PatternService patternService;
+
+    @Mock
+    AttemptRepository attemptRepository;
+
+    @Mock
+    ReviewCardRepository reviewCardRepository;
 
     @InjectMocks
     ProblemService problemService;

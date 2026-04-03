@@ -2,7 +2,6 @@ package com.atinroy.leetly.user.controller;
 
 import com.atinroy.leetly.common.model.PagedResponse;
 import com.atinroy.leetly.problem.dto.ProblemSummaryDto;
-import com.atinroy.leetly.problem.mapper.ProblemMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -30,7 +29,6 @@ public class ProblemListController {
     private final UserService userService;
     private final ProblemListService problemListService;
     private final ProblemListMapper problemListMapper;
-    private final ProblemMapper problemMapper;
 
     @GetMapping
     @Transactional(readOnly = true)
@@ -59,8 +57,7 @@ public class ProblemListController {
             @RequestParam(required = false) String search
     ) {
         User user = userService.getOrCreate(jwt.getSubject());
-        return PagedResponse.of(problemListService.findProblems(id, user, pageable, difficulty, status, topicId, patternId, search)
-                .map(problemMapper::toSummaryDto));
+        return PagedResponse.of(problemListService.findProblems(id, user, pageable, difficulty, status, topicId, patternId, search));
     }
 
     @PostMapping

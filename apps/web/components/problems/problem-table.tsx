@@ -29,13 +29,15 @@ import {
 } from "@/components/ui/popover"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useUpdateProblemStatus } from "@/hooks/use-problems"
+import { ReviewIndicator } from "@/components/review/review-indicator"
+import { QuickReviewButtons } from "@/components/review/quick-review-buttons"
 import { AttemptForm } from "./attempt-form"
 import { CopyProblemButton } from "./copy-problem-button"
 import { DifficultyBadge } from "./difficulty-badge"
 import { statusLabels, statusStyles } from "./status-badge"
 import type { ProblemStatus, ProblemSummaryDto } from "@/lib/types"
 
-const COLS = 10
+const COLS = 11
 const ROW_H = "h-11"
 const STATUSES: ProblemStatus[] = [
   "UNSEEN",
@@ -54,7 +56,6 @@ interface Props {
   notedProblemIds?: Set<number>
   onEnrollReview?: (problem: ProblemSummaryDto) => void
   onRemoveReview?: (problemId: number, cardId: number) => void
-  reviewCardMap?: Map<number, { id: number; due: string; state: string }>
 }
 
 function isInteractiveTarget(target: EventTarget | null) {
@@ -154,7 +155,6 @@ export function ProblemTable({
   notedProblemIds,
   onEnrollReview,
   onRemoveReview,
-  reviewCardMap,
 }: Props) {
   const router = useRouter()
   const [attemptProblem, setAttemptProblem] = useState<ProblemSummaryDto | null>(null)
@@ -173,8 +173,9 @@ export function ProblemTable({
         <TableHead className="w-20 text-center">Note</TableHead>
         <TableHead className="w-28 text-center">Difficulty</TableHead>
         <TableHead className="w-40 text-center">Status</TableHead>
+        <TableHead className="w-24 text-center">Review</TableHead>
         <TableHead className="w-24 text-center">Export Details</TableHead>
-        <TableHead className="w-32 text-center">Attempt</TableHead>
+        <TableHead className="w-24 text-center">Attempts</TableHead>
         <TableHead className="w-10" />
       </TableRow>
     </TableHeader>
@@ -280,6 +281,35 @@ export function ProblemTable({
                         <TableCell className="text-center" data-interactive="true" onClick={(e) => e.stopPropagation()}>
                           <StatusCell problem={p} />
                         </TableCell>
+                        {/* Review column */}
+                        <TableCell className="text-center" data-interactive="true" onClick={(e) => e.stopPropagation()}>
+                          {p.reviewCard ? (
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <button
+                                  data-interactive="true"
+                                  className="inline-flex"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <ReviewIndicator reviewCard={p.reviewCard} />
+                                </button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-2" align="center">
+                                <QuickReviewButtons cardId={p.reviewCard.id} size="sm" />
+                              </PopoverContent>
+                            </Popover>
+                          ) : (
+                            <button
+                              onClick={() => onEnrollReview?.(p)}
+                              data-interactive="true"
+                              disabled={!onEnrollReview}
+                              title="Mark for review"
+                              className="inline-flex opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-foreground disabled:pointer-events-none"
+                            >
+                              <Clock className="h-3.5 w-3.5" />
+                            </button>
+                          )}
+                        </TableCell>
                         <TableCell className="text-center" data-interactive="true" onClick={(e) => e.stopPropagation()}>
                           <CopyProblemButton
                             problemId={p.id}
@@ -288,18 +318,23 @@ export function ProblemTable({
                             title="Copy full problem details"
                           />
                         </TableCell>
+                        {/* Attempts column */}
                         <TableCell className="text-center" data-interactive="true" onClick={(e) => e.stopPropagation()}>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            data-interactive="true"
-                            className="h-8 px-2"
-                            onClick={() => setAttemptProblem(p)}
-                          >
-                            <Plus className="mr-1 h-3.5 w-3.5" />
-                            Log Attempt
-                          </Button>
+                          <div className="flex items-center justify-center gap-1">
+                            {p.totalAttempts > 0 && (
+                              <Badge variant="secondary" className="rounded-full px-2 py-0.5 text-xs font-medium tabular-nums">
+                                {p.totalAttempts}
+                              </Badge>
+                            )}
+                            <button
+                              onClick={() => setAttemptProblem(p)}
+                              data-interactive="true"
+                              title="Log attempt"
+                              className={`inline-flex text-muted-foreground hover:text-foreground transition-opacity ${p.totalAttempts > 0 ? "opacity-0 group-hover:opacity-100" : ""}`}
+                            >
+                              <Plus className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
                         </TableCell>
                         <TableCell className="text-center" data-interactive="true" onClick={(e) => e.stopPropagation()}>
                           <button
@@ -333,10 +368,10 @@ export function ProblemTable({
                         {hasNote ? "Edit note" : "Add note"}
                       </ContextMenuItem>
                       <ContextMenuSeparator />
-                      {reviewCardMap?.has(p.id) ? (
+                      {p.reviewCard ? (
                         <ContextMenuItem
                           disabled={!onRemoveReview}
-                          onClick={() => onRemoveReview?.(p.id, reviewCardMap.get(p.id)!.id)}
+                          onClick={() => onRemoveReview?.(p.id, p.reviewCard!.id)}
                         >
                           <X />
                           Remove from Revision

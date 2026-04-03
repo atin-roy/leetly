@@ -21,6 +21,7 @@ import { AddProblemDialog } from "@/components/problems/add-problem-dialog"
 import { NoteEditorDialog } from "@/components/notes/note-editor-dialog"
 import { useCreateProblem, useDeleteProblem, useProblems } from "@/hooks/use-problems"
 import { useNotes, useCreateNote, useUpdateNote } from "@/hooks/use-notes"
+import { useEnrollReview, useRemoveReview } from "@/hooks/use-reviews"
 import type { CreateProblemRequest, NoteDto, NoteTag, ProblemFilters as Filters, ProblemSummaryDto } from "@/lib/types"
 
 const PAGE_SIZE = 20
@@ -61,6 +62,8 @@ export default function ProblemsPage() {
   const deleteProblemMutation = useDeleteProblem()
   const createNoteMutation = useCreateNote()
   const updateNoteMutation = useUpdateNote()
+  const enrollReviewMutation = useEnrollReview()
+  const removeReviewMutation = useRemoveReview()
   const { data: notesData } = useNotes({ size: 200 })
 
   const problemNotes = useMemo(() => {
@@ -206,6 +209,8 @@ export default function ProblemsPage() {
             onNoteClick={handleNoteClick}
             onDelete={handleDelete}
             notedProblemIds={new Set(Object.keys(problemNotes).map(Number))}
+            onEnrollReview={(p) => enrollReviewMutation.mutate(p.id)}
+            onRemoveReview={(_problemId, cardId) => removeReviewMutation.mutate(cardId)}
           />
         </CardContent>
       </Card>

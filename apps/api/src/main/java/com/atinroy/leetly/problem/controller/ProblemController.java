@@ -44,7 +44,7 @@ public class ProblemController {
             @RequestParam(required = false) Long patternId,
             @RequestParam(required = false) String search) {
         User user = userService.getOrCreate(jwt.getSubject());
-        return PagedResponse.of(problemService.findAll(user, pageable, difficulty, status, topicId, patternId, search).map(problemMapper::toSummaryDto));
+        return PagedResponse.of(problemService.findAll(user, pageable, difficulty, status, topicId, patternId, search));
     }
 
     @GetMapping("/{id}")

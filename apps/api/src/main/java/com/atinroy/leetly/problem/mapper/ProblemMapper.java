@@ -9,6 +9,8 @@ import com.atinroy.leetly.problem.model.Problem;
 @Mapper(componentModel = "spring", uses = {TopicMapper.class, PatternMapper.class, AttemptMapper.class})
 public interface ProblemMapper {
 
+    @Mapping(target = "totalAttempts", constant = "0")
+    @Mapping(target = "reviewCard", ignore = true)
     ProblemSummaryDto toSummaryDto(Problem problem);
 
     @Mapping(target = "reviewCard", ignore = true)

@@ -1,6 +1,10 @@
 package com.atinroy.leetly.problem.service;
 
 import com.atinroy.leetly.common.exception.ResourceNotFoundException;
+import com.atinroy.leetly.problem.dto.ProblemSummaryDto;
+import com.atinroy.leetly.problem.repository.AttemptRepository;
+import com.atinroy.leetly.review.model.ReviewCard;
+import com.atinroy.leetly.review.repository.ReviewCardRepository;
 import com.atinroy.leetly.user.model.ProblemList;
 import com.atinroy.leetly.user.repository.ProblemListRepository;
 import com.atinroy.leetly.user.model.User;
@@ -14,6 +18,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import com.atinroy.leetly.problem.dto.CreateProblemRequest;
 import com.atinroy.leetly.problem.model.Pattern;
 import com.atinroy.leetly.problem.model.Problem;
@@ -30,12 +36,27 @@ public class ProblemService {
     private final ProblemListRepository problemListRepository;
     private final TopicService topicService;
     private final PatternService patternService;
+    private final AttemptRepository attemptRepository;
+    private final ReviewCardRepository reviewCardRepository;
 
     @Transactional(readOnly = true)
-    public Page<Problem> findAll(User user, Pageable pageable, String difficulty, String status, Long topicId, Long patternId, String search) {
+    public Page<ProblemSummaryDto> findAll(User user, Pageable pageable, String difficulty, String status, Long topicId, Long patternId, String search) {
         Specification<Problem> filters = ProblemSpecification.buildSpec(difficulty, status, topicId, patternId, search);
         Specification<Problem> ownedByUser = (root, query, cb) -> cb.equal(root.get("user"), user);
-        return problemRepository.findAll(ownedByUser.and(filters), normalizeSort(pageable));
+        Page<Problem> page = problemRepository.findAll(ownedByUser.and(filters), normalizeSort(pageable));
+
+        List<Long> ids = page.stream().map(Problem::getId).toList();
+        if (ids.isEmpty()) {
+            return page.map(ProblemSummaryDto::from);
+        }
+
+        Map<Long, Long> attemptCounts = attemptRepository.countByProblemIdsAndUser(ids, user)
+                .stream().collect(Collectors.toMap(row -> (Long) row[0], row -> (Long) row[1]));
+
+        Map<Long, ReviewCard> reviewCardMap = reviewCardRepository.findByUserAndProblemIdIn(user, ids)
+                .stream().collect(Collectors.toMap(rc -> rc.getProblem().getId(), rc -> rc));
+
+        return page.map(p -> ProblemSummaryDto.of(p, attemptCounts, reviewCardMap));
     }
 
     private Pageable normalizeSort(Pageable pageable) {

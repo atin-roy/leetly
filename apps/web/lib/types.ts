@@ -109,6 +109,8 @@ export interface ProblemSummaryDto {
   difficulty: Difficulty
   status: ProblemStatus
   lastAttemptedAt: string | null
+  totalAttempts: number
+  reviewCard: ReviewCardSummary | null
 }
 
 export interface ProblemDetailDto {
