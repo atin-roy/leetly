@@ -1,27 +1,21 @@
 "use client"
 
 import * as React from "react"
-import { cn } from "@/lib/utils"
 
-type TableProps = React.ComponentPropsWithoutRef<"table"> & {
-  containerClassName?: string
-}
+import { cn } from "@/lib/utils"
 
 const Table = React.forwardRef<
   HTMLTableElement,
-  TableProps
->(({ className, containerClassName, ...props }, ref) => (
+  React.ComponentPropsWithoutRef<"table">
+>(({ className, ...props }, ref) => (
   <div
     data-slot="table-container"
-    className={cn(
-      "overflow-x-auto rounded-[1.5rem] border border-[var(--border-default)] bg-[color:color-mix(in_oklab,var(--surface-card)_78%,transparent)]",
-      containerClassName,
-    )}
+    className="relative w-full overflow-x-auto"
   >
     <table
       ref={ref}
       data-slot="table"
-      className={cn("w-full border-collapse border-spacing-0 caption-bottom text-sm", className)}
+      className={cn("w-full caption-bottom text-sm", className)}
       {...props}
     />
   </div>
@@ -35,10 +29,7 @@ const TableHeader = React.forwardRef<
   <thead
     ref={ref}
     data-slot="table-header"
-    className={cn(
-      "bg-[color:color-mix(in_oklab,var(--surface-muted)_70%,transparent)] text-[var(--text-muted)] [&_tr]:border-b-0",
-      className,
-    )}
+    className={cn("[&_tr]:border-b", className)}
     {...props}
   />
 ))
@@ -65,8 +56,8 @@ const TableFooter = React.forwardRef<
     ref={ref}
     data-slot="table-footer"
     className={cn(
-      "border-t border-[var(--border-default)] bg-[color:color-mix(in_oklab,var(--surface-muted)_50%,transparent)]",
-      className,
+      "bg-muted/50 border-t font-medium [&>tr]:last:border-b-0",
+      className
     )}
     {...props}
   />
@@ -81,8 +72,8 @@ const TableRow = React.forwardRef<
     ref={ref}
     data-slot="table-row"
     className={cn(
-      "border-b border-[var(--border-default)] transition-colors hover:bg-[color:color-mix(in_oklab,var(--surface-accent)_55%,transparent)]",
-      className,
+      "hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors",
+      className
     )}
     {...props}
   />
@@ -96,7 +87,10 @@ const TableHead = React.forwardRef<
   <th
     ref={ref}
     data-slot="table-head"
-    className={cn("px-4 py-3 text-left font-mono text-[0.72rem] uppercase tracking-[0.16em]", className)}
+    className={cn(
+      "text-foreground h-10 px-2 text-left align-middle font-medium whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+      className
+    )}
     {...props}
   />
 ))
@@ -109,7 +103,10 @@ const TableCell = React.forwardRef<
   <td
     ref={ref}
     data-slot="table-cell"
-    className={cn("px-4 py-4 align-middle text-[var(--text-secondary)]", className)}
+    className={cn(
+      "p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+      className
+    )}
     {...props}
   />
 ))
@@ -122,7 +119,7 @@ const TableCaption = React.forwardRef<
   <caption
     ref={ref}
     data-slot="table-caption"
-    className={cn("mt-4 text-sm text-[var(--text-muted)]", className)}
+    className={cn("text-muted-foreground mt-4 text-sm", className)}
     {...props}
   />
 ))

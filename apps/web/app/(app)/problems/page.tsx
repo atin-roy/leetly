@@ -1,325 +1,289 @@
 "use client"
 
-import Link from "next/link"
-import { useMemo, useState } from "react"
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, ArrowUpDown, ArrowUpRight, Search } from "lucide-react"
-import { EmptyStateBlock, HeroPanel, MetricStrip, SectionHeader } from "@/components/demo/surfaces"
-import { Badge } from "@/components/ui/badge"
+import { useEffect, useMemo, useState } from "react"
+import { ChevronLeft, ChevronRight } from "lucide-react"
+import { AlertCircle } from "lucide-react"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { getDemoProblems } from "@/lib/demo-data"
+import { Card, CardContent } from "@/components/ui/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Skeleton } from "@/components/ui/skeleton"
+import { ProblemFilters } from "@/components/problems/problem-filters"
+import { ProblemTable } from "@/components/problems/problem-table"
+import { AddProblemDialog } from "@/components/problems/add-problem-dialog"
+import { NoteEditorDialog } from "@/components/notes/note-editor-dialog"
+import { useCreateProblem, useDeleteProblem, useProblems } from "@/hooks/use-problems"
+import { useNotes, useCreateNote, useUpdateNote } from "@/hooks/use-notes"
+import { useEnrollReview, useRemoveReview } from "@/hooks/use-reviews"
+import type { CreateProblemRequest, NoteDto, NoteTag, ProblemFilters as Filters, ProblemSummaryDto } from "@/lib/types"
 
-type DifficultyFilter = "all" | "Easy" | "Medium" | "Hard"
-type StatusFilter = "all" | "Unseen" | "Attempted" | "Solved" | "Mastered"
-type SortKey = "difficulty" | "status" | "nextReview"
-type SortDirection = "asc" | "desc"
+const PAGE_SIZE = 20
+const DEFAULT_FILTERS: Filters = { page: 0, size: PAGE_SIZE, sort: "createdDate,desc" }
+const PROBLEMS_FILTERS_STORAGE_KEY = "leetly:problems-filters"
 
-const PAGE_SIZE = 10
-const TABLE_ROW_CLASS_NAME = "h-24"
-const difficultyOrder = { Easy: 0, Medium: 1, Hard: 2 }
-const statusOrder = { Unseen: 0, Attempted: 1, Solved: 2, Mastered: 3 }
+function sanitizeStoredFilters(value: unknown): Filters {
+  if (!value || typeof value !== "object") return DEFAULT_FILTERS
 
-function getNextReviewValue(value: string) {
-  if (value === "Queue when ready") return Number.MAX_SAFE_INTEGER
-  if (value.startsWith("Today,")) {
-    const [, time] = value.split(", ")
-    const [hours, minutes] = time.split(":").map(Number)
-    return hours * 60 + minutes
+  const record = value as Record<string, unknown>
+  return {
+    page: typeof record.page === "number" && record.page >= 0 ? record.page : DEFAULT_FILTERS.page,
+    size: typeof record.size === "number" && record.size > 0 ? record.size : DEFAULT_FILTERS.size,
+    sort: typeof record.sort === "string" && record.sort.length > 0 ? record.sort : DEFAULT_FILTERS.sort,
+    difficulty: typeof record.difficulty === "string" ? record.difficulty as Filters["difficulty"] : undefined,
+    status: typeof record.status === "string" ? record.status as Filters["status"] : undefined,
+    topicId: typeof record.topicId === "number" ? record.topicId : undefined,
+    patternId: typeof record.patternId === "number" ? record.patternId : undefined,
+    search: typeof record.search === "string" && record.search.length > 0 ? record.search : undefined,
   }
-  if (value.startsWith("Tomorrow,")) {
-    const [, time] = value.split(", ")
-    const [hours, minutes] = time.split(":").map(Number)
-    return 24 * 60 + hours * 60 + minutes
-  }
-  if (value.startsWith("In ")) {
-    const amount = Number.parseInt(value.split(" ")[1] ?? "0", 10)
-    if (value.includes("day")) return amount * 24 * 60
-    if (value.includes("week")) return amount * 7 * 24 * 60
-  }
-  return Number.MAX_SAFE_INTEGER - 1
 }
 
-function SortHeaderButton({
-  activeDirection,
-  column,
-  label,
-  onSort,
-}: {
-  activeDirection: SortDirection | null
-  column: SortKey
-  label: string
-  onSort: (column: SortKey) => void
-}) {
-  const Icon = !activeDirection ? ArrowUpDown : activeDirection === "asc" ? ArrowUp : ArrowDown
+function readStoredFilters(storageKey: string) {
+  if (typeof window === "undefined") return DEFAULT_FILTERS
 
-  return (
-    <button
-      type="button"
-      onClick={() => onSort(column)}
-      className="flex max-w-full items-center gap-1.5 text-left transition-colors hover:text-[var(--text-primary)]"
-    >
-      <span className="truncate">{label}</span>
-      <Icon className="size-3.5 shrink-0" />
-    </button>
-  )
+  try {
+    const stored = localStorage.getItem(storageKey)
+    return stored ? sanitizeStoredFilters(JSON.parse(stored)) : DEFAULT_FILTERS
+  } catch {
+    return DEFAULT_FILTERS
+  }
 }
 
 export default function ProblemsPage() {
-  const problems = getDemoProblems()
-  const [search, setSearch] = useState("")
-  const [difficulty, setDifficulty] = useState<DifficultyFilter>("all")
-  const [status, setStatus] = useState<StatusFilter>("all")
-  const [sort, setSort] = useState<{ key: SortKey | null; direction: SortDirection }>({ key: null, direction: "asc" })
-  const [pagination, setPagination] = useState({ page: 1, filterKey: "all||all" })
+  const [filters, setFilters] = useState<Filters>(() => readStoredFilters(PROBLEMS_FILTERS_STORAGE_KEY))
+  const { data: pagedResponse, error, isError, isLoading } = useProblems(filters)
+  const createProblemMutation = useCreateProblem()
+  const deleteProblemMutation = useDeleteProblem()
+  const createNoteMutation = useCreateNote()
+  const updateNoteMutation = useUpdateNote()
+  const enrollReviewMutation = useEnrollReview()
+  const removeReviewMutation = useRemoveReview()
+  const { data: notesData } = useNotes({ size: 200 })
 
-  const filteredProblems = useMemo(() => {
-    return problems.filter((problem) => {
-      const matchesSearch =
-        search.trim().length === 0 ||
-        problem.title.toLowerCase().includes(search.toLowerCase()) ||
-        problem.pattern.toLowerCase().includes(search.toLowerCase()) ||
-        problem.topic.toLowerCase().includes(search.toLowerCase())
-      const matchesDifficulty = difficulty === "all" || problem.difficulty === difficulty
-      const matchesStatus = status === "all" || problem.status === status
-
-      return matchesSearch && matchesDifficulty && matchesStatus
-    })
-  }, [difficulty, problems, search, status])
-
-  const sortedProblems = useMemo(() => {
-    const items = [...filteredProblems]
-
-    if (!sort.key) return items
-
-    items.sort((left, right) => {
-      let comparison = 0
-
-      if (sort.key === "difficulty") {
-        comparison = difficultyOrder[left.difficulty] - difficultyOrder[right.difficulty]
-      } else if (sort.key === "status") {
-        comparison = statusOrder[left.status] - statusOrder[right.status]
-      } else if (sort.key === "nextReview") {
-        comparison = getNextReviewValue(left.nextReview) - getNextReviewValue(right.nextReview)
-      }
-
-      if (comparison === 0) {
-        comparison = left.leetcodeId - right.leetcodeId
-      }
-
-      return sort.direction === "asc" ? comparison : -comparison
-    })
-
-    return items
-  }, [filteredProblems, sort])
-
-  const filterKey = `${search.trim().toLowerCase()}|${difficulty}|${status}|${sort.key ?? "none"}|${sort.direction}`
-  const totalPages = Math.max(1, Math.ceil(sortedProblems.length / PAGE_SIZE))
-  const currentPage = Math.min(pagination.filterKey === filterKey ? pagination.page : 1, totalPages)
-  const startIndex = (currentPage - 1) * PAGE_SIZE
-  const paginatedProblems = sortedProblems.slice(startIndex, startIndex + PAGE_SIZE)
-  const emptyRowCount = Math.max(0, PAGE_SIZE - paginatedProblems.length)
-  const rangeStart = sortedProblems.length === 0 ? 0 : startIndex + 1
-  const rangeEnd = Math.min(startIndex + PAGE_SIZE, sortedProblems.length)
-
-  function handleSort(key: SortKey) {
-    setSort((current) => {
-      if (current.key === key) {
-        if (current.direction === "asc") {
-          return { key, direction: "desc" }
+  const problemNotes = useMemo(() => {
+    const map: Record<number, NoteDto> = {}
+    if (notesData?.content) {
+      for (const n of notesData.content) {
+        if (n.problemId != null) {
+          map[n.problemId] = n
         }
-
-        return { key: null, direction: "asc" }
       }
+    }
+    return map
+  }, [notesData])
+  const [noteDialogOpen, setNoteDialogOpen] = useState(false)
+  const [selectedProblem, setSelectedProblem] = useState<ProblemSummaryDto | undefined>()
+  const [pendingDeleteProblem, setPendingDeleteProblem] = useState<ProblemSummaryDto | null>(null)
 
-      return { key, direction: "asc" }
-    })
+  const problems = pagedResponse?.content ?? []
+  const page = pagedResponse?.page ?? 0
+  const totalPages = pagedResponse?.totalPages ?? 1
+  const totalElements = pagedResponse?.totalElements ?? 0
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+
+    localStorage.setItem(PROBLEMS_FILTERS_STORAGE_KEY, JSON.stringify(filters))
+  }, [filters])
+
+  function handleChange(partial: Partial<Filters>) {
+    setFilters((f) => ({ ...f, ...partial }))
+  }
+
+  function handleReset() {
+    setFilters(DEFAULT_FILTERS)
+  }
+
+  function handleNoteClick(problem: ProblemSummaryDto) {
+    setSelectedProblem(problem)
+    setNoteDialogOpen(true)
+  }
+
+  async function handleNoteSave({ tag, title, content }: { tag: NoteTag; title: string; content: string }) {
+    if (!selectedProblem || !title.trim() || !content.trim()) return
+    try {
+      const existing = problemNotes[selectedProblem.id]
+      if (existing) {
+        await updateNoteMutation.mutateAsync({ id: existing.id, body: { tag, title, content } })
+      } else {
+        await createNoteMutation.mutateAsync({
+          problemId: selectedProblem.id,
+          tag,
+          title,
+          content,
+        })
+      }
+    } catch {
+      // Error handled by mutation
+    }
+  }
+
+  async function handleAdd(p: CreateProblemRequest): Promise<ProblemSummaryDto> {
+    return createProblemMutation.mutateAsync(p)
+  }
+
+  function handleDelete(problem: ProblemSummaryDto) {
+    setPendingDeleteProblem(problem)
+  }
+
+  async function confirmDelete() {
+    if (!pendingDeleteProblem) return
+    try {
+      await deleteProblemMutation.mutateAsync(pendingDeleteProblem.id)
+      toast.success("Problem deleted")
+      setPendingDeleteProblem(null)
+    } catch {
+      toast.error("Failed to delete problem")
+    }
+  }
+
+  const existingProblems = new Map(problems.map((p) => [p.leetcodeId, p.id]))
+
+  if (isLoading && !pagedResponse) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-8 w-32" />
+          <Skeleton className="h-9 w-28" />
+        </div>
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-[400px] w-full" />
+      </div>
+    )
+  }
+
+  if (isError) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-semibold tracking-tight">Problems</h1>
+          <AddProblemDialog onAdd={handleAdd} existingProblems={new Map()} />
+        </div>
+
+        <ProblemFilters
+          filters={filters}
+          onChange={handleChange}
+          onReset={handleReset}
+        />
+
+        <Card className="border-destructive/40 bg-destructive/5">
+          <CardContent className="flex items-start gap-3 p-6 text-sm text-muted-foreground">
+            <AlertCircle className="mt-0.5 h-4 w-4 text-destructive" />
+            <div>
+              <p className="font-medium text-foreground">Failed to load problems.</p>
+              <p>{error instanceof Error ? error.message : "Unexpected error"}</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
   }
 
   return (
-    <div className="space-y-6">
-      <HeroPanel
-        eyebrow="Problems workspace"
-        title="A table, but designed like a working spread."
-        description="The problems route keeps its utility but now reads like a curation workspace: strong filters, clearer status language, and direct entry into richer case-study detail pages."
-        kicker={`${filteredProblems.length} visible problems · ${problems.filter((item) => item.inReview).length} in active review`}
-      />
-
-      <MetricStrip
-        items={[
-          { label: "Visible set", value: String(filteredProblems.length), change: "after local filters", tone: "neutral" },
-          { label: "Hard problems", value: String(problems.filter((item) => item.difficulty === "Hard").length), change: "represented in mock data", tone: "warning" },
-          { label: "Mastered", value: String(problems.filter((item) => item.status === "Mastered").length), change: "clean explanation archive", tone: "positive" },
-          { label: "Review-linked", value: String(problems.filter((item) => item.inReview).length), change: "scheduled or due", tone: "positive" },
-        ]}
-      />
-
-      <section className="panel p-6">
-        <SectionHeader
-          eyebrow="Filters"
-          title="Reduce the table without flattening it."
-          description="This branch keeps filtering local and visual. The point is to prove the workspace feel before reconnecting live queries."
-        />
-        <div className="mt-6 grid gap-3 md:grid-cols-[minmax(0,1fr)_12rem_12rem]">
-          <div className="relative">
-            <Search className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-[var(--text-muted)]" />
-            <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search by title, pattern, or topic" className="pl-11" />
-          </div>
-          <Select value={difficulty} onValueChange={(value) => setDifficulty(value as DifficultyFilter)}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="All difficulties" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All difficulties</SelectItem>
-              <SelectItem value="Easy">Easy</SelectItem>
-              <SelectItem value="Medium">Medium</SelectItem>
-              <SelectItem value="Hard">Hard</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={status} onValueChange={(value) => setStatus(value as StatusFilter)}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="All statuses" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All statuses</SelectItem>
-              <SelectItem value="Unseen">Unseen</SelectItem>
-              <SelectItem value="Attempted">Attempted</SelectItem>
-              <SelectItem value="Solved">Solved</SelectItem>
-              <SelectItem value="Mastered">Mastered</SelectItem>
-            </SelectContent>
-          </Select>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold tracking-tight">Problems</h1>
+        <div className="flex items-center gap-3">
+          <p className="text-sm text-muted-foreground">{totalElements} problems</p>
+          <AddProblemDialog onAdd={handleAdd} existingProblems={existingProblems} />
         </div>
-      </section>
+      </div>
 
-      {filteredProblems.length === 0 ? (
-        <EmptyStateBlock
-          title="No problems match the current slice."
-          description="The empty state is part of the redesign too. Reset the local filters and the full mock archive returns immediately."
-          action={
-            <Button variant="outline" onClick={() => {
-              setSearch("")
-              setDifficulty("all")
-              setStatus("all")
-            }}>
-              Reset Filters
+      <ProblemFilters
+        filters={filters}
+        onChange={handleChange}
+        onReset={handleReset}
+      />
+
+      <Card className="py-0">
+        <CardContent className="p-0">
+          <ProblemTable
+            problems={problems}
+            pageSize={PAGE_SIZE}
+            onNoteClick={handleNoteClick}
+            onDelete={handleDelete}
+            notedProblemIds={new Set(Object.keys(problemNotes).map(Number))}
+            onEnrollReview={(p) => enrollReviewMutation.mutate(p.id)}
+            onRemoveReview={(_problemId, cardId) => removeReviewMutation.mutate(cardId)}
+          />
+        </CardContent>
+      </Card>
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            Page {page + 1} of {totalPages}
+          </p>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page === 0}
+              onClick={() => handleChange({ page: page - 1 })}
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Previous
             </Button>
-          }
-        />
-      ) : (
-        <section className="panel overflow-hidden">
-          <div className="flex flex-col gap-3 border-b border-[var(--border-subtle)] px-6 py-5 md:flex-row md:items-end md:justify-between">
-            <div>
-              <p className="eyebrow">Visible archive</p>
-              <h2 className="mt-2 font-serif text-2xl text-[var(--text-primary)]">Problems on this page</h2>
-            </div>
-            <div className="text-sm text-[var(--text-muted)]">
-              Showing {rangeStart}-{rangeEnd} of {sortedProblems.length}
-            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page >= totalPages - 1}
+              onClick={() => handleChange({ page: page + 1 })}
+            >
+              Next
+              <ChevronRight className="h-4 w-4" />
+            </Button>
           </div>
-
-          <Table className="table-fixed" containerClassName="overflow-x-hidden rounded-none border-x-0 border-y-0 bg-transparent">
-            <colgroup>
-              <col className="w-[34%]" />
-              <col className="w-[12%]" />
-              <col className="w-[14%]" />
-              <col className="w-[14%]" />
-              <col className="w-[14%]" />
-              <col className="w-[5%]" />
-              <col className="w-[7%]" />
-            </colgroup>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Problem</TableHead>
-                <TableHead><SortHeaderButton column="difficulty" label="Difficulty" activeDirection={sort.key === "difficulty" ? sort.direction : null} onSort={handleSort} /></TableHead>
-                <TableHead><SortHeaderButton column="status" label="Status" activeDirection={sort.key === "status" ? sort.direction : null} onSort={handleSort} /></TableHead>
-                <TableHead>Pattern</TableHead>
-                <TableHead><SortHeaderButton column="nextReview" label="Next Review" activeDirection={sort.key === "nextReview" ? sort.direction : null} onSort={handleSort} /></TableHead>
-                <TableHead>Notes</TableHead>
-                <TableHead className="text-right">Detail</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {paginatedProblems.map((problem) => (
-                <TableRow key={problem.id} className={TABLE_ROW_CLASS_NAME}>
-                  <TableCell>
-                    <div className="min-w-0">
-                      <p className="truncate font-semibold text-[var(--text-primary)]">{problem.title}</p>
-                      <p className="mt-1 truncate text-xs text-[var(--text-muted)]">
-                        #{problem.leetcodeId} · {problem.topic} · Last attempt: {problem.lastTouched}
-                      </p>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="secondary">{problem.difficulty}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={problem.status === "Mastered" ? "default" : "outline"}>{problem.status}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="truncate">{problem.pattern}</div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="truncate">{problem.nextReview}</div>
-                  </TableCell>
-                  <TableCell>{problem.noteCount}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center justify-end">
-                      <Button variant="ghost" size="sm" className="shrink-0" asChild>
-                        <Link href={`/problems/${problem.id}`}>
-                        Open
-                        <ArrowUpRight className="size-4" />
-                        </Link>
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {Array.from({ length: emptyRowCount }, (_, index) => (
-                <TableRow
-                  key={`empty-row-${index}`}
-                  aria-hidden="true"
-                  className={`${TABLE_ROW_CLASS_NAME} pointer-events-none hover:bg-transparent`}
-                >
-                  <TableCell>&nbsp;</TableCell>
-                  <TableCell>&nbsp;</TableCell>
-                  <TableCell>&nbsp;</TableCell>
-                  <TableCell>&nbsp;</TableCell>
-                  <TableCell>&nbsp;</TableCell>
-                  <TableCell>&nbsp;</TableCell>
-                  <TableCell>&nbsp;</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-
-          <div className="flex flex-col gap-3 border-t border-[var(--border-subtle)] px-6 py-5 md:flex-row md:items-center md:justify-between">
-            <p className="text-sm text-[var(--text-muted)]">
-              Page {currentPage} of {totalPages}
-            </p>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPagination({ page: Math.max(1, currentPage - 1), filterKey })}
-                disabled={currentPage === 1}
-              >
-                <ArrowLeft className="size-4" />
-                Previous
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPagination({ page: Math.min(totalPages, currentPage + 1), filterKey })}
-                disabled={currentPage === totalPages}
-              >
-                Next
-                <ArrowRight className="size-4" />
-              </Button>
-            </div>
-          </div>
-        </section>
+        </div>
       )}
+
+      <NoteEditorDialog
+        open={noteDialogOpen}
+        onOpenChange={setNoteDialogOpen}
+        note={selectedProblem ? problemNotes[selectedProblem.id] : undefined}
+        initialMode={selectedProblem && problemNotes[selectedProblem.id] ? "view" : "edit"}
+        defaultTitle={selectedProblem?.title}
+        onSave={handleNoteSave}
+      />
+      <Dialog
+        open={pendingDeleteProblem !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingDeleteProblem(null)
+        }}
+      >
+        <DialogContent showCloseButton={!deleteProblemMutation.isPending}>
+          <DialogHeader>
+            <DialogTitle>Delete problem?</DialogTitle>
+            <DialogDescription>
+              {pendingDeleteProblem
+                ? `Remove "${pendingDeleteProblem.title}" from your problems list. This action cannot be undone.`
+                : "Remove this problem from your problems list."}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setPendingDeleteProblem(null)}
+              disabled={deleteProblemMutation.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmDelete}
+              disabled={deleteProblemMutation.isPending}
+            >
+              {deleteProblemMutation.isPending ? "Deleting…" : "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

@@ -1,20 +1,26 @@
+import { auth } from "@/lib/auth"
 import { AppSidebar } from "@/components/layout/app-sidebar"
 import { Header } from "@/components/layout/header"
+import { SidebarProvider } from "@/components/layout/sidebar-context"
+import { redirect } from "next/navigation"
 
-export default function AppLayout({
+export default async function AppLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const session = await auth()
+  if (!session || session.error === "RefreshTokenError") redirect("/sign-in")
+
   return (
-    <div className="editorial-shell min-h-svh">
-      <div className="mx-auto grid min-h-svh max-w-[1600px] gap-4 px-3 py-3 md:grid-cols-[18rem_minmax(0,1fr)] md:px-4">
+    <SidebarProvider>
+      <div className="flex min-h-svh overflow-hidden">
         <AppSidebar />
-        <div className="flex min-h-[calc(100svh-1.5rem)] flex-col gap-4">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
           <Header />
-          <main className="flex-1">{children}</main>
+          <main className="min-h-0 flex-1 overflow-y-auto p-6">{children}</main>
         </div>
       </div>
-    </div>
+    </SidebarProvider>
   )
 }

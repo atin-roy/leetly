@@ -1,10 +1,14 @@
 "use client"
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools"
+import { SessionProvider } from "next-auth/react"
 import { useState } from "react"
 import { Toaster } from "sonner"
-import { ThemeInitializer } from "@/components/theme-initializer"
 import { TooltipProvider } from "@/components/ui/tooltip"
+import { ThemeInitializer } from "@/components/theme-initializer"
+
+const SESSION_REFRESH_INTERVAL_SECONDS = 5 * 60
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -20,10 +24,18 @@ export function Providers({ children }: { children: React.ReactNode }) {
   )
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeInitializer />
-      <TooltipProvider>{children}</TooltipProvider>
-      <Toaster position="top-right" />
-    </QueryClientProvider>
+    <SessionProvider
+      refetchInterval={SESSION_REFRESH_INTERVAL_SECONDS}
+      refetchWhenOffline={false}
+    >
+      <QueryClientProvider client={queryClient}>
+        <ThemeInitializer />
+        <TooltipProvider>
+          {children}
+        </TooltipProvider>
+        <Toaster richColors position="top-right" />
+        <ReactQueryDevtools initialIsOpen={false} />
+      </QueryClientProvider>
+    </SessionProvider>
   )
 }
