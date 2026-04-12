@@ -1,324 +1,97 @@
 "use client"
 
-import { useState } from "react"
-import { format } from "date-fns"
-import { ChevronLeft, ChevronRight, Pencil, Plus, Search, Trash2 } from "lucide-react"
-import { toast } from "sonner"
+import { useMemo, useState } from "react"
+import { Search } from "lucide-react"
+import { EmptyStateBlock, HeroPanel } from "@/components/demo/surfaces"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { Skeleton } from "@/components/ui/skeleton"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { NoteEditorDialog } from "@/components/notes/note-editor-dialog"
-import { MarkdownContent } from "@/components/ui/markdown-content"
-import { useNotes, useCreateNote, useUpdateNote, useDeleteNote } from "@/hooks/use-notes"
-import type { NoteDto, NoteFilters, NoteTag } from "@/lib/types"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { getDemoNotes, getDemoProblems } from "@/lib/demo-data"
 
-const TAG_COLORS: Record<NoteTag, string> = {
-  GENERAL: "bg-gray-100 text-gray-700",
-  INTERVIEW: "bg-blue-100 text-blue-700",
-  LEARNING: "bg-green-100 text-green-700",
-  REVIEW: "bg-orange-100 text-orange-700",
-  STRATEGY: "bg-purple-100 text-purple-700",
-}
-
-const TAGS: { value: NoteTag; label: string }[] = [
-  { value: "GENERAL", label: "General" },
-  { value: "INTERVIEW", label: "Interview" },
-  { value: "LEARNING", label: "Learning" },
-  { value: "REVIEW", label: "Review" },
-  { value: "STRATEGY", label: "Strategy" },
-]
-
-const PAGE_SIZE = 20
-const DEFAULT_FILTERS: NoteFilters = { page: 0, size: PAGE_SIZE }
-
-function NoteCard({
-  note,
-  onClick,
-  onEdit,
-  onDelete,
-}: {
-  note: NoteDto
-  onClick: () => void
-  onEdit: () => void
-  onDelete: () => void
-}) {
-  return (
-    <Card
-      className="group flex min-h-[14rem] cursor-pointer flex-col transition-shadow hover:shadow-md"
-      onClick={onClick}
-    >
-      <CardHeader className="pb-2">
-        <div className="flex items-start justify-between gap-2">
-          <div className="space-y-1">
-            <CardTitle className="text-base">{note.title}</CardTitle>
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary" className={TAG_COLORS[note.tag]}>
-                {note.tag}
-              </Badge>
-              <span className="text-xs text-muted-foreground">
-                {format(new Date(note.dateTime), "MMM d, yyyy")}
-              </span>
-            </div>
-          </div>
-          <div
-            className="flex shrink-0 items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <Button variant="ghost" size="sm" onClick={onEdit}>
-              <Pencil className="h-3.5 w-3.5" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-destructive"
-              onClick={onDelete}
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-            </Button>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent className="flex-1">
-        <div className="relative h-[8.5rem] overflow-hidden rounded-md border bg-muted/20 p-4">
-          <MarkdownContent
-            content={note.content}
-            className="text-sm text-muted-foreground [&>h1]:mt-0 [&>h1]:text-lg [&>h1]:pb-1 [&>h2]:mt-3 [&>h2]:text-base [&>h3]:mt-3 [&>h3]:text-sm [&>p]:my-2 [&>ul]:my-2 [&>ol]:my-2 [&>blockquote]:my-2 [&>pre]:my-2 [&>table]:my-2"
-          />
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-card via-card/90 to-transparent" />
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
+type TagFilter = "all" | "Learning" | "Review" | "Interview" | "Strategy"
 
 export default function NotesPage() {
-  const [filters, setFilters] = useState<NoteFilters>(DEFAULT_FILTERS)
-  const { data: pagedResponse, isLoading } = useNotes(filters)
-  const createNoteMutation = useCreateNote()
-  const updateNoteMutation = useUpdateNote()
-  const deleteNoteMutation = useDeleteNote()
+  const notes = getDemoNotes()
+  const problems = getDemoProblems()
+  const [search, setSearch] = useState("")
+  const [tag, setTag] = useState<TagFilter>("all")
 
-  const [formOpen, setFormOpen] = useState(false)
-  const [selectedNote, setSelectedNote] = useState<NoteDto | undefined>()
-  const [dialogMode, setDialogMode] = useState<"view" | "edit">("view")
-  const [deleteNoteId, setDeleteNoteId] = useState<number | null>(null)
-
-  const notes = pagedResponse?.content ?? []
-  const page = pagedResponse?.page ?? 0
-  const totalPages = pagedResponse?.totalPages ?? 1
-
-  function handleChange(partial: Partial<NoteFilters>) {
-    setFilters((f) => ({ ...f, ...partial }))
-  }
-
-  function handleView(note: NoteDto) {
-    setSelectedNote(note)
-    setDialogMode("view")
-    setFormOpen(true)
-  }
-
-  function handleEdit(note: NoteDto) {
-    setSelectedNote(note)
-    setDialogMode("edit")
-    setFormOpen(true)
-  }
-
-  async function handleDelete() {
-    if (deleteNoteId == null) return
-    try {
-      await deleteNoteMutation.mutateAsync(deleteNoteId)
-      setDeleteNoteId(null)
-      toast.success("Note deleted")
-    } catch {
-      toast.error("Failed to delete note")
-    }
-  }
-
-  async function handleSave({ tag, title, content }: { tag: NoteTag; title: string; content: string }) {
-    try {
-      if (selectedNote) {
-        await updateNoteMutation.mutateAsync({ id: selectedNote.id, body: { tag, title, content } })
-        toast.success("Note updated")
-      } else {
-        await createNoteMutation.mutateAsync({ tag, title, content })
-        toast.success("Note created")
-      }
-    } catch {
-      toast.error("Failed to save note")
-    }
-  }
-
-  if (isLoading) {
-    return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <Skeleton className="h-8 w-24" />
-          <Skeleton className="h-9 w-28" />
-        </div>
-        <Skeleton className="h-10 w-full" />
-        <div className="grid gap-4 sm:grid-cols-2">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-[14rem] w-full" />
-          ))}
-        </div>
-      </div>
-    )
-  }
+  const filteredNotes = useMemo(() => {
+    return notes.filter((note) => {
+      const matchesSearch =
+        search.trim().length === 0 ||
+        note.title.toLowerCase().includes(search.toLowerCase()) ||
+        note.excerpt.toLowerCase().includes(search.toLowerCase())
+      const matchesTag = tag === "all" || note.tag === tag
+      return matchesSearch && matchesTag
+    })
+  }, [notes, search, tag])
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight">Notes</h1>
-        <Button
-          size="sm"
-          onClick={() => {
-            setSelectedNote(undefined)
-            setDialogMode("edit")
-            setFormOpen(true)
-          }}
-        >
-          <Plus className="mr-1 h-4 w-4" />
-          New Note
-        </Button>
-      </div>
-
-      <div className="flex items-center gap-2">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-          <Input
-            placeholder="Search notes..."
-            value={filters.search ?? ""}
-            onChange={(e) =>
-              handleChange({ search: e.target.value || undefined, page: 0 })
-            }
-            className="pl-8"
-          />
-        </div>
-        <Select
-          value={filters.tag ?? "all"}
-          onValueChange={(v) =>
-            handleChange({ tag: v === "all" ? undefined : (v as NoteTag), page: 0 })
-          }
-        >
-          <SelectTrigger className="w-36">
-            <SelectValue placeholder="All Tags" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Tags</SelectItem>
-            {TAGS.map(({ value, label }) => (
-              <SelectItem key={value} value={value}>
-                {label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      {notes.length === 0 ? (
-        <div className="flex h-48 flex-col items-center justify-center gap-3 rounded-lg border border-dashed text-sm text-muted-foreground">
-          <p>No notes yet.</p>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => {
-              setSelectedNote(undefined)
-              setDialogMode("edit")
-              setFormOpen(true)
-            }}
-          >
-            <Plus className="mr-1 h-4 w-4" />
-            Create your first note
-          </Button>
-        </div>
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2">
-          {notes.map((note) => (
-            <NoteCard
-              key={note.id}
-              note={note}
-              onClick={() => handleView(note)}
-              onEdit={() => handleEdit(note)}
-              onDelete={() => setDeleteNoteId(note.id)}
-            />
-          ))}
-        </div>
-      )}
-
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-muted-foreground">
-            Page {page + 1} of {totalPages}
-          </p>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page === 0}
-              onClick={() => handleChange({ page: page - 1 })}
-            >
-              <ChevronLeft className="h-4 w-4" />
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page >= totalPages - 1}
-              onClick={() => handleChange({ page: page + 1 })}
-            >
-              Next
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      )}
-
-      <NoteEditorDialog
-        open={formOpen}
-        onOpenChange={setFormOpen}
-        note={selectedNote}
-        initialMode={dialogMode}
-        onSave={handleSave}
+    <div className="space-y-6">
+      <HeroPanel
+        eyebrow="Notes"
+        title="An editorial notebook, not a grid of generic cards."
+        description="The note surfaces are designed to feel like clipped working fragments: compact, typographic, and tied back to actual problem contexts where relevant."
+        kicker={`${notes.length} curated notes in the mock library`}
       />
 
-      <Dialog open={deleteNoteId !== null} onOpenChange={(open) => !open && setDeleteNoteId(null)}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Delete note</DialogTitle>
-            <DialogDescription>
-              This will permanently remove the note from your workspace.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteNoteId(null)}>
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDelete}
-              disabled={deleteNoteMutation.isPending}
-            >
-              Delete
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <section className="panel p-6">
+        <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_14rem]">
+          <div className="relative">
+            <Search className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-[var(--text-muted)]" />
+            <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search notes" className="pl-11" />
+          </div>
+          <Select value={tag} onValueChange={(value) => setTag(value as TagFilter)}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="All tags" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All tags</SelectItem>
+              <SelectItem value="Learning">Learning</SelectItem>
+              <SelectItem value="Review">Review</SelectItem>
+              <SelectItem value="Interview">Interview</SelectItem>
+              <SelectItem value="Strategy">Strategy</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </section>
+
+      {filteredNotes.length === 0 ? (
+        <EmptyStateBlock
+          title="No notes match this filter."
+          description="The page keeps a designed empty state instead of dropping to a bare message."
+        />
+      ) : (
+        <section className="grid gap-4 lg:grid-cols-2">
+          {filteredNotes.map((note) => {
+            const linkedProblem = note.problemId
+              ? problems.find((problem) => problem.id === note.problemId)
+              : null
+
+            return (
+              <Card key={note.id} className="h-full p-6">
+                <CardHeader className="gap-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <Badge variant="secondary">{note.tag}</Badge>
+                    <span className="text-xs text-[var(--text-muted)]">{note.date}</span>
+                  </div>
+                  <CardTitle className="text-3xl">{note.title}</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-sm leading-7 text-[var(--text-secondary)]">{note.excerpt}</p>
+                  {linkedProblem ? (
+                    <div className="rounded-[1.3rem] border border-[var(--border-default)] bg-[var(--surface-card)] p-4 text-sm text-[var(--text-secondary)]">
+                      Linked problem: <span className="font-semibold text-[var(--text-primary)]">{linkedProblem.title}</span>
+                    </div>
+                  ) : null}
+                </CardContent>
+              </Card>
+            )
+          })}
+        </section>
+      )}
     </div>
   )
 }

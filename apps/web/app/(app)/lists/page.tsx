@@ -1,122 +1,61 @@
-"use client"
-
-import { useState } from "react"
-import { Plus } from "lucide-react"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { z } from "zod"
-import { toast } from "sonner"
+import Link from "next/link"
+import { ArrowUpRight } from "lucide-react"
+import { HeroPanel, SectionHeader } from "@/components/demo/surfaces"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Skeleton } from "@/components/ui/skeleton"
-import { ListCard } from "@/components/lists/list-card"
-import { useCreateList, useProblemLists } from "@/hooks/use-lists"
-import { useProblems } from "@/hooks/use-problems"
-
-const schema = z.object({ name: z.string().min(1, "Name is required") })
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { getDemoLists, getDemoProblems } from "@/lib/demo-data"
 
 export default function ListsPage() {
-  const { data: lists, isLoading } = useProblemLists()
-  const { data: problems } = useProblems({ size: 200 })
-  const createMutation = useCreateList()
-  const [open, setOpen] = useState(false)
-
-  const form = useForm<z.infer<typeof schema>>({
-    resolver: zodResolver(schema),
-    defaultValues: { name: "" },
-  })
-
-  async function onSubmit(values: z.infer<typeof schema>) {
-    try {
-      await createMutation.mutateAsync(values)
-      toast.success("List created")
-      form.reset()
-      setOpen(false)
-    } catch {
-      toast.error("Failed to create list")
-    }
-  }
+  const lists = getDemoLists()
+  const problems = getDemoProblems()
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight">My Lists</h1>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button size="sm">
-              <Plus className="mr-1 h-4 w-4" />
-              New List
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create List</DialogTitle>
-            </DialogHeader>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Name</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="My favorite problems" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <div className="flex justify-end gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setOpen(false)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button type="submit" disabled={createMutation.isPending}>
-                    Create
-                  </Button>
-                </div>
-              </form>
-            </Form>
-          </DialogContent>
-        </Dialog>
-      </div>
+    <div className="space-y-6">
+      <HeroPanel
+        eyebrow="Lists"
+        title="Curated problem sets with enough voice to justify their existence."
+        description="The redesign drops the generic card gallery feel. Each list reads like a programmed track with a cadence, a thesis, and a visible problem count."
+        kicker={`${lists.length} live demo lists`}
+      />
 
-      {isLoading ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="h-[320px] rounded-2xl" />
-          ))}
+      <section className="panel p-6">
+        <SectionHeader
+          eyebrow="Collection"
+          title="Focused sets, not storage bins"
+          description="Each list keeps a short rationale so the route feels curated instead of administrative."
+        />
+        <div className="mt-6 grid gap-4 lg:grid-cols-3">
+          {lists.map((list) => {
+            const count = problems.filter((problem) => list.problemIds.includes(problem.id)).length
+
+            return (
+              <Card key={list.id} className="overflow-hidden p-0">
+                <div className="h-28" style={{ background: list.gradient }} />
+                <div className="p-6">
+                  <CardHeader className="gap-3 px-0">
+                    <Badge variant="secondary">{list.subtitle}</Badge>
+                    <CardTitle className="text-3xl">{list.name}</CardTitle>
+                    <p className="text-sm leading-6 text-[var(--text-secondary)]">{list.description}</p>
+                  </CardHeader>
+                  <CardContent className="mt-5 space-y-4 px-0">
+                    <div className="flex items-center justify-between text-sm text-[var(--text-muted)]">
+                      <span>{count} problems</span>
+                      <span>{list.cadence}</span>
+                    </div>
+                    <Button variant="outline" asChild>
+                      <Link href={`/lists/${list.id}`}>
+                        Open list
+                        <ArrowUpRight className="size-4" />
+                      </Link>
+                    </Button>
+                  </CardContent>
+                </div>
+              </Card>
+            )
+          })}
         </div>
-      ) : !lists?.length ? (
-        <div className="flex h-32 items-center justify-center text-sm text-muted-foreground">
-          No lists yet. Create one!
-        </div>
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {lists.map((list) => (
-            <ListCard key={list.id} list={list} problems={problems?.content ?? []} />
-          ))}
-        </div>
-      )}
+      </section>
     </div>
   )
 }

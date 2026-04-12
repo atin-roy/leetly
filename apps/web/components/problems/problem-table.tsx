@@ -5,7 +5,6 @@ import { format } from "date-fns"
 import { useRouter } from "next/navigation"
 import { Check, Clock, ExternalLink, Plus, SquareArrowOutUpRight, StickyNote, Trash2, X } from "lucide-react"
 import { toast } from "sonner"
-import { Button } from "@/components/ui/button"
 import {
   Table,
   TableBody,
