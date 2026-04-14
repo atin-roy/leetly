@@ -147,7 +147,7 @@ export default function ProblemsPage() {
 
   if (isLoading && !pagedResponse) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-5">
         <div className="flex items-center justify-between">
           <Skeleton className="h-8 w-32" />
           <Skeleton className="h-9 w-28" />
@@ -160,9 +160,12 @@ export default function ProblemsPage() {
 
   if (isError) {
     return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-semibold tracking-tight">Problems</h1>
+      <div className="space-y-5">
+        <div className="flex flex-col gap-4 rounded-lg border border-border/75 bg-card/80 p-5 shadow-sm backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-[0.2em] text-primary">Problems</p>
+            <h1 className="mt-2 text-3xl font-semibold tracking-tight">Problem library</h1>
+          </div>
           <AddProblemDialog onAdd={handleAdd} existingProblems={new Map()} />
         </div>
 
@@ -186,11 +189,15 @@ export default function ProblemsPage() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight">Problems</h1>
+    <div className="space-y-5">
+      <div className="flex flex-col gap-4 rounded-lg border border-border/75 bg-card/80 p-5 shadow-sm backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-xs font-medium uppercase tracking-[0.2em] text-primary">Problems</p>
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight">Problem library</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Filter, revise, export, and log attempts from one table.</p>
+        </div>
         <div className="flex items-center gap-3">
-          <p className="text-sm text-muted-foreground">{totalElements} problems</p>
+          <p className="rounded-lg border bg-background/55 px-3 py-2 text-sm text-muted-foreground">{totalElements} problems</p>
           <AddProblemDialog onAdd={handleAdd} existingProblems={existingProblems} />
         </div>
       </div>

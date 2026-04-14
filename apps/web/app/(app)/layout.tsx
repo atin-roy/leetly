@@ -14,11 +14,13 @@ export default async function AppLayout({
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-svh overflow-hidden">
+      <div className="app-shell flex min-h-svh overflow-hidden">
         <AppSidebar />
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
           <Header />
-          <main className="min-h-0 flex-1 overflow-y-auto p-6">{children}</main>
+          <main className="min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-6 lg:px-8">
+            <div className="mx-auto w-full max-w-[1500px]">{children}</div>
+          </main>
         </div>
       </div>
     </SidebarProvider>

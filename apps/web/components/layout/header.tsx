@@ -2,8 +2,15 @@
 
 import Link from "next/link"
 import { signOut, useSession } from "next-auth/react"
-import { BookOpen, LogOut, Menu } from "lucide-react"
+import { BookOpen, LogOut, Menu, Palette } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,15 +20,18 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useTheme } from "@/hooks/use-theme"
+import { THEMES, type ThemeId } from "@/lib/themes"
 import { useSidebar } from "./sidebar-context"
 
 export function Header() {
   const { data: session, status } = useSession()
   const { toggle } = useSidebar()
+  const { themeId, setTheme } = useTheme()
 
   return (
-    <header className="flex h-14 items-center border-b bg-background px-4">
-      <div className="flex w-40 items-center">
+    <header className="sticky top-0 z-10 flex h-16 items-center border-b border-border/70 bg-background/78 px-4 backdrop-blur-xl">
+      <div className="flex flex-1 items-center gap-2">
         <Button
           variant="ghost"
           size="icon"
@@ -31,18 +41,33 @@ export function Header() {
         >
           <Menu className="h-5 w-5" />
         </Button>
-      </div>
-
-      <div className="flex flex-1 items-center justify-center">
-        <Link href="/" className="flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-md bg-primary text-primary-foreground">
+        <Link href="/dashboard" className="flex items-center gap-2 md:hidden">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
             <BookOpen className="h-5 w-5" />
           </div>
           <span className="font-bold text-xl tracking-tight">Leetly</span>
         </Link>
+        <div className="hidden md:block">
+          <p className="text-sm font-semibold tracking-tight">Training cockpit</p>
+          <p className="text-xs text-muted-foreground">Keep the queue moving.</p>
+        </div>
       </div>
 
-      <div className="flex w-40 items-center justify-end">
+      <div className="flex flex-1 items-center justify-end gap-2">
+        <Select value={themeId} onValueChange={(value) => setTheme(value as ThemeId)}>
+          <SelectTrigger className="h-9 w-[154px] rounded-lg border-border/80 bg-card/80 shadow-sm max-sm:w-10 max-sm:px-2">
+            <Palette className="h-4 w-4 text-muted-foreground sm:mr-1" />
+            <span className="sr-only">Theme</span>
+            <SelectValue placeholder="Theme" className="max-sm:hidden" />
+          </SelectTrigger>
+          <SelectContent align="end">
+            {THEMES.map((theme) => (
+              <SelectItem key={theme.id} value={theme.id}>
+                {theme.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         {status === "loading" ? (
           <Skeleton className="h-8 w-8 rounded-full" />
         ) : session ? (

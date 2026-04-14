@@ -226,7 +226,7 @@ export function ProblemTable({
                   <ContextMenu key={p.id}>
                     <ContextMenuTrigger asChild>
                       <TableRow
-                        className={`${ROW_H} group cursor-pointer`}
+                        className={`${ROW_H} group cursor-pointer border-border/60 transition-colors hover:bg-accent/55`}
                         onClick={(e) => {
                           if (isInteractiveTarget(e.target)) return
                           openProblem(p.id)
