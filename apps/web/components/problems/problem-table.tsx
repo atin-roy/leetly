@@ -182,7 +182,7 @@ export function ProblemTable({
 
   if (isLoading) {
     return (
-      <Table>
+      <Table className="border-separate border-spacing-y-1">
         {header}
         <TableBody>
           {Array.from({ length: pageSize }).map((_, i) => (
@@ -204,7 +204,7 @@ export function ProblemTable({
 
   return (
     <>
-      <Table>
+      <Table className="border-separate border-spacing-y-1">
         {header}
         <TableBody>
           {rows.length === 0 ? (
@@ -226,7 +226,7 @@ export function ProblemTable({
                   <ContextMenu key={p.id}>
                     <ContextMenuTrigger asChild>
                       <TableRow
-                        className={`${ROW_H} group cursor-pointer border-border/60 transition-colors hover:bg-accent/55`}
+                        className={`${ROW_H} group cursor-pointer border-border/60 bg-card/72 transition-colors hover:bg-accent/55`}
                         onClick={(e) => {
                           if (isInteractiveTarget(e.target)) return
                           openProblem(p.id)

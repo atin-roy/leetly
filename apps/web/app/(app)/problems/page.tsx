@@ -190,26 +190,40 @@ export default function ProblemsPage() {
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-col gap-4 rounded-lg border border-border/75 bg-card/80 p-5 shadow-sm backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-xs font-medium uppercase tracking-[0.2em] text-primary">Problems</p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight">Problem library</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Filter, revise, export, and log attempts from one table.</p>
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="relative overflow-hidden rounded-lg border border-border/75 bg-card/84 p-6 shadow-[0_24px_80px_color-mix(in_oklab,var(--foreground)_10%,transparent)] backdrop-blur-2xl">
+          <div className="absolute inset-y-0 left-0 w-1 bg-[linear-gradient(180deg,var(--primary),var(--chart-2),var(--chart-3))]" />
+          <p className="text-xs font-medium uppercase tracking-[0.22em] text-primary">Problems</p>
+          <h1 className="mt-4 text-4xl font-semibold tracking-tight">Problem library</h1>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
+            Filter, revise, export, and log attempts from one workspace.
+          </p>
         </div>
-        <div className="flex items-center gap-3">
-          <p className="rounded-lg border bg-background/55 px-3 py-2 text-sm text-muted-foreground">{totalElements} problems</p>
-          <AddProblemDialog onAdd={handleAdd} existingProblems={existingProblems} />
+        <div className="rounded-lg border border-border/75 bg-card/84 p-5 shadow-sm backdrop-blur-xl">
+          <p className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">Library size</p>
+          <p className="mt-3 text-4xl font-semibold tracking-tight">{totalElements}</p>
+          <p className="mt-1 text-sm text-muted-foreground">tracked problems</p>
+          <div className="mt-5">
+            <AddProblemDialog onAdd={handleAdd} existingProblems={existingProblems} />
+          </div>
         </div>
       </div>
 
-      <ProblemFilters
-        filters={filters}
-        onChange={handleChange}
-        onReset={handleReset}
-      />
+      <div className="rounded-lg border border-border/75 bg-card/70 p-3 shadow-[0_20px_70px_color-mix(in_oklab,var(--foreground)_8%,transparent)] backdrop-blur-2xl">
+        <div className="mb-3 flex flex-col gap-3 px-1 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm font-medium">Problem workspace</p>
+          <div className="sm:hidden">
+            <AddProblemDialog onAdd={handleAdd} existingProblems={existingProblems} />
+          </div>
+        </div>
 
-      <Card className="py-0">
-        <CardContent className="p-0">
+        <ProblemFilters
+          filters={filters}
+          onChange={handleChange}
+          onReset={handleReset}
+        />
+
+        <div className="mt-3 overflow-hidden rounded-lg border border-border/75 bg-background/55">
           <ProblemTable
             problems={problems}
             pageSize={PAGE_SIZE}
@@ -219,8 +233,8 @@ export default function ProblemsPage() {
             onEnrollReview={(p) => enrollReviewMutation.mutate(p.id)}
             onRemoveReview={(_problemId, cardId) => removeReviewMutation.mutate(cardId)}
           />
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {totalPages > 1 && (
         <div className="flex items-center justify-between">

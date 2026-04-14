@@ -77,7 +77,7 @@ export function ProblemFilters({ filters, onChange, onReset }: Props) {
     (filters.sort && filters.sort !== DEFAULT_SORT)
 
   return (
-    <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border/75 bg-card/78 p-3 shadow-sm backdrop-blur-xl">
+    <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border/75 bg-background/62 p-3 shadow-sm backdrop-blur-xl">
       <div className="relative flex-1 min-w-48">
         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input

@@ -1,7 +1,7 @@
 "use client"
 
 import { CheckCircle2, CircleDashed, Flame, Sun, Trophy } from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useUserStats } from "@/hooks/use-stats"
 import { useProblems } from "@/hooks/use-problems"
@@ -12,9 +12,9 @@ export function StatsCards() {
 
   if (isLoading || isLoadingProblems || !stats) {
     return (
-      <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
         {Array.from({ length: 5 }).map((_, i) => (
-          <Skeleton key={i} className="h-[106px] w-full" />
+          <Skeleton key={i} className="h-[132px] w-full" />
         ))}
       </div>
     )
@@ -29,7 +29,7 @@ export function StatsCards() {
       title: "Total Solved",
       value: totalSolved,
       icon: CheckCircle2,
-      sub: `${stats.easySolved}E · ${stats.mediumSolved}M · ${stats.hardSolved}H`,
+      sub: `${stats.easySolved}E / ${stats.mediumSolved}M / ${stats.hardSolved}H`,
       color: "text-green-500",
     },
     {
@@ -63,18 +63,22 @@ export function StatsCards() {
   ]
 
   return (
-    <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
+    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
       {cards.map(({ title, value, icon: Icon, sub, color }) => (
-        <Card key={title}>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              {title}
-            </CardTitle>
-            <Icon className={`h-4 w-4 ${color}`} />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{value}</div>
-            <p className="mt-1 text-xs text-muted-foreground">{sub}</p>
+        <Card key={title} className="overflow-hidden py-0">
+          <CardContent className="p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
+                  {title}
+                </p>
+                <div className="mt-3 text-3xl font-semibold tracking-tight">{value}</div>
+              </div>
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-background/70">
+                <Icon className={`h-5 w-5 ${color}`} />
+              </div>
+            </div>
+            <p className="mt-4 border-t pt-3 text-xs text-muted-foreground">{sub}</p>
           </CardContent>
         </Card>
       ))}
