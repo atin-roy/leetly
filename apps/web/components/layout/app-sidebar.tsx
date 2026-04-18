@@ -33,7 +33,7 @@ export function AppSidebar() {
   return (
     <aside
       className={cn(
-        "flex h-svh shrink-0 flex-col border-r bg-background transition-all duration-200",
+        "flex h-svh shrink-0 flex-col border-r border-sidebar-border bg-sidebar/92 text-sidebar-foreground shadow-[8px_0_30px_color-mix(in_oklab,var(--foreground)_8%,transparent)] backdrop-blur-xl transition-all duration-200",
         collapsed ? "w-14" : "w-56",
       )}
     >
@@ -49,8 +49,8 @@ export function AppSidebar() {
                   className={cn(
                     "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
                     active
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                      ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-[0_8px_20px_color-mix(in_oklab,var(--sidebar-primary)_20%,transparent)]"
+                      : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                     collapsed && "justify-center px-2",
                   )}
                 >

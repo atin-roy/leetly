@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth"
 import Link from "next/link"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { SignInButton } from "@/components/sign-in-button"
@@ -69,7 +70,7 @@ export default async function Home() {
   const session = await auth()
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="aesthetic-background min-h-screen overflow-hidden text-foreground">
       {/* Navigation */}
       <nav className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
@@ -104,37 +105,46 @@ export default async function Home() {
       </nav>
 
       {/* Hero */}
-      <section className="mx-auto max-w-6xl px-6 py-24 text-center">
-        <Badge variant="secondary" className="mb-6 text-xs">
-          Free &amp; Open Source
-        </Badge>
-        <h1 className="mb-5 text-5xl font-bold leading-tight tracking-tight sm:text-6xl">
-          Track your LeetCode
-          <br className="hidden sm:block" /> journey
-        </h1>
-        <p className="mx-auto mb-10 max-w-2xl text-lg leading-relaxed text-muted-foreground sm:text-xl">
-          Log attempts, spot patterns, and level up with analytics built for
-          serious competitive programmers. No subscriptions, no ads, no
-          tracking.
-        </p>
-        <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <SignInButton size="lg">
-            Get started free <ArrowRight className="ml-2 h-4 w-4" />
-          </SignInButton>
-          <Button variant="outline" size="lg" asChild>
-            <Link href={GITHUB_URL} target="_blank" rel="noopener noreferrer">
-              <Github className="mr-2 h-4 w-4" />
-              View on GitHub
-            </Link>
-          </Button>
+      <section className="relative isolate min-h-[calc(100svh-7rem)] px-6 py-20 text-center">
+        <Image
+          src="https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&fit=crop&w=2200&q=80"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="absolute inset-0 -z-20 h-full w-full object-cover"
+        />
+        <div className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,color-mix(in_oklab,var(--background)_72%,transparent),var(--background)_94%),linear-gradient(90deg,color-mix(in_oklab,var(--primary)_26%,transparent),color-mix(in_oklab,var(--chart-2)_20%,transparent))]" />
+        <div className="mx-auto flex max-w-6xl flex-col items-center">
+          <Badge variant="secondary" className="mb-6 text-xs">
+            Free &amp; Open Source
+          </Badge>
+          <h1 className="mb-5 max-w-4xl text-5xl font-black leading-tight tracking-tight sm:text-7xl">
+            Turn practice into a system.
+          </h1>
+          <p className="mx-auto mb-10 max-w-2xl text-lg leading-relaxed text-muted-foreground sm:text-xl">
+            Log attempts, spot patterns, and build a sharper LeetCode routine
+            without subscriptions, ads, or tracking.
+          </p>
+          <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <SignInButton size="lg">
+              Get started free <ArrowRight className="ml-2 h-4 w-4" />
+            </SignInButton>
+            <Button variant="outline" size="lg" asChild>
+              <Link href={GITHUB_URL} target="_blank" rel="noopener noreferrer">
+                <Github className="mr-2 h-4 w-4" />
+                View on GitHub
+              </Link>
+            </Button>
+          </div>
         </div>
       </section>
 
       {/* Features */}
-      <section className="border-y border-border/50 bg-muted/40 py-20">
+      <section className="border-y border-border/50 bg-background/55 py-20 backdrop-blur-sm">
         <div className="mx-auto max-w-6xl px-6">
           <div className="mb-14 text-center">
-            <h2 className="mb-3 text-3xl font-bold tracking-tight">
+            <h2 className="mb-3 text-3xl font-black tracking-tight">
               Everything you need to improve
             </h2>
             <p className="mx-auto max-w-xl text-muted-foreground">
@@ -148,7 +158,7 @@ export default async function Home() {
               return (
                 <Card
                   key={feature.title}
-                  className="border-border/60 bg-background/60"
+                  className="border-border/60 bg-card/75 transition-transform hover:-translate-y-1"
                 >
                   <CardHeader className="pb-3">
                     <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-md bg-primary/10">
@@ -173,7 +183,7 @@ export default async function Home() {
         <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-xl bg-muted">
           <Github className="h-7 w-7" />
         </div>
-        <h2 className="mb-4 text-3xl font-bold tracking-tight">
+        <h2 className="mb-4 text-3xl font-black tracking-tight">
           Fully open source, forever free
         </h2>
         <p className="mx-auto mb-8 max-w-xl leading-relaxed text-muted-foreground">

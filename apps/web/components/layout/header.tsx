@@ -20,7 +20,7 @@ export function Header() {
   const { toggle } = useSidebar()
 
   return (
-    <header className="flex h-14 items-center border-b bg-background px-4">
+    <header className="flex h-14 items-center border-b border-border/70 bg-background/72 px-4 shadow-sm backdrop-blur-xl">
       <div className="flex w-40 items-center">
         <Button
           variant="ghost"
@@ -35,10 +35,10 @@ export function Header() {
 
       <div className="flex flex-1 items-center justify-center">
         <Link href="/" className="flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-md bg-primary text-primary-foreground">
+          <div className="flex h-9 w-9 items-center justify-center rounded-md bg-primary text-primary-foreground shadow-[0_8px_20px_color-mix(in_oklab,var(--primary)_24%,transparent)]">
             <BookOpen className="h-5 w-5" />
           </div>
-          <span className="font-bold text-xl tracking-tight">Leetly</span>
+          <span className="text-xl font-black tracking-tight">Leetly</span>
         </Link>
       </div>
 

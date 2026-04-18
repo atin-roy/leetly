@@ -3,6 +3,14 @@ import path from "path";
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+      },
+    ],
+  },
   turbopack: {
     root: path.resolve(__dirname, "../.."),
   },
@@ -19,4 +27,3 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
-

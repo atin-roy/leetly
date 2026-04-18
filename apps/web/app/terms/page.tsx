@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function TermsPage() {
     return (
-        <div className="min-h-screen bg-background text-foreground">
+        <div className="aesthetic-background min-h-screen text-foreground">
             {/* Header */}
             <nav className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
                 <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-6">
