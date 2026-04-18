@@ -24,12 +24,12 @@ export function ReviewDueCard() {
   const dueNow = stats?.dueNow ?? 0
 
   return (
-    <Link href="/review">
-      <Card className="transition-colors hover:bg-accent/50">
+    <Link href="/review" className="block">
+      <Card className="transition-colors hover:border-primary/35 hover:bg-accent/10">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium">Due for Review</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pb-4">
           <p className={`text-2xl font-bold ${dueNow > 0 ? "text-orange-500" : ""}`}>
             {dueNow}
           </p>

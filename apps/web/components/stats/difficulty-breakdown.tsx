@@ -45,10 +45,10 @@ export function DifficultyBreakdown() {
   const maxSolved = Math.max(...difficulties.map((d) => d.solved), 1)
 
   return (
-    <div className="grid grid-cols-3 gap-4">
+    <div className="grid gap-4 md:grid-cols-3">
       {difficulties.map(({ label, solved, colorText, colorBar }) => (
         <Card key={label}>
-          <CardContent className="pb-5 pt-5">
+          <CardContent className="pb-4 pt-4">
             <p
               className={cn(
                 "text-xs font-semibold uppercase tracking-wider",
@@ -57,7 +57,7 @@ export function DifficultyBreakdown() {
             >
               {label}
             </p>
-            <p className="mt-1.5 text-3xl font-bold">{solved}</p>
+            <p className="mt-1.5 text-2xl font-bold">{solved}</p>
             <div className="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-muted">
               <div
                 className={cn("h-full rounded-full", colorBar)}

@@ -65,14 +65,14 @@ export function StatsCards() {
   return (
     <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
       {cards.map(({ title, value, icon: Icon, sub, color }) => (
-        <Card key={title}>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
+        <Card key={title} className="min-h-0">
+          <CardHeader className="flex flex-row items-center justify-between pb-0">
+            <CardTitle className="text-xs font-semibold uppercase text-muted-foreground">
               {title}
             </CardTitle>
             <Icon className={`h-4 w-4 ${color}`} />
           </CardHeader>
-          <CardContent>
+          <CardContent className="pb-1">
             <div className="text-2xl font-bold">{value}</div>
             <p className="mt-1 text-xs text-muted-foreground">{sub}</p>
           </CardContent>

@@ -119,6 +119,11 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  *::-webkit-scrollbar {
+    display: none;
   }
   body {
     @apply bg-background text-foreground;
@@ -172,8 +177,8 @@
       );
     border-color: color-mix(in oklab, var(--border) 78%, transparent);
     box-shadow:
-      0 1px 0 color-mix(in oklab, white 62%, transparent) inset,
-      0 18px 45px color-mix(in oklab, var(--foreground) 10%, transparent);
+      0 1px 0 color-mix(in oklab, white 48%, transparent) inset,
+      0 8px 22px color-mix(in oklab, var(--foreground) 6%, transparent);
   }
 
   .markdown-content {
