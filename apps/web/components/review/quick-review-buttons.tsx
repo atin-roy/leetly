@@ -5,11 +5,11 @@ import { Button } from "@/components/ui/button"
 import { useQuickReview } from "@/hooks/use-reviews"
 import type { Rating } from "@/lib/types"
 
-const RATINGS: { value: Rating; label: string; className: string }[] = [
-  { value: "AGAIN", label: "Again", className: "text-red-600 hover:bg-red-50 border-red-200" },
-  { value: "HARD", label: "Hard", className: "text-orange-600 hover:bg-orange-50 border-orange-200" },
-  { value: "GOOD", label: "Good", className: "text-blue-600 hover:bg-blue-50 border-blue-200" },
-  { value: "EASY", label: "Easy", className: "text-green-600 hover:bg-green-50 border-green-200" },
+const RATINGS: { value: Rating; label: string }[] = [
+  { value: "AGAIN", label: "Again" },
+  { value: "HARD", label: "Hard" },
+  { value: "GOOD", label: "Good" },
+  { value: "EASY", label: "Easy" },
 ]
 
 interface Props {
@@ -30,15 +30,14 @@ export function QuickReviewButtons({ cardId, size = "sm" }: Props) {
   }
 
   return (
-    <div className="flex gap-1">
-      {RATINGS.map(({ value, label, className }) => (
+    <div className="flex gap-2">
+      {RATINGS.map(({ value, label }) => (
         <Button
           key={value}
-          variant="outline"
+          variant="secondary"
           size={size}
           disabled={reviewMutation.isPending}
           onClick={() => handleReview(value)}
-          className={className}
         >
           {label}
         </Button>
