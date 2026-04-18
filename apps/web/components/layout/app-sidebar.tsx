@@ -2,7 +2,6 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { signOut } from "next-auth/react"
 import {
   BarChart3,
   BookOpen,
@@ -10,7 +9,6 @@ import {
   ChevronRight,
   Code2,
   List,
-  LogOut,
   RotateCcw,
   StickyNote,
   UserCircle2,
@@ -41,7 +39,7 @@ export function AppSidebar() {
       <div
         className={cn(
           "flex h-14 shrink-0 items-center border-b border-sidebar-border px-3",
-          collapsed ? "justify-center" : "justify-between",
+          collapsed ? "justify-center" : "justify-start",
         )}
       >
         <Link
@@ -57,16 +55,6 @@ export function AppSidebar() {
           </span>
           {!collapsed && <span className="truncate text-lg">Leetly</span>}
         </Link>
-
-        {!collapsed && (
-          <button
-            onClick={toggle}
-            title="Collapse sidebar"
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </button>
-        )}
       </div>
 
       <nav className="flex-1 overflow-hidden p-3 pt-4">
@@ -95,27 +83,22 @@ export function AppSidebar() {
         </ul>
       </nav>
 
-      <div className="border-t p-3 space-y-1">
+      <div className="border-t border-sidebar-border p-3">
         <button
-          onClick={() => signOut({ callbackUrl: "/" })}
-          title={collapsed ? "Sign out" : undefined}
+          onClick={toggle}
+          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           className={cn(
-            "flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive",
+            "flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
             collapsed && "justify-center px-2",
           )}
         >
-          <LogOut className="h-4 w-4 shrink-0" />
-          {!collapsed && <span>Sign Out</span>}
-        </button>
-        {collapsed && (
-          <button
-            onClick={toggle}
-            title="Expand sidebar"
-            className="flex w-full items-center justify-center gap-3 rounded-md px-2 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
-          >
+          {collapsed ? (
             <ChevronRight className="h-4 w-4 shrink-0" />
-          </button>
-        )}
+          ) : (
+            <ChevronLeft className="h-4 w-4 shrink-0" />
+          )}
+          {!collapsed && <span>Collapse</span>}
+        </button>
       </div>
     </aside>
   )
