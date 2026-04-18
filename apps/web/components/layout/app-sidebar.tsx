@@ -33,7 +33,7 @@ export function AppSidebar() {
   return (
     <aside
       className={cn(
-        "flex min-h-svh self-stretch flex-col border-r bg-background transition-all duration-200",
+        "flex h-svh shrink-0 flex-col border-r bg-background transition-all duration-200",
         collapsed ? "w-14" : "w-56",
       )}
     >
