@@ -1,8 +1,8 @@
 "use client"
 
-import { useMemo, useRef, useState, type ChangeEvent } from "react"
+import { useMemo, useRef, useState } from "react"
 import Link from "next/link"
-import { AlertCircle, ArrowRight, ExternalLink, Loader2, Plus, Upload } from "lucide-react"
+import { AlertCircle, ArrowRight, ExternalLink, Loader2, Plus } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import {
@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 import { DifficultyBadge } from "@/components/problems/difficulty-badge"
 import { fetchLeetCodeProblem, parseProblemInput, type FetchedProblem } from "@/lib/leetcode"
 import { getListDisplayNameFromName } from "@/lib/list-display"
@@ -46,9 +47,9 @@ export function AddProblemToListDialog({
   const [fetchStatus, setFetchStatus] = useState<"idle" | "loading" | "fetched" | "error">("idle")
   const [preview, setPreview] = useState<FetchedProblem | null>(null)
   const [newProblemError, setNewProblemError] = useState<string | null>(null)
-  const [isImportingCsv, setIsImportingCsv] = useState(false)
+  const [bulkProblemInput, setBulkProblemInput] = useState("")
+  const [isImportingBulk, setIsImportingBulk] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const csvInputRef = useRef<HTMLInputElement | null>(null)
 
   const existingProblems = useMemo(
     () => new Map(problems.map((problem) => [problem.leetcodeId, problem.id])),
@@ -62,42 +63,15 @@ export function AddProblemToListDialog({
     setFetchStatus("idle")
     setPreview(null)
     setNewProblemError(null)
+    setBulkProblemInput("")
     if (debounceRef.current) clearTimeout(debounceRef.current)
   }
 
-  function extractCsvRows(csv: string) {
-    return csv
-      .split(/\r?\n/)
-      .map((line) => line.trim())
-      .filter(Boolean)
-      .map((line) =>
-        line
-          .split(",")
-          .map((cell) => cell.trim().replace(/^"(.*)"$/, "$1")),
-      )
-  }
-
-  function extractProblemInputFromRow(row: string[], headerMap?: Map<string, number>) {
-    const normalizedRow = row.map((cell) => cell.trim()).filter(Boolean)
-    if (normalizedRow.length === 0) return null
-
-    const byHeader = (keys: string[]) => {
-      if (!headerMap) return null
-      for (const key of keys) {
-        const index = headerMap.get(key)
-        if (index == null) continue
-        const value = row[index]?.trim()
-        if (value) return value
-      }
-      return null
-    }
-
-    const preferred =
-      byHeader(["url", "link", "leetcode_url"]) ??
-      byHeader(["id", "leetcode_id", "problem_id", "number"])
-    if (preferred) return preferred
-
-    return normalizedRow.find((cell) => parseProblemInput(cell)) ?? null
+  function extractBulkProblemInputs(value: string) {
+    return value
+      .split(/[,\n]/)
+      .map((input) => input.trim())
+      .filter((input) => parseProblemInput(input))
   }
 
   async function ensureProblemInList(
@@ -124,35 +98,13 @@ export function AddProblemToListDialog({
     return "created"
   }
 
-  async function handleCsvUpload(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0]
-    event.target.value = ""
-    if (!file) return
-
+  async function handleBulkImport() {
     try {
-      setIsImportingCsv(true)
-      const csv = await file.text()
-      const rows = extractCsvRows(csv)
-      if (rows.length === 0) {
-        toast.error("CSV file is empty")
-        return
-      }
-
-      const normalizedHeader = rows[0].map((cell) => cell.trim().toLowerCase())
-      const hasHeader = normalizedHeader.some((cell) =>
-        ["id", "leetcode_id", "problem_id", "number", "url", "link", "leetcode_url"].includes(cell),
-      )
-      const headerMap = hasHeader
-        ? new Map(normalizedHeader.map((cell, index) => [cell, index]))
-        : undefined
-      const dataRows = hasHeader ? rows.slice(1) : rows
-
-      const inputs = dataRows
-        .map((row) => extractProblemInputFromRow(row, headerMap))
-        .filter((value): value is string => Boolean(value))
+      setIsImportingBulk(true)
+      const inputs = extractBulkProblemInputs(bulkProblemInput)
 
       if (inputs.length === 0) {
-        toast.error("No valid LeetCode ids or URLs found in the CSV")
+        toast.error("Enter at least one valid LeetCode id or URL")
         return
       }
 
@@ -208,7 +160,7 @@ export function AddProblemToListDialog({
         toast.message("Nothing new to import")
       }
     } finally {
-      setIsImportingCsv(false)
+      setIsImportingBulk(false)
     }
   }
 
@@ -313,37 +265,39 @@ export function AddProblemToListDialog({
           </p>
 
           <div className="rounded-lg border border-dashed p-4">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="space-y-3">
               <div className="space-y-1">
-                <p className="text-sm font-medium">Bulk import from CSV</p>
+                <p className="text-sm font-medium">Bulk add problems</p>
                 <p className="text-xs text-muted-foreground">
-                  Upload a CSV with LeetCode ids, URLs, or both. Each row is processed like manual add.
+                  Paste LeetCode ids or URLs separated by commas. Each value is processed like manual add.
                 </p>
               </div>
-              <div className="flex items-center gap-2">
-                <input
-                  ref={csvInputRef}
-                  type="file"
-                  accept=".csv,text/csv"
-                  className="hidden"
-                  onChange={(event) => void handleCsvUpload(event)}
+              <div className="space-y-2">
+                <Textarea
+                  value={bulkProblemInput}
+                  onChange={(event) => setBulkProblemInput(event.target.value)}
+                  placeholder="e.g. 1, 42, leetcode.com/problems/two-sum/"
+                  rows={3}
+                  disabled={isImportingBulk || createProblemMutation.isPending || addMutation.isPending}
                 />
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => csvInputRef.current?.click()}
-                  disabled={isImportingCsv || createProblemMutation.isPending || addMutation.isPending}
+                  onClick={() => void handleBulkImport()}
+                  disabled={
+                    !bulkProblemInput.trim() ||
+                    isImportingBulk ||
+                    createProblemMutation.isPending ||
+                    addMutation.isPending
+                  }
                 >
-                  {isImportingCsv ? (
+                  {isImportingBulk ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Importing...
                     </>
                   ) : (
-                    <>
-                      <Upload className="mr-2 h-4 w-4" />
-                      Upload CSV
-                    </>
+                    "Import List"
                   )}
                 </Button>
               </div>
@@ -423,7 +377,7 @@ export function AddProblemToListDialog({
             </Button>
             <Button
               onClick={() => void handleSubmit()}
-              disabled={!preview || duplicateIsInList || createProblemMutation.isPending || addMutation.isPending || isImportingCsv}
+              disabled={!preview || duplicateIsInList || createProblemMutation.isPending || addMutation.isPending || isImportingBulk}
             >
               {createProblemMutation.isPending || addMutation.isPending ? (
                 <>
