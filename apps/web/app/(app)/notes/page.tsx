@@ -61,17 +61,6 @@ function formatNoteDate(value: string) {
   return format(new Date(value), "MMM d, yyyy")
 }
 
-function getContentPreview(content: string) {
-  return content
-    .replace(/```[\s\S]*?```/g, " ")
-    .replace(/`([^`]+)`/g, "$1")
-    .replace(/!\[[^\]]*]\([^)]*\)/g, " ")
-    .replace(/\[([^\]]+)]\([^)]*\)/g, "$1")
-    .replace(/[#>*_~|`-]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-}
-
 function NoteCard({
   note,
   onClick,
@@ -150,7 +139,6 @@ function NoteTable({
           <TableHead>Title</TableHead>
           <TableHead className="w-32">Tag</TableHead>
           <TableHead className="w-32">Date</TableHead>
-          <TableHead>Preview</TableHead>
           <TableHead className="w-24 text-right">Actions</TableHead>
         </TableRow>
       </TableHeader>
@@ -171,11 +159,6 @@ function NoteTable({
             </TableCell>
             <TableCell className="text-muted-foreground">
               {formatNoteDate(note.dateTime)}
-            </TableCell>
-            <TableCell className="min-w-72 whitespace-normal text-muted-foreground">
-              <div className="line-clamp-2">
-                {getContentPreview(note.content) || "No content"}
-              </div>
             </TableCell>
             <TableCell>
               <div
