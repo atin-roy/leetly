@@ -179,8 +179,9 @@ export function AddProblemToListDialog({
               value={problemInputs}
               onChange={(event) => setProblemInputs(event.target.value)}
               placeholder="e.g. 1, 42, leetcode.com/problems/two-sum/"
-              rows={4}
+              rows={1}
               disabled={isImportingBulk || createProblemMutation.isPending || addMutation.isPending}
+              className="max-h-[8.5rem] min-h-10 resize-none overflow-y-auto"
             />
             <p className="text-xs text-muted-foreground">
               Use commas or new lines. Existing problems will be linked to this list; new ones will be created.
