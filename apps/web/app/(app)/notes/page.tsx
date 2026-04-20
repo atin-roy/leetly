@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { format } from "date-fns"
-import { ChevronLeft, ChevronRight, Pencil, Plus, Search, Trash2 } from "lucide-react"
+import { ChevronLeft, ChevronRight, Grid3X3, List, Pencil, Plus, Search, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -26,6 +26,14 @@ import {
 } from "@/components/ui/select"
 import { NoteEditorDialog } from "@/components/notes/note-editor-dialog"
 import { MarkdownContent } from "@/components/ui/markdown-content"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { useNotes, useCreateNote, useUpdateNote, useDeleteNote } from "@/hooks/use-notes"
 import type { NoteDto, NoteFilters, NoteTag } from "@/lib/types"
 
@@ -47,6 +55,22 @@ const TAGS: { value: NoteTag; label: string }[] = [
 
 const PAGE_SIZE = 20
 const DEFAULT_FILTERS: NoteFilters = { page: 0, size: PAGE_SIZE }
+type NotesViewMode = "cards" | "table"
+
+function formatNoteDate(value: string) {
+  return format(new Date(value), "MMM d, yyyy")
+}
+
+function getContentPreview(content: string) {
+  return content
+    .replace(/```[\s\S]*?```/g, " ")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/!\[[^\]]*]\([^)]*\)/g, " ")
+    .replace(/\[([^\]]+)]\([^)]*\)/g, "$1")
+    .replace(/[#>*_~|`-]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+}
 
 function NoteCard({
   note,
@@ -73,7 +97,7 @@ function NoteCard({
                 {note.tag}
               </Badge>
               <span className="text-xs text-muted-foreground">
-                {format(new Date(note.dateTime), "MMM d, yyyy")}
+                {formatNoteDate(note.dateTime)}
               </span>
             </div>
           </div>
@@ -108,6 +132,82 @@ function NoteCard({
   )
 }
 
+function NoteTable({
+  notes,
+  onView,
+  onEdit,
+  onDelete,
+}: {
+  notes: NoteDto[]
+  onView: (note: NoteDto) => void
+  onEdit: (note: NoteDto) => void
+  onDelete: (note: NoteDto) => void
+}) {
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Title</TableHead>
+          <TableHead className="w-32">Tag</TableHead>
+          <TableHead className="w-32">Date</TableHead>
+          <TableHead>Preview</TableHead>
+          <TableHead className="w-24 text-right">Actions</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {notes.map((note) => (
+          <TableRow
+            key={note.id}
+            className="h-14 cursor-pointer"
+            onClick={() => onView(note)}
+          >
+            <TableCell className="max-w-64 font-medium">
+              <div className="truncate">{note.title}</div>
+            </TableCell>
+            <TableCell>
+              <Badge variant="secondary" className={TAG_COLORS[note.tag]}>
+                {note.tag}
+              </Badge>
+            </TableCell>
+            <TableCell className="text-muted-foreground">
+              {formatNoteDate(note.dateTime)}
+            </TableCell>
+            <TableCell className="min-w-72 whitespace-normal text-muted-foreground">
+              <div className="line-clamp-2">
+                {getContentPreview(note.content) || "No content"}
+              </div>
+            </TableCell>
+            <TableCell>
+              <div
+                className="flex justify-end gap-1"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  aria-label={`Edit ${note.title}`}
+                  onClick={() => onEdit(note)}
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-destructive"
+                  aria-label={`Delete ${note.title}`}
+                  onClick={() => onDelete(note)}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  )
+}
+
 export default function NotesPage() {
   const [filters, setFilters] = useState<NoteFilters>(DEFAULT_FILTERS)
   const { data: pagedResponse, isLoading } = useNotes(filters)
@@ -119,6 +219,7 @@ export default function NotesPage() {
   const [selectedNote, setSelectedNote] = useState<NoteDto | undefined>()
   const [dialogMode, setDialogMode] = useState<"view" | "edit">("view")
   const [deleteNoteId, setDeleteNoteId] = useState<number | null>(null)
+  const [viewMode, setViewMode] = useState<NotesViewMode>("cards")
 
   const notes = pagedResponse?.content ?? []
   const page = pagedResponse?.page ?? 0
@@ -172,7 +273,11 @@ export default function NotesPage() {
           <Skeleton className="h-8 w-24" />
           <Skeleton className="h-9 w-28" />
         </div>
-        <Skeleton className="h-10 w-full" />
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-10 max-w-sm flex-1" />
+          <Skeleton className="h-10 w-36" />
+          <Skeleton className="h-10 w-36" />
+        </div>
         <div className="grid gap-4 sm:grid-cols-2">
           {Array.from({ length: 4 }).map((_, i) => (
             <Skeleton key={i} className="h-[14rem] w-full" />
@@ -199,7 +304,7 @@ export default function NotesPage() {
         </Button>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
           <Input
@@ -229,6 +334,30 @@ export default function NotesPage() {
             ))}
           </SelectContent>
         </Select>
+        <div className="flex rounded-md border bg-background p-0.5 sm:ml-auto">
+          <Button
+            type="button"
+            variant={viewMode === "cards" ? "secondary" : "ghost"}
+            size="sm"
+            className="h-8 px-3"
+            aria-pressed={viewMode === "cards"}
+            onClick={() => setViewMode("cards")}
+          >
+            <Grid3X3 className="mr-1.5 h-4 w-4" />
+            Cards
+          </Button>
+          <Button
+            type="button"
+            variant={viewMode === "table" ? "secondary" : "ghost"}
+            size="sm"
+            className="h-8 px-3"
+            aria-pressed={viewMode === "table"}
+            onClick={() => setViewMode("table")}
+          >
+            <List className="mr-1.5 h-4 w-4" />
+            Table
+          </Button>
+        </div>
       </div>
 
       {notes.length === 0 ? (
@@ -247,7 +376,7 @@ export default function NotesPage() {
             Create your first note
           </Button>
         </div>
-      ) : (
+      ) : viewMode === "cards" ? (
         <div className="grid gap-4 sm:grid-cols-2">
           {notes.map((note) => (
             <NoteCard
@@ -259,6 +388,13 @@ export default function NotesPage() {
             />
           ))}
         </div>
+      ) : (
+        <NoteTable
+          notes={notes}
+          onView={handleView}
+          onEdit={handleEdit}
+          onDelete={(note) => setDeleteNoteId(note.id)}
+        />
       )}
 
       {totalPages > 1 && (
