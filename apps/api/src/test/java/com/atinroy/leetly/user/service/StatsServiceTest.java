@@ -307,6 +307,25 @@ class StatsServiceTest {
         assertThat(dailyStats.get(1).getTimeMinutes()).isEqualTo(35);
     }
 
+    @Test
+    void getFirstSolveDate_returnsEarliestSolvedProblemDate() {
+        User user = new User();
+        Problem olderSolved = problem(1L, ProblemStatus.SOLVED, Difficulty.EASY, LocalDate.of(2026, 1, 15));
+        Problem newerSolved = problem(2L, ProblemStatus.MASTERED, Difficulty.HARD, LocalDate.of(2026, 2, 20));
+        Problem unsolved = problem(3L, ProblemStatus.ATTEMPTED, Difficulty.MEDIUM, LocalDate.of(2026, 1, 1));
+
+        Attempt accepted = attempt(Outcome.ACCEPTED, Difficulty.EASY, 1);
+        accepted.setProblem(olderSolved);
+        accepted.setCreatedDate(LocalDateTime.of(2026, 1, 10, 12, 0));
+
+        when(problemRepository.findAllByUser(user)).thenReturn(List.of(olderSolved, newerSolved, unsolved));
+        when(attemptRepository.findByUserOrderByCreatedDateAsc(user)).thenReturn(List.of(accepted));
+
+        Optional<LocalDate> firstSolveDate = statsService.getFirstSolveDate(user);
+
+        assertThat(firstSolveDate).contains(LocalDate.of(2026, 1, 10));
+    }
+
     private UserStats statsWithAttempts(int totalAttempts) {
         UserStats stats = new UserStats();
         stats.setTotalAttempts(totalAttempts);

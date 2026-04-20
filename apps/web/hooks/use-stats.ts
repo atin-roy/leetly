@@ -13,10 +13,10 @@ export function useUserStats() {
   })
 }
 
-export function useDailyStats(days = 365) {
+export function useDailyStats(days?: number) {
   const { data: session } = useSession()
   return useQuery({
-    queryKey: ["stats", "daily", days],
+    queryKey: ["stats", "daily", days ?? "all"],
     queryFn: () => getDailyStats(session?.accessToken, days),
     enabled: !!session?.accessToken,
   })

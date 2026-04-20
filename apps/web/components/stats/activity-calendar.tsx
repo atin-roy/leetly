@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { format, subDays } from "date-fns"
+import { addDays, differenceInCalendarDays, format, parseISO } from "date-fns"
 import { cn } from "@/lib/utils"
 import {
   Tooltip,
@@ -11,15 +11,13 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import { useDailyStats } from "@/hooks/use-stats"
 
-const DAYS = 90
-const MIN_BAR_W = 12
-const BAR_GAP = 3
 const CHART_H = 132
+const MAX_BAR_GAP = 3
 
 export function ActivityBar() {
   const containerRef = useRef<HTMLDivElement>(null)
   const [containerWidth, setContainerWidth] = useState<number | null>(null)
-  const { data: dailyStats, isLoading } = useDailyStats(DAYS)
+  const { data: dailyStats, isLoading } = useDailyStats()
 
   useEffect(() => {
     const node = containerRef.current
@@ -33,10 +31,7 @@ export function ActivityBar() {
 
     updateWidth()
 
-    const observer = new ResizeObserver(() => {
-      updateWidth()
-    })
-
+    const observer = new ResizeObserver(updateWidth)
     observer.observe(node)
 
     return () => {
@@ -48,6 +43,16 @@ export function ActivityBar() {
     return <Skeleton className="h-[140px] w-full" />
   }
 
+  const firstSolvedStat = dailyStats?.find((stat) => stat.solved > 0)
+
+  if (!firstSolvedStat) {
+    return (
+      <div className="flex h-[140px] items-center text-sm text-muted-foreground">
+        No solved activity yet.
+      </div>
+    )
+  }
+
   // Build a date map for quick lookups
   const countsMap = new Map<string, number>()
   if (dailyStats) {
@@ -57,8 +62,10 @@ export function ActivityBar() {
   }
 
   const today = new Date()
-  const data = Array.from({ length: DAYS }, (_, i) => {
-    const date = subDays(today, DAYS - 1 - i)
+  const startDate = parseISO(firstSolvedStat.date)
+  const totalDays = Math.max(differenceInCalendarDays(today, startDate) + 1, 1)
+  const data = Array.from({ length: totalDays }, (_, i) => {
+    const date = addDays(startDate, i)
     const dateStr = format(date, "yyyy-MM-dd")
     return {
       date: dateStr,
@@ -70,23 +77,27 @@ export function ActivityBar() {
   })
 
   const maxCount = Math.max(...data.map((d) => d.count), 1)
-  const visibleBars = containerWidth
-    ? Math.max(1, Math.floor((containerWidth + BAR_GAP) / (MIN_BAR_W + BAR_GAP)))
-    : DAYS
-  const visibleData = data.slice(-Math.min(DAYS, visibleBars))
+  const barGap =
+    containerWidth === null || data.length <= 1
+      ? MAX_BAR_GAP
+      : Math.max(
+          0,
+          Math.min(MAX_BAR_GAP, (containerWidth - data.length) / (data.length - 1))
+        )
 
   return (
     <div ref={containerRef} className="w-full overflow-hidden">
       <div className="w-full">
         {/* Bars */}
         <div
-          className="grid items-end gap-[3px]"
+          className="grid items-end"
           style={{
             height: CHART_H,
-            gridTemplateColumns: `repeat(${visibleData.length}, minmax(0, 1fr))`,
+            columnGap: barGap,
+            gridTemplateColumns: `repeat(${data.length}, minmax(0, 1fr))`,
           }}
         >
-          {visibleData.map((d) => {
+          {data.map((d) => {
             const barH =
               d.count === 0 ? 2 : Math.max((d.count / maxCount) * CHART_H, 4)
             return (
@@ -121,17 +132,18 @@ export function ActivityBar() {
 
         {/* Month labels */}
         <div
-          className="mt-1.5 grid gap-[3px]"
+          className="mt-1.5 grid"
           style={{
-            gridTemplateColumns: `repeat(${visibleData.length}, minmax(0, 1fr))`,
+            columnGap: barGap,
+            gridTemplateColumns: `repeat(${data.length}, minmax(0, 1fr))`,
           }}
         >
-          {visibleData.map((d) => (
+          {data.map((d, index) => (
             <div
               key={d.date}
               className="min-w-0 text-[10px] leading-none text-muted-foreground"
             >
-              {d.dayOfMonth === 1 ? d.monthLabel : ""}
+              {index === 0 || d.dayOfMonth === 1 ? d.monthLabel : ""}
             </div>
           ))}
         </div>

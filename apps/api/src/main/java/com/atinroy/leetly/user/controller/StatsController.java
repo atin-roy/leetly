@@ -34,10 +34,17 @@ public class StatsController {
 
     @GetMapping("/daily")
     public List<DailyStatDto> getDailyStats(@AuthenticationPrincipal Jwt jwt,
-                                             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
-                                             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+                                             @RequestParam(required = false)
+                                             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+                                             @RequestParam(required = false)
+                                             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
         User user = userService.getOrCreate(jwt.getSubject());
-        return statsService.getDailyStatsBetween(user, from, to).stream()
+        LocalDate endDate = to != null ? to : LocalDate.now();
+        LocalDate startDate = from != null
+                ? from
+                : statsService.getFirstSolveDate(user).orElse(endDate);
+
+        return statsService.getDailyStatsBetween(user, startDate, endDate).stream()
                 .map(dailyStatMapper::toDto).toList();
     }
 }

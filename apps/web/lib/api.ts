@@ -278,12 +278,17 @@ export function getDailyStats(
   token: string | undefined,
   days?: number,
 ): Promise<DailyStatDto[]> {
-  const windowDays = days ?? 365
   const to = new Date()
-  const from = new Date()
-  from.setDate(from.getDate() - (windowDays - 1))
   const fmt = (d: Date) => format(d, "yyyy-MM-dd")
-  return apiFetch(`/api/me/stats/daily?from=${fmt(from)}&to=${fmt(to)}`, token)
+  const params = new URLSearchParams({ to: fmt(to) })
+
+  if (days !== undefined) {
+    const from = new Date()
+    from.setDate(from.getDate() - (days - 1))
+    params.set("from", fmt(from))
+  }
+
+  return apiFetch(`/api/me/stats/daily?${params.toString()}`, token)
 }
 
 export function getMistakes(

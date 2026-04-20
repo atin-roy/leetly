@@ -20,7 +20,7 @@ export default function DashboardPage() {
       <Card>
         <CardHeader>
           <CardTitle className="text-sm font-medium">
-            Activity (last 90 days)
+            Activity since first solve
           </CardTitle>
         </CardHeader>
         <CardContent>

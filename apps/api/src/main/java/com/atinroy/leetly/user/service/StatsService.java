@@ -27,6 +27,8 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import com.atinroy.leetly.user.model.DailyStat;
 import com.atinroy.leetly.user.model.User;
@@ -90,6 +92,18 @@ public class StatsService {
         return dailyStats.values().stream()
                 .sorted(Comparator.comparing(DailyStat::getDate))
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<LocalDate> getFirstSolveDate(User user) {
+        List<Problem> problems = problemRepository.findAllByUser(user);
+        List<Attempt> attempts = attemptRepository.findByUserOrderByCreatedDateAsc(user);
+        Map<Long, List<Attempt>> attemptsByProblemId = groupAttemptsByProblem(attempts);
+
+        return problems.stream()
+                .map(problem -> findSolveDate(problem, attemptsByProblemId.get(problem.getId())))
+                .filter(Objects::nonNull)
+                .min(LocalDate::compareTo);
     }
 
     public void updateOnAttempt(User user, Attempt attempt, boolean isFirstSolve) {
