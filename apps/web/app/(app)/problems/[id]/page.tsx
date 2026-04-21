@@ -132,12 +132,6 @@ function getOutcomeBadgeClass(outcome: AttemptDto["outcome"]) {
     : "border-red-200 bg-red-50 text-red-700"
 }
 
-function formatAttemptComplexities(attempt: AttemptDto) {
-  const time = attempt.timeComplexity ?? "?"
-  const space = attempt.spaceComplexity ?? "?"
-  return `${time} / ${space}`
-}
-
 function formatAttemptMistakes(attempt: AttemptDto) {
   if (attempt.mistakes.length === 0) return "None"
   return attempt.mistakes.map((mistake) => MISTAKE_LABELS[mistake] ?? mistake).join(", ")
@@ -646,315 +640,332 @@ export default function ProblemDetailPage({
     : null
 
   return (
-    <div className="space-y-6 max-w-3xl mx-auto">
-      {/* Back */}
-      <Button variant="ghost" size="sm" asChild className="-ml-2">
-        <Link href="/problems">
-          <ArrowLeft className="mr-1 h-4 w-4" />
-          Back
-        </Link>
-      </Button>
+    <div className="mx-auto max-w-7xl space-y-6">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px] xl:items-start">
+        <div className="space-y-6">
+          {/* Back */}
+          <Button variant="ghost" size="sm" asChild className="-ml-2">
+            <Link href="/problems">
+              <ArrowLeft className="mr-1 h-4 w-4" />
+              Back
+            </Link>
+          </Button>
 
-      {/* Header */}
-      <div className="space-y-3 text-center">
-        <div className="min-w-0">
-          <p className="font-mono text-sm text-muted-foreground">#{problem.leetcodeId}</p>
-          <h1 className="mt-1 text-2xl font-semibold">{problem.title}</h1>
-        </div>
-        <div className="flex justify-center">
-          <CopyProblemButton
-            problemId={id}
-            problem={problem}
-            notes={notesData?.content}
-            listNames={problemListNames}
-            variant="outline"
-            className="shrink-0"
-            label="Copy details"
-            title="Copy problem details"
-          />
-        </div>
-      </div>
-
-      {/* Properties — Obsidian metadata style */}
-      <div className="rounded-lg border text-sm">
-
-        {/* Status */}
-        <MetaRow label="status" align="center">
-          <Select value={problem.status} onValueChange={(v) => statusMutation.mutate(v)}>
-            <SelectTrigger
-              hideIcon
-              disabled={statusMutation.isPending}
-              className="inline-flex h-auto w-fit cursor-pointer items-center border-0 bg-transparent p-0 shadow-none transition-opacity hover:opacity-80 focus-visible:ring-0 data-[state=open]:opacity-80"
-            >
-              <SelectValue>
-                <StatusBadge status={problem.status} />
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {STATUSES.map((s) => (
-                <SelectItem key={s.value} value={s.value}>
-                  <StatusBadge status={s.value} />
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </MetaRow>
-
-        {/* Difficulty */}
-        <MetaRow label="difficulty" align="center">
-          <DifficultyBadge difficulty={problem.difficulty} />
-        </MetaRow>
-
-        {/* LeetCode link */}
-        <MetaRow label="leetcode" align="center">
-          <a
-            href={problem.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <ExternalLink className="h-3 w-3" />
-            {problem.url.replace("https://", "")}
-          </a>
-        </MetaRow>
-
-        {/* Topics */}
-        <MetaRow label="topics">
-          <div className="flex flex-wrap items-center gap-1.5">
-            {problem.topics.map((t) => (
-              <span
-                key={t.id}
-                className="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium"
-              >
-                {t.name}
-                <button
-                  onClick={() => removeTopicsMutation.mutate([t.id])}
-                  className="rounded-full hover:bg-muted-foreground/20 p-0.5"
-                >
-                  <X className="h-2.5 w-2.5" />
-                </button>
-              </span>
-            ))}
-            <button
-              onClick={() => setTopicModalOpen(true)}
-              className="inline-flex items-center gap-1 rounded-full border border-dashed px-2.5 py-0.5 text-xs text-muted-foreground hover:border-foreground hover:text-foreground transition-colors"
-            >
-              <Plus className="h-2.5 w-2.5" />
-              Add
-            </button>
-          </div>
-        </MetaRow>
-
-        {/* Patterns */}
-        <MetaRow label="patterns">
-          <div className="space-y-1">
-            {problem.patterns.map((p) => (
-              <div key={p.id} className="flex items-center justify-between gap-2 group/item">
-                <div className="min-w-0 flex items-center gap-1.5">
-                  <span className="text-xs font-medium">{p.name}</span>
-                  {p.topicName && (
-                    <span className="text-xs text-muted-foreground">· {p.topicName}</span>
-                  )}
-                </div>
-                <button
-                  onClick={() => removePatternMutation.mutate(p.id)}
-                  className="opacity-0 group-hover/item:opacity-100 shrink-0 rounded hover:bg-muted p-0.5 text-muted-foreground hover:text-foreground transition-opacity"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </div>
-            ))}
-            <button
-              onClick={() => setPatternModalOpen(true)}
-              className="inline-flex items-center gap-1 rounded-full border border-dashed px-2.5 py-0.5 text-xs text-muted-foreground hover:border-foreground hover:text-foreground transition-colors"
-            >
-              <Plus className="h-2.5 w-2.5" />
-              Add
-            </button>
-          </div>
-        </MetaRow>
-
-        {/* Related */}
-        <MetaRow label="related">
-          <div className="space-y-1">
-            {problem.relatedProblems.map((r) => (
-              <div key={r.id} className="flex items-center gap-2">
-                <div className="flex items-center gap-2 min-w-0">
-                  <Link
-                    href={`/problems/${r.id}`}
-                    className="text-xs font-medium hover:underline truncate"
-                  >
-                    #{r.leetcodeId} {r.title}
-                  </Link>
-                  <DifficultyBadge difficulty={r.difficulty} />
+          {/* Header */}
+          <div className="rounded-2xl border bg-background/95 p-6 shadow-sm">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+              <div className="min-w-0 space-y-2">
+                <p className="font-mono text-sm text-muted-foreground">#{problem.leetcodeId}</p>
+                <h1 className="text-3xl font-semibold tracking-tight">{problem.title}</h1>
+                <div className="flex flex-wrap items-center gap-2">
+                  <DifficultyBadge difficulty={problem.difficulty} />
+                  <StatusBadge status={problem.status} />
                 </div>
               </div>
-            ))}
-            <button
-              onClick={() => setRelatedModalOpen(true)}
-              className="inline-flex items-center gap-1 rounded-full border border-dashed px-2.5 py-0.5 text-xs text-muted-foreground hover:border-foreground hover:text-foreground transition-colors"
-            >
-              <Plus className="h-2.5 w-2.5" />
-              Add
-            </button>
-          </div>
-        </MetaRow>
-
-        {/* Lists */}
-        <MetaRow label="lists">
-          <div className="flex flex-wrap items-center gap-1.5">
-            {problemLists.map((l) => (
-              <span
-                key={l.id}
-                className="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium"
-              >
-                <Link href={getListHref(l)} className="hover:underline">
-                  {getListDisplayName(l)}
-                </Link>
-                <button
-                  onClick={() => handleRemoveFromList(l.id)}
-                  className="rounded-full hover:bg-muted-foreground/20 p-0.5"
-                >
-                  <X className="h-2.5 w-2.5" />
-                </button>
-              </span>
-            ))}
-            <button
-              onClick={() => setListModalOpen(true)}
-              className="inline-flex items-center gap-1 rounded-full border border-dashed px-2.5 py-0.5 text-xs text-muted-foreground hover:border-foreground hover:text-foreground transition-colors"
-            >
-              <Plus className="h-2.5 w-2.5" />
-              Add
-            </button>
-          </div>
-        </MetaRow>
-
-        {/* Revision */}
-        <MetaRow label="revision" align="center">
-          {problem.reviewCard ? (
-            <div className="flex items-center gap-3 flex-wrap">
-              <Badge variant="outline" className="text-xs">
-                {problem.reviewCard.state}
-              </Badge>
-              <span className="text-xs text-muted-foreground">
-                {reviewDueText}
-              </span>
-              <span className="text-xs text-muted-foreground">
-                {problem.reviewCard.reps} reviews
-              </span>
-              {isReviewDue && (
-                <QuickReviewButtons cardId={problem.reviewCard.id} />
-              )}
-              <button
-                onClick={() => removeReview.mutate(problem.reviewCard!.id)}
-                disabled={removeReview.isPending}
-                className="inline-flex text-muted-foreground hover:text-destructive transition-colors"
-                title="Remove from review"
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
+              <CopyProblemButton
+                problemId={id}
+                problem={problem}
+                notes={notesData?.content}
+                listNames={problemListNames}
+                variant="outline"
+                className="shrink-0"
+                label="Copy details"
+                title="Copy problem details"
+              />
             </div>
-          ) : (
-            <button
-              onClick={() => enrollReview.mutate(problem.id)}
-              disabled={enrollReview.isPending}
-              className="inline-flex items-center gap-1 rounded-full border border-dashed px-2.5 py-0.5 text-xs text-muted-foreground hover:border-foreground hover:text-foreground transition-colors"
-            >
-              <Plus className="h-2.5 w-2.5" />
-              Add to Review
-            </button>
-          )}
-        </MetaRow>
-
-      </div>
-
-      <div className="space-y-3 rounded-lg border p-4">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-            Note
-          </h2>
-          <Button variant="outline" size="sm" onClick={() => setNoteDialogOpen(true)}>
-            <StickyNote className="mr-1.5 h-4 w-4" />
-            {note ? "Edit Note" : "Create Note"}
-          </Button>
-        </div>
-        <div className="space-y-2">
-          {note ? (
-            <>
-              <p className="text-sm font-medium leading-snug">{note.title}</p>
-              <MarkdownContent content={note.content} className="text-sm text-muted-foreground" />
-            </>
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              No note yet.
-            </p>
-          )}
-        </div>
-      </div>
-
-      {/* Attempts */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-            Attempts ({problem.attempts.length})
-          </h2>
-          <Button size="sm" onClick={handleLogAttempt}>
-            <Plus className="mr-1.5 h-4 w-4" />
-            Log Attempt
-          </Button>
-        </div>
-
-        {problem.attempts.length === 0 ? (
-          <div className="flex h-32 flex-col items-center justify-center gap-3 rounded-lg border border-dashed text-sm text-muted-foreground">
-            <p>No attempts yet.</p>
-            <Button size="sm" variant="outline" onClick={handleLogAttempt}>
-              <Plus className="mr-1.5 h-4 w-4" />
-              Log first attempt
-            </Button>
           </div>
-        ) : (
-          <div className="rounded-lg border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-20">#</TableHead>
-                  <TableHead className="w-32">Result</TableHead>
-                  <TableHead>Complexities</TableHead>
-                  <TableHead>Mistakes</TableHead>
-                  <TableHead className="w-28 text-right">Time</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {attempts.map((attempt) => (
-                  <TableRow
-                    key={attempt.id}
-                    className="cursor-pointer"
-                    onClick={() => setSelectedAttempt(attempt)}
-                  >
-                    <TableCell className="font-medium">#{attempt.attemptNumber}</TableCell>
-                    <TableCell>
-                      <Badge
-                        variant="outline"
-                        className={getOutcomeBadgeClass(attempt.outcome)}
+
+          <div className="space-y-3 rounded-lg border p-4">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                Note
+              </h2>
+              <Button variant="outline" size="sm" onClick={() => setNoteDialogOpen(true)}>
+                <StickyNote className="mr-1.5 h-4 w-4" />
+                {note ? "Edit Note" : "Create Note"}
+              </Button>
+            </div>
+            <div className="space-y-2">
+              {note ? (
+                <>
+                  <p className="text-sm font-medium leading-snug">{note.title}</p>
+                  <MarkdownContent content={note.content} className="text-sm text-muted-foreground" />
+                </>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  No note yet.
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Attempts */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                Attempts ({problem.attempts.length})
+              </h2>
+              <Button size="sm" onClick={handleLogAttempt}>
+                <Plus className="mr-1.5 h-4 w-4" />
+                Log Attempt
+              </Button>
+            </div>
+
+            {problem.attempts.length === 0 ? (
+              <div className="flex h-32 flex-col items-center justify-center gap-3 rounded-lg border border-dashed text-sm text-muted-foreground">
+                <p>No attempts yet.</p>
+                <Button size="sm" variant="outline" onClick={handleLogAttempt}>
+                  <Plus className="mr-1.5 h-4 w-4" />
+                  Log first attempt
+                </Button>
+              </div>
+            ) : (
+              <div className="overflow-hidden rounded-lg border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-20">#</TableHead>
+                      <TableHead className="w-36">Result</TableHead>
+                      <TableHead className="w-36">Time Complexity</TableHead>
+                      <TableHead className="w-36">Space Complexity</TableHead>
+                      <TableHead>Mistakes</TableHead>
+                      <TableHead className="w-28 text-right">Solve Time</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {attempts.map((attempt) => (
+                      <TableRow
+                        key={attempt.id}
+                        className="cursor-pointer"
+                        onClick={() => setSelectedAttempt(attempt)}
                       >
-                        {OUTCOME_LABELS[attempt.outcome] ?? attempt.outcome}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      {formatAttemptComplexities(attempt)}
-                    </TableCell>
-                    <TableCell className="max-w-md truncate text-sm text-muted-foreground">
-                      {formatAttemptMistakes(attempt)}
-                    </TableCell>
-                    <TableCell className="text-right text-sm text-muted-foreground">
-                      {formatDuration(attempt.durationMinutes) ?? "—"}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                        <TableCell className="font-medium">#{attempt.attemptNumber}</TableCell>
+                        <TableCell>
+                          <Badge
+                            variant="outline"
+                            className={getOutcomeBadgeClass(attempt.outcome)}
+                          >
+                            {OUTCOME_LABELS[attempt.outcome] ?? attempt.outcome}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {attempt.timeComplexity ?? "—"}
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {attempt.spaceComplexity ?? "—"}
+                        </TableCell>
+                        <TableCell className="max-w-md truncate text-sm text-muted-foreground">
+                          {formatAttemptMistakes(attempt)}
+                        </TableCell>
+                        <TableCell className="text-right text-sm text-muted-foreground">
+                          {formatDuration(attempt.durationMinutes) ?? "—"}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
           </div>
-        )}
+        </div>
+
+        <aside className="xl:sticky xl:top-6 xl:self-start">
+          <div className="overflow-hidden rounded-2xl border bg-background/95 shadow-sm">
+            <div className="border-b px-4 py-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+                Problem Metadata
+              </p>
+            </div>
+
+            {/* Status */}
+            <MetaRow label="status" align="center">
+              <Select value={problem.status} onValueChange={(v) => statusMutation.mutate(v)}>
+                <SelectTrigger
+                  hideIcon
+                  disabled={statusMutation.isPending}
+                  className="inline-flex h-auto w-fit cursor-pointer items-center border-0 bg-transparent p-0 shadow-none transition-opacity hover:opacity-80 focus-visible:ring-0 data-[state=open]:opacity-80"
+                >
+                  <SelectValue>
+                    <StatusBadge status={problem.status} />
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {STATUSES.map((s) => (
+                    <SelectItem key={s.value} value={s.value}>
+                      <StatusBadge status={s.value} />
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </MetaRow>
+
+            {/* Difficulty */}
+            <MetaRow label="difficulty" align="center">
+              <DifficultyBadge difficulty={problem.difficulty} />
+            </MetaRow>
+
+            {/* LeetCode link */}
+            <MetaRow label="leetcode" align="center">
+              <a
+                href={problem.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
+              >
+                <ExternalLink className="h-3 w-3" />
+                {problem.url.replace("https://", "")}
+              </a>
+            </MetaRow>
+
+            {/* Topics */}
+            <MetaRow label="topics">
+              <div className="flex flex-wrap items-center gap-1.5">
+                {problem.topics.map((t) => (
+                  <span
+                    key={t.id}
+                    className="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium"
+                  >
+                    {t.name}
+                    <button
+                      onClick={() => removeTopicsMutation.mutate([t.id])}
+                      className="rounded-full p-0.5 hover:bg-muted-foreground/20"
+                    >
+                      <X className="h-2.5 w-2.5" />
+                    </button>
+                  </span>
+                ))}
+                <button
+                  onClick={() => setTopicModalOpen(true)}
+                  className="inline-flex items-center gap-1 rounded-full border border-dashed px-2.5 py-0.5 text-xs text-muted-foreground transition-colors hover:border-foreground hover:text-foreground"
+                >
+                  <Plus className="h-2.5 w-2.5" />
+                  Add
+                </button>
+              </div>
+            </MetaRow>
+
+            {/* Patterns */}
+            <MetaRow label="patterns">
+              <div className="space-y-1">
+                {problem.patterns.map((p) => (
+                  <div key={p.id} className="group/item flex items-center justify-between gap-2">
+                    <div className="min-w-0 flex items-center gap-1.5">
+                      <span className="text-xs font-medium">{p.name}</span>
+                      {p.topicName && (
+                        <span className="text-xs text-muted-foreground">· {p.topicName}</span>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => removePatternMutation.mutate(p.id)}
+                      className="shrink-0 rounded p-0.5 text-muted-foreground opacity-0 transition-opacity hover:bg-muted hover:text-foreground group-hover/item:opacity-100"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+                <button
+                  onClick={() => setPatternModalOpen(true)}
+                  className="inline-flex items-center gap-1 rounded-full border border-dashed px-2.5 py-0.5 text-xs text-muted-foreground transition-colors hover:border-foreground hover:text-foreground"
+                >
+                  <Plus className="h-2.5 w-2.5" />
+                  Add
+                </button>
+              </div>
+            </MetaRow>
+
+            {/* Related */}
+            <MetaRow label="related">
+              <div className="space-y-1">
+                {problem.relatedProblems.map((r) => (
+                  <div key={r.id} className="flex items-center gap-2">
+                    <div className="flex min-w-0 items-center gap-2">
+                      <Link
+                        href={`/problems/${r.id}`}
+                        className="truncate text-xs font-medium hover:underline"
+                      >
+                        #{r.leetcodeId} {r.title}
+                      </Link>
+                      <DifficultyBadge difficulty={r.difficulty} />
+                    </div>
+                  </div>
+                ))}
+                <button
+                  onClick={() => setRelatedModalOpen(true)}
+                  className="inline-flex items-center gap-1 rounded-full border border-dashed px-2.5 py-0.5 text-xs text-muted-foreground transition-colors hover:border-foreground hover:text-foreground"
+                >
+                  <Plus className="h-2.5 w-2.5" />
+                  Add
+                </button>
+              </div>
+            </MetaRow>
+
+            {/* Lists */}
+            <MetaRow label="lists">
+              <div className="flex flex-wrap items-center gap-1.5">
+                {problemLists.map((l) => (
+                  <span
+                    key={l.id}
+                    className="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium"
+                  >
+                    <Link href={getListHref(l)} className="hover:underline">
+                      {getListDisplayName(l)}
+                    </Link>
+                    <button
+                      onClick={() => handleRemoveFromList(l.id)}
+                      className="rounded-full p-0.5 hover:bg-muted-foreground/20"
+                    >
+                      <X className="h-2.5 w-2.5" />
+                    </button>
+                  </span>
+                ))}
+                <button
+                  onClick={() => setListModalOpen(true)}
+                  className="inline-flex items-center gap-1 rounded-full border border-dashed px-2.5 py-0.5 text-xs text-muted-foreground transition-colors hover:border-foreground hover:text-foreground"
+                >
+                  <Plus className="h-2.5 w-2.5" />
+                  Add
+                </button>
+              </div>
+            </MetaRow>
+
+            {/* Revision */}
+            <MetaRow label="revision" align="center">
+              {problem.reviewCard ? (
+                <div className="flex flex-wrap items-center gap-3">
+                  <Badge variant="outline" className="text-xs">
+                    {problem.reviewCard.state}
+                  </Badge>
+                  <span className="text-xs text-muted-foreground">
+                    {reviewDueText}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {problem.reviewCard.reps} reviews
+                  </span>
+                  {isReviewDue && (
+                    <QuickReviewButtons cardId={problem.reviewCard.id} />
+                  )}
+                  <button
+                    onClick={() => removeReview.mutate(problem.reviewCard!.id)}
+                    disabled={removeReview.isPending}
+                    className="inline-flex text-muted-foreground transition-colors hover:text-destructive"
+                    title="Remove from review"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => enrollReview.mutate(problem.id)}
+                  disabled={enrollReview.isPending}
+                  className="inline-flex items-center gap-1 rounded-full border border-dashed px-2.5 py-0.5 text-xs text-muted-foreground transition-colors hover:border-foreground hover:text-foreground"
+                >
+                  <Plus className="h-2.5 w-2.5" />
+                  Add to Review
+                </button>
+              )}
+            </MetaRow>
+          </div>
+        </aside>
       </div>
 
       <AttemptForm
