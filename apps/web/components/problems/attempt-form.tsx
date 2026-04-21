@@ -325,269 +325,314 @@ export function AttemptForm({ open, onOpenChange, problemId, attempt }: Props) {
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="flex min-h-0 flex-1 flex-col overflow-hidden">
-            <div className="grid shrink-0 gap-4 border-b px-6 py-4 md:grid-cols-2 xl:grid-cols-[1fr_1fr_1fr_1fr_1.5fr]">
-              <FormField
-                control={form.control}
-                name="language"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Language</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {LANGUAGES.map((language) => (
-                          <SelectItem key={language} value={language}>{language}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="outcome"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Outcome</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {OUTCOMES.map(({ value, label }) => (
-                          <SelectItem key={value} value={value}>{label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="timeComplexity"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Time Complexity</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select time complexity" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {TIME_COMPLEXITIES.map((complexity) => (
-                          <SelectItem key={complexity} value={complexity}>{complexity}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="spaceComplexity"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Space Complexity</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select space complexity" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {SPACE_COMPLEXITIES.map((complexity) => (
-                          <SelectItem key={complexity} value={complexity}>{complexity}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="rounded-lg border bg-muted/20 px-4 py-3">
-                <p className="text-sm font-medium">Solve Timer</p>
-                <p className="mt-1 text-2xl font-semibold tabular-nums">{formatElapsed(elapsedSeconds)}</p>
-                <p className="mt-1 text-xs text-muted-foreground">Recorded automatically when both start and end are set.</p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <Button type="button" size="sm" onClick={handleStartSolving}>
-                    Start solving
-                  </Button>
-                  <Button type="button" size="sm" variant="secondary" onClick={handleEndSolving}>
-                    End
-                  </Button>
-                  <Button type="button" size="sm" variant="ghost" onClick={handleResetTimer}>
-                    Reset
-                  </Button>
-                </div>
-                <div className="mt-3 space-y-1 text-xs text-muted-foreground">
-                  <p>Started: {formatTimestamp(startedAt)}</p>
-                  <p>Ended: {formatTimestamp(endedAt)}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid min-h-0 flex-1 overflow-hidden divide-y lg:grid-cols-[minmax(0,3fr)_minmax(320px,2fr)] lg:divide-x lg:divide-y-0">
-              <div className="flex min-h-0 flex-col gap-4 p-6">
-                <FormField
-                  control={form.control}
-                  name="approach"
-                  render={({ field }) => (
-                    <FormItem className="flex min-h-0 flex-col">
-                      <FormLabel>Approach</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          {...field}
-                          value={field.value ?? ""}
-                          placeholder="Capture your brainstorming, edge cases, tradeoffs, and intended algorithm before or during the solve."
-                          className="min-h-32 resize-none"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="code"
-                  render={({ field }) => (
-                    <FormItem className="flex min-h-0 flex-1 flex-col">
-                      <FormLabel>Code</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          {...field}
-                          value={field.value ?? ""}
-                          placeholder="Paste your solution here..."
-                          className="min-h-0 h-full flex-1 resize-none font-mono text-sm"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="flex min-h-0 flex-col gap-4 p-6">
-                <FormField
-                  control={form.control}
-                  name="mistakes"
-                  render={({ field }) => {
-                    const selectedMistakes = field.value ?? []
-
-                    function toggleMistake(mistake: string) {
-                      const nextValue = selectedMistakes.includes(mistake)
-                        ? selectedMistakes.filter((value) => value !== mistake)
-                        : [...selectedMistakes, mistake]
-                      field.onChange(nextValue)
-                    }
-
-                    return (
-                      <FormItem>
-                        <FormLabel>Mistakes</FormLabel>
-                        <FormControl>
-                          <div className="rounded-lg border bg-muted/20 p-3">
-                            {mistakesLoading ? (
-                              <div className="grid gap-2 sm:grid-cols-2">
-                                {Array.from({ length: 6 }).map((_, index) => (
-                                  <Skeleton key={index} className="h-9 w-full" />
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              <div className="space-y-6 px-6 py-5">
+                <section className="grid gap-4 xl:grid-cols-[minmax(0,3fr)_minmax(280px,1.2fr)]">
+                  <div className="rounded-xl border bg-card p-4">
+                    <div className="mb-4">
+                      <h3 className="text-sm font-semibold">Attempt Summary</h3>
+                      <p className="text-xs text-muted-foreground">
+                        Capture the high-level outcome before filling in the details.
+                      </p>
+                    </div>
+                    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                      <FormField
+                        control={form.control}
+                        name="language"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Language</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {LANGUAGES.map((language) => (
+                                  <SelectItem key={language} value={language}>{language}</SelectItem>
                                 ))}
-                              </div>
-                            ) : mistakeOptions?.length ? (
-                              <div className="flex flex-wrap gap-2">
-                                {mistakeOptions.map((mistake) => {
-                                  const active = selectedMistakes.includes(mistake.value)
-                                  return (
-                                    <Button
-                                      key={mistake.value}
-                                      type="button"
-                                      size="sm"
-                                      variant={active ? "default" : "outline"}
-                                      onClick={() => toggleMistake(mistake.value)}
-                                      className="justify-start"
-                                    >
-                                      {mistake.label || MISTAKE_LABELS[mistake.value]}
-                                    </Button>
-                                  )
-                                })}
-                              </div>
-                            ) : (
-                              <p className="text-sm text-muted-foreground">No mistake options available.</p>
-                            )}
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )
-                  }}
-                />
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
-                <FormField
-                  control={form.control}
-                  name="learned"
-                  render={({ field }) => (
-                    <FormItem className="flex min-h-0 flex-1 flex-col">
-                      <FormLabel>What I learned</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          {...field}
-                          value={field.value ?? ""}
-                          placeholder="Key insights..."
-                          className="min-h-0 h-full flex-1 resize-none"
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
+                      <FormField
+                        control={form.control}
+                        name="outcome"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Outcome</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {OUTCOMES.map(({ value, label }) => (
+                                  <SelectItem key={value} value={value}>{label}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
-                <FormField
-                  control={form.control}
-                  name="takeaways"
-                  render={({ field }) => (
-                    <FormItem className="flex min-h-0 flex-1 flex-col">
-                      <FormLabel>Takeaways</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          {...field}
-                          value={field.value ?? ""}
-                          placeholder="Patterns to remember..."
-                          className="min-h-0 h-full flex-1 resize-none"
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
+                      <FormField
+                        control={form.control}
+                        name="timeComplexity"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Time Complexity</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select time complexity" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {TIME_COMPLEXITIES.map((complexity) => (
+                                  <SelectItem key={complexity} value={complexity}>{complexity}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
-                <FormField
-                  control={form.control}
-                  name="notes"
-                  render={({ field }) => (
-                    <FormItem className="flex min-h-0 flex-1 flex-col">
-                      <FormLabel>Notes</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          {...field}
-                          value={field.value ?? ""}
-                          placeholder="Additional notes..."
-                          className="min-h-0 h-full flex-1 resize-none"
+                      <FormField
+                        control={form.control}
+                        name="spaceComplexity"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Space Complexity</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select space complexity" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {SPACE_COMPLEXITIES.map((complexity) => (
+                                  <SelectItem key={complexity} value={complexity}>{complexity}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl border bg-muted/20 p-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className="text-sm font-semibold">Solve Timer</p>
+                        <p className="mt-1 text-3xl font-semibold tabular-nums">{formatElapsed(elapsedSeconds)}</p>
+                      </div>
+                      <p className="max-w-[12rem] text-right text-xs text-muted-foreground">
+                        Recorded automatically when both start and end are set.
+                      </p>
+                    </div>
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      <Button type="button" size="sm" onClick={handleStartSolving}>
+                        Start solving
+                      </Button>
+                      <Button type="button" size="sm" variant="secondary" onClick={handleEndSolving}>
+                        End
+                      </Button>
+                      <Button type="button" size="sm" variant="ghost" onClick={handleResetTimer}>
+                        Reset
+                      </Button>
+                    </div>
+                    <div className="mt-4 grid gap-2 text-xs text-muted-foreground">
+                      <div className="rounded-md bg-background/80 px-3 py-2">
+                        Started: {formatTimestamp(startedAt)}
+                      </div>
+                      <div className="rounded-md bg-background/80 px-3 py-2">
+                        Ended: {formatTimestamp(endedAt)}
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <div className="grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(320px,1fr)]">
+                  <div className="space-y-6">
+                    <section className="rounded-xl border bg-card p-4">
+                      <div className="mb-4">
+                        <h3 className="text-sm font-semibold">Solution Notes</h3>
+                        <p className="text-xs text-muted-foreground">
+                          Keep the core thinking and implementation together.
+                        </p>
+                      </div>
+                      <div className="space-y-4">
+                        <FormField
+                          control={form.control}
+                          name="approach"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Approach</FormLabel>
+                              <FormControl>
+                                <Textarea
+                                  {...field}
+                                  value={field.value ?? ""}
+                                  placeholder="Capture your brainstorming, edge cases, tradeoffs, and intended algorithm before or during the solve."
+                                  className="min-h-32 resize-y"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
                         />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
+
+                        <FormField
+                          control={form.control}
+                          name="code"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Code</FormLabel>
+                              <FormControl>
+                                <Textarea
+                                  {...field}
+                                  value={field.value ?? ""}
+                                  placeholder="Paste your solution here..."
+                                  className="min-h-[320px] resize-y font-mono text-sm"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </section>
+                  </div>
+
+                  <div className="space-y-6">
+                    <section className="rounded-xl border bg-card p-4">
+                      <div className="mb-4">
+                        <h3 className="text-sm font-semibold">Retrospective</h3>
+                        <p className="text-xs text-muted-foreground">
+                          Record what went wrong and what to carry forward.
+                        </p>
+                      </div>
+
+                      <FormField
+                        control={form.control}
+                        name="mistakes"
+                        render={({ field }) => {
+                          const selectedMistakes = field.value ?? []
+
+                          function toggleMistake(mistake: string) {
+                            const nextValue = selectedMistakes.includes(mistake)
+                              ? selectedMistakes.filter((value) => value !== mistake)
+                              : [...selectedMistakes, mistake]
+                            field.onChange(nextValue)
+                          }
+
+                          return (
+                            <FormItem>
+                              <FormLabel>Mistakes</FormLabel>
+                              <FormControl>
+                                <div className="rounded-lg border bg-muted/20 p-3">
+                                  {mistakesLoading ? (
+                                    <div className="grid gap-2 sm:grid-cols-2">
+                                      {Array.from({ length: 6 }).map((_, index) => (
+                                        <Skeleton key={index} className="h-9 w-full" />
+                                      ))}
+                                    </div>
+                                  ) : mistakeOptions?.length ? (
+                                    <div className="flex flex-wrap gap-2">
+                                      {mistakeOptions.map((mistake) => {
+                                        const active = selectedMistakes.includes(mistake.value)
+                                        return (
+                                          <Button
+                                            key={mistake.value}
+                                            type="button"
+                                            size="sm"
+                                            variant={active ? "default" : "outline"}
+                                            onClick={() => toggleMistake(mistake.value)}
+                                            className="justify-start"
+                                          >
+                                            {mistake.label || MISTAKE_LABELS[mistake.value]}
+                                          </Button>
+                                        )
+                                      })}
+                                    </div>
+                                  ) : (
+                                    <p className="text-sm text-muted-foreground">No mistake options available.</p>
+                                  )}
+                                </div>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )
+                        }}
+                      />
+
+                      <div className="mt-4 space-y-4">
+                        <FormField
+                          control={form.control}
+                          name="learned"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>What I learned</FormLabel>
+                              <FormControl>
+                                <Textarea
+                                  {...field}
+                                  value={field.value ?? ""}
+                                  placeholder="Key insights..."
+                                  className="min-h-28 resize-y"
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="takeaways"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Takeaways</FormLabel>
+                              <FormControl>
+                                <Textarea
+                                  {...field}
+                                  value={field.value ?? ""}
+                                  placeholder="Patterns to remember..."
+                                  className="min-h-24 resize-y"
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="notes"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Notes</FormLabel>
+                              <FormControl>
+                                <Textarea
+                                  {...field}
+                                  value={field.value ?? ""}
+                                  placeholder="Additional notes..."
+                                  className="min-h-24 resize-y"
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </section>
+                  </div>
+                </div>
               </div>
             </div>
 
