@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Eye, EyeOff, Pencil } from "lucide-react"
+import { Eye, EyeOff, Pencil, Trash2 } from "lucide-react"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
@@ -51,6 +51,8 @@ interface Props {
   initialMode?: "view" | "edit"
   defaultTitle?: string
   onSave: (values: { tag: NoteTag; title: string; content: string }) => void
+  onDelete?: () => void
+  isDeleting?: boolean
 }
 
 export function NoteEditorDialog({
@@ -60,6 +62,8 @@ export function NoteEditorDialog({
   initialMode,
   defaultTitle,
   onSave,
+  onDelete,
+  isDeleting,
 }: Props) {
   const dialogKey = note
     ? `note-${note.id}-${initialMode ?? "view"}`
@@ -75,6 +79,8 @@ export function NoteEditorDialog({
           defaultTitle={defaultTitle}
           onOpenChange={onOpenChange}
           onSave={onSave}
+          onDelete={onDelete}
+          isDeleting={isDeleting}
         />
       ) : null}
     </Dialog>
@@ -87,6 +93,8 @@ function NoteEditorDialogBody({
   defaultTitle,
   onOpenChange,
   onSave,
+  onDelete,
+  isDeleting,
 }: Omit<Props, "open">) {
   const [mode, setMode] = useState<"view" | "edit">(
     note ? (initialMode ?? "view") : "edit"
@@ -125,15 +133,29 @@ function NoteEditorDialogBody({
               )}
             </div>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            className="shrink-0"
-            onClick={() => setMode("edit")}
-          >
-            <Pencil className="mr-1.5 h-3.5 w-3.5" />
-            Edit
-          </Button>
+          <div className="flex shrink-0 items-center gap-2">
+            {note && onDelete ? (
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-destructive"
+                onClick={onDelete}
+                disabled={isDeleting}
+              >
+                <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+                Delete
+              </Button>
+            ) : null}
+            <Button
+              variant="outline"
+              size="sm"
+              className="shrink-0"
+              onClick={() => setMode("edit")}
+            >
+              <Pencil className="mr-1.5 h-3.5 w-3.5" />
+              Edit
+            </Button>
+          </div>
         </div>
 
         {/* Scrollable body — fills remaining height */}
@@ -232,7 +254,22 @@ function NoteEditorDialogBody({
         </div>
 
         {/* Footer — fixed */}
-        <div className="shrink-0 flex justify-end gap-2 border-t pt-3">
+        <div className="shrink-0 flex items-center justify-between gap-2 border-t pt-3">
+          <div>
+            {note && onDelete ? (
+              <Button
+                type="button"
+                variant="outline"
+                className="text-destructive"
+                onClick={onDelete}
+                disabled={isDeleting}
+              >
+                <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+                Delete
+              </Button>
+            ) : null}
+          </div>
+          <div className="flex gap-2">
           <Button
             type="button"
             variant="outline"
@@ -243,10 +280,11 @@ function NoteEditorDialogBody({
           <Button
             type="button"
             onClick={handleSave}
-            disabled={!title.trim() || !content.trim()}
+            disabled={!title.trim() || !content.trim() || isDeleting}
           >
             {note ? "Save" : "Create"}
           </Button>
+          </div>
         </div>
       </div>
     </DialogContent>
