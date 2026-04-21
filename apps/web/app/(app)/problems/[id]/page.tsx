@@ -69,6 +69,7 @@ import { getListDisplayName, getListHref } from "@/lib/list-display"
 import type {
   AttemptDto,
   MistakeType,
+  NoteDto,
   PatternDto,
   ProblemListDto,
   NoteTag,
@@ -387,8 +388,12 @@ export default function ProblemDetailPage({
 
   // Note
   const { data: notesData } = useNotes({ problemId: id })
-  const note = notesData?.content?.[0]
+  const notes = [...(notesData?.content ?? [])].sort(
+    (a, b) => new Date(b.dateTime).getTime() - new Date(a.dateTime).getTime(),
+  )
+  const noteCount = notes.length
   const [noteDialogOpen, setNoteDialogOpen] = useState(false)
+  const [editingNote, setEditingNote] = useState<NoteDto | undefined>()
   const createNoteMutation = useCreateNote()
   const updateNoteMutation = useUpdateNote()
 
@@ -450,15 +455,27 @@ export default function ProblemDetailPage({
 
   async function handleNoteSave({ tag, title, content }: { tag: NoteTag; title: string; content: string }) {
     try {
-      if (note) {
-        await updateNoteMutation.mutateAsync({ id: note.id, body: { tag, title, content } })
+      if (editingNote) {
+        await updateNoteMutation.mutateAsync({ id: editingNote.id, body: { tag, title, content } })
       } else {
         await createNoteMutation.mutateAsync({ problemId: id, tag, title, content })
       }
-      toast.success(note ? "Note updated" : "Note created")
+      toast.success(editingNote ? "Note updated" : "Note created")
+      setEditingNote(undefined)
+      setNoteDialogOpen(false)
     } catch {
       toast.error("Failed to save note")
     }
+  }
+
+  function handleCreateNote() {
+    setEditingNote(undefined)
+    setNoteDialogOpen(true)
+  }
+
+  function handleOpenNote(note: NoteDto) {
+    setEditingNote(note)
+    setNoteDialogOpen(true)
   }
 
   const topicIds = new Set((problem?.topics ?? []).map((t) => t.id))
@@ -674,25 +691,51 @@ export default function ProblemDetailPage({
             </div>
           </div>
 
-          {note ? (
+          {noteCount > 0 ? (
             <div className="space-y-3 rounded-lg border p-4">
               <div className="flex items-center justify-between gap-3">
-                <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                  Note
-                </h2>
-                <Button variant="outline" size="sm" onClick={() => setNoteDialogOpen(true)}>
+                <div className="space-y-1">
+                  <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                    Notes ({noteCount})
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    Keep multiple strategy, review, and interview notes attached to this problem.
+                  </p>
+                </div>
+                <Button variant="outline" size="sm" onClick={handleCreateNote}>
                   <StickyNote className="mr-1.5 h-4 w-4" />
-                  Edit Note
+                  Add Note
                 </Button>
               </div>
-              <div className="space-y-2">
-                <p className="text-sm font-medium leading-snug">{note.title}</p>
-                <MarkdownContent content={note.content} className="text-sm text-muted-foreground" />
+              <div className="grid gap-3 md:grid-cols-2">
+                {notes.map((note) => (
+                  <button
+                    key={note.id}
+                    type="button"
+                    onClick={() => handleOpenNote(note)}
+                    className="rounded-xl border bg-background p-4 text-left transition-colors hover:border-foreground/30 hover:bg-accent/10"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 space-y-1">
+                        <p className="truncate text-sm font-medium leading-snug">{note.title}</p>
+                        <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                          {note.tag} · {format(new Date(note.dateTime), "MMM d, yyyy")}
+                        </p>
+                      </div>
+                      <span className="shrink-0 rounded-md border px-2.5 py-1 text-xs font-medium text-muted-foreground">
+                        Edit
+                      </span>
+                    </div>
+                    <div className="mt-3 line-clamp-5 text-sm text-muted-foreground">
+                      <MarkdownContent content={note.content} />
+                    </div>
+                  </button>
+                ))}
               </div>
             </div>
           ) : (
             <div className="flex justify-end">
-              <Button variant="outline" size="sm" onClick={() => setNoteDialogOpen(true)}>
+              <Button variant="outline" size="sm" onClick={handleCreateNote}>
                 <StickyNote className="mr-1.5 h-4 w-4" />
                 Create Note
               </Button>
@@ -1180,9 +1223,12 @@ export default function ProblemDetailPage({
 
       <NoteEditorDialog
         open={noteDialogOpen}
-        onOpenChange={setNoteDialogOpen}
-        note={note}
-        initialMode={note ? "view" : "edit"}
+        onOpenChange={(open) => {
+          setNoteDialogOpen(open)
+          if (!open) setEditingNote(undefined)
+        }}
+        note={editingNote}
+        initialMode={editingNote ? "view" : "edit"}
         defaultTitle={problem.title}
         onSave={handleNoteSave}
       />

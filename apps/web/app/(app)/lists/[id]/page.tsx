@@ -14,10 +14,10 @@ import { ProblemTable } from "@/components/problems/problem-table"
 import { NoteEditorDialog } from "@/components/notes/note-editor-dialog"
 import { useProblemList, useProblemListProblems, useRemoveProblemFromList } from "@/hooks/use-lists"
 import { useProblems } from "@/hooks/use-problems"
-import { useCreateNote, useNotes, useUpdateNote } from "@/hooks/use-notes"
+import { useCreateNote, useNotes } from "@/hooks/use-notes"
 import { useEnrollReview, useRemoveReview } from "@/hooks/use-reviews"
 import { getListDisplayName } from "@/lib/list-display"
-import type { NoteDto, NoteTag, ProblemFilters as Filters, ProblemSummaryDto } from "@/lib/types"
+import type { NoteTag, ProblemFilters as Filters, ProblemSummaryDto } from "@/lib/types"
 
 const PAGE_SIZE = 20
 const DEFAULT_FILTERS: Filters = { page: 0, size: PAGE_SIZE, sort: "createdDate,desc" }
@@ -62,7 +62,6 @@ export default function ListDetailPage({
   const { data: pagedResponse, error, isError, isLoading: isProblemsLoading } = useProblemListProblems(id, filters)
   const removeMutation = useRemoveProblemFromList()
   const createNoteMutation = useCreateNote()
-  const updateNoteMutation = useUpdateNote()
   const enrollReviewMutation = useEnrollReview()
   const removeReviewMutation = useRemoveReview()
   const { data: notesData } = useNotes({ size: 200 })
@@ -70,16 +69,16 @@ export default function ListDetailPage({
   const [noteDialogOpen, setNoteDialogOpen] = useState(false)
   const [selectedProblem, setSelectedProblem] = useState<ProblemSummaryDto | undefined>()
 
-  const problemNotes = useMemo(() => {
-    const map: Record<number, NoteDto> = {}
+  const notedProblemIds = useMemo(() => {
+    const ids = new Set<number>()
     if (notesData?.content) {
       for (const n of notesData.content) {
         if (n.problemId != null) {
-          map[n.problemId] = n
+          ids.add(n.problemId)
         }
       }
     }
-    return map
+    return ids
   }, [notesData])
 
   const problems = pagedResponse?.content ?? []
@@ -108,17 +107,13 @@ export default function ListDetailPage({
   async function handleNoteSave({ tag, title, content }: { tag: NoteTag; title: string; content: string }) {
     if (!selectedProblem || !title.trim() || !content.trim()) return
     try {
-      const existing = problemNotes[selectedProblem.id]
-      if (existing) {
-        await updateNoteMutation.mutateAsync({ id: existing.id, body: { tag, title, content } })
-      } else {
-        await createNoteMutation.mutateAsync({
-          problemId: selectedProblem.id,
-          tag,
-          title,
-          content,
-        })
-      }
+      await createNoteMutation.mutateAsync({
+        problemId: selectedProblem.id,
+        tag,
+        title,
+        content,
+      })
+      setNoteDialogOpen(false)
     } catch {
       // Error handled by mutation
     }
@@ -202,7 +197,7 @@ export default function ListDetailPage({
             pageSize={PAGE_SIZE}
             onNoteClick={handleNoteClick}
             onDelete={handleRemoveProblem}
-            notedProblemIds={new Set(Object.keys(problemNotes).map(Number))}
+            notedProblemIds={notedProblemIds}
             onEnrollReview={(p) => enrollReviewMutation.mutate(p.id)}
             onRemoveReview={(_problemId, cardId) => removeReviewMutation.mutate(cardId)}
           />
@@ -238,8 +233,7 @@ export default function ListDetailPage({
       <NoteEditorDialog
         open={noteDialogOpen}
         onOpenChange={setNoteDialogOpen}
-        note={selectedProblem ? problemNotes[selectedProblem.id] : undefined}
-        initialMode={selectedProblem && problemNotes[selectedProblem.id] ? "view" : "edit"}
+        initialMode="edit"
         defaultTitle={selectedProblem?.title}
         onSave={handleNoteSave}
       />
