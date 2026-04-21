@@ -319,20 +319,36 @@ export function ProblemTable({
                         </TableCell>
                         {/* Attempts column */}
                         <TableCell className="text-center" data-interactive="true" onClick={(e) => e.stopPropagation()}>
-                          <div className="flex items-center justify-center gap-1">
-                            {p.totalAttempts > 0 && (
-                              <Badge variant="secondary" className="rounded-full px-2 py-0.5 text-xs font-medium tabular-nums">
-                                {p.totalAttempts}
-                              </Badge>
+                          <div className="flex items-center justify-center">
+                            {p.totalAttempts > 0 ? (
+                              <button
+                                onClick={() => setAttemptProblem(p)}
+                                data-interactive="true"
+                                title="Log attempt"
+                                aria-label={`Log attempt for ${p.title}`}
+                                className="group/attempt inline-flex items-center justify-center"
+                              >
+                                <Badge
+                                  variant="secondary"
+                                  className="relative inline-flex min-w-7 items-center justify-center rounded-full px-2 py-0.5 text-xs font-medium tabular-nums transition-colors group-hover/attempt:bg-foreground group-hover/attempt:text-background"
+                                >
+                                  <span className="transition-opacity group-hover/attempt:opacity-0">
+                                    {p.totalAttempts}
+                                  </span>
+                                  <Plus className="absolute h-3.5 w-3.5 opacity-0 transition-opacity group-hover/attempt:opacity-100" />
+                                </Badge>
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => setAttemptProblem(p)}
+                                data-interactive="true"
+                                title="Log attempt"
+                                aria-label={`Log attempt for ${p.title}`}
+                                className="inline-flex text-muted-foreground transition-colors hover:text-foreground"
+                              >
+                                <Plus className="h-3.5 w-3.5" />
+                              </button>
                             )}
-                            <button
-                              onClick={() => setAttemptProblem(p)}
-                              data-interactive="true"
-                              title="Log attempt"
-                              className={`inline-flex text-muted-foreground hover:text-foreground transition-opacity ${p.totalAttempts > 0 ? "opacity-0 group-hover:opacity-100" : ""}`}
-                            >
-                              <Plus className="h-3.5 w-3.5" />
-                            </button>
                           </div>
                         </TableCell>
                         <TableCell className="text-center" data-interactive="true" onClick={(e) => e.stopPropagation()}>
