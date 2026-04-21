@@ -403,7 +403,7 @@ export function AttemptForm({ open, onOpenChange, problemId, attempt }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[88vh] w-[min(96vw,1120px)] flex-col gap-0 overflow-hidden rounded-[28px] border border-border/70 bg-background p-0 shadow-2xl">
+      <DialogContent className="flex h-[88vh] w-[96vw] max-w-[1120px] flex-col gap-0 overflow-hidden rounded-[28px] border border-border/70 bg-background p-0 shadow-2xl sm:max-w-[1120px]">
         <DialogHeader className="border-b border-border/70 bg-card/95 px-6 py-5">
           <DialogTitle className="text-xl">{isEdit ? "Edit Attempt" : "Log Attempt"}</DialogTitle>
           <DialogDescription className="pt-1">
@@ -415,21 +415,18 @@ export function AttemptForm({ open, onOpenChange, problemId, attempt }: Props) {
           <form onSubmit={form.handleSubmit(onSubmit)} className="flex min-h-0 flex-1 flex-col overflow-hidden">
             <div className="min-h-0 flex-1 overflow-y-auto bg-gradient-to-b from-background to-muted/10">
               <div className="space-y-4 px-6 py-6">
-                <section className="grid gap-4 xl:grid-cols-[minmax(0,1.65fr)_360px]">
+                <section className="grid gap-4 lg:grid-cols-[minmax(0,1.65fr)_360px]">
                   <div className="rounded-2xl border border-border/70 bg-card/90 p-5 shadow-sm">
-                    <div className="mb-4 flex items-start justify-between gap-4">
+                    <div className="mb-4">
                       <div>
                         <p className="text-sm font-semibold">Attempt Summary</p>
                         <p className="text-xs text-muted-foreground">
                           Keep the top-level details compact and legible.
                         </p>
                       </div>
-                      <div className="rounded-full border border-border/70 bg-muted/50 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
-                        Snapshot
-                      </div>
                     </div>
 
-                    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                       <FormField
                         control={form.control}
                         name="language"
@@ -582,7 +579,7 @@ export function AttemptForm({ open, onOpenChange, problemId, attempt }: Props) {
                   </div>
                 </section>
 
-                <section className="grid gap-4 xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
+                <section className="grid gap-4 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
                   <div className="rounded-2xl border border-border/70 bg-card/90 p-5 shadow-sm">
                     <div className="mb-4 flex items-start justify-between gap-4">
                       <div>
