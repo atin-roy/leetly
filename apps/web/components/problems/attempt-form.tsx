@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
 import { z } from "zod"
 import { toast } from "sonner"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -17,6 +18,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -31,6 +33,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Textarea } from "@/components/ui/textarea"
 import { useLogAttempt, useMistakeOptions, useUpdateAttempt } from "@/hooks/use-attempts"
 import { useSettings } from "@/hooks/use-settings"
 import type { AttemptDto, Language, MistakeType } from "@/lib/types"
@@ -283,6 +286,12 @@ function normalizeText(value?: string) {
   return trimmed ? trimmed : undefined
 }
 
+function getTimerStatus(startedAt?: string, endedAt?: string) {
+  if (startedAt && !endedAt) return "Live"
+  if (startedAt && endedAt) return "Captured"
+  return "Idle"
+}
+
 export function AttemptForm({ open, onOpenChange, problemId, attempt }: Props) {
   const isEdit = !!attempt
   const { data: settings } = useSettings()
@@ -304,6 +313,7 @@ export function AttemptForm({ open, onOpenChange, problemId, attempt }: Props) {
   const endedAt = useWatch({ control: form.control, name: "endedAt" })
   const elapsedSeconds = getElapsedSeconds(startedAt, endedAt, nowMs)
   const timerActive = Boolean(startedAt && !endedAt)
+  const timerStatus = getTimerStatus(startedAt, endedAt)
 
   useEffect(() => {
     if (open && !wasOpenRef.current) {
@@ -403,39 +413,75 @@ export function AttemptForm({ open, onOpenChange, problemId, attempt }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex h-[88vh] w-[96vw] max-w-[1120px] flex-col gap-0 overflow-hidden rounded-[28px] border border-border/70 bg-background p-0 shadow-2xl sm:max-w-[1120px]">
-        <DialogHeader className="border-b border-border/70 bg-card/95 px-6 py-5">
-          <DialogTitle className="text-xl">{isEdit ? "Edit Attempt" : "Log Attempt"}</DialogTitle>
-          <DialogDescription className="pt-1">
-            A cleaner post-solve snapshot: outcome, timing, complexity, mistakes, and what to carry forward.
-          </DialogDescription>
+      <DialogContent className="flex h-[92vh] w-[96vw] max-w-[1180px] flex-col gap-0 overflow-hidden rounded-[32px] border border-border/70 bg-background p-0 shadow-[0_24px_80px_rgba(15,23,42,0.18)] sm:max-w-[1180px] [&>[data-slot=dialog-close]]:top-6 [&>[data-slot=dialog-close]]:right-6 [&>[data-slot=dialog-close]]:rounded-full [&>[data-slot=dialog-close]]:border [&>[data-slot=dialog-close]]:border-border/70 [&>[data-slot=dialog-close]]:bg-background/95 [&>[data-slot=dialog-close]]:p-2 [&>[data-slot=dialog-close]]:text-foreground/70 [&>[data-slot=dialog-close]]:shadow-sm">
+        <DialogHeader className="border-b border-border/70 bg-[linear-gradient(180deg,color-mix(in_oklab,var(--card)_92%,white_8%),var(--background))] px-6 py-6 sm:px-8">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="max-w-3xl space-y-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="secondary" className="rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.18em]">
+                  Attempt Log
+                </Badge>
+                <Badge variant="outline" className="rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.18em]">
+                  {isEdit ? "Editing Existing Entry" : "New Solve Reflection"}
+                </Badge>
+              </div>
+              <div className="space-y-2">
+                <DialogTitle className="text-2xl font-semibold tracking-tight sm:text-[2rem]">
+                  {isEdit ? "Refine your attempt" : "Capture the attempt while it is still fresh"}
+                </DialogTitle>
+                <DialogDescription className="max-w-2xl text-sm leading-6 text-muted-foreground sm:text-[15px]">
+                  Record the core outcome first, then add timing, implementation notes, and the one or two lessons worth keeping.
+                </DialogDescription>
+              </div>
+            </div>
+
+            <div className="grid min-w-[220px] gap-2 rounded-2xl border border-border/70 bg-background/90 px-4 py-3 shadow-sm">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                Suggested order
+              </p>
+              <p className="text-sm text-foreground">Summary, timer, implementation notes, then retrospective.</p>
+            </div>
+          </div>
         </DialogHeader>
+
+        <div className="border-b border-border/70 bg-muted/20 px-6 py-3 text-sm text-muted-foreground sm:px-8">
+          Optional fields can stay blank. If you use both timer stamps and manual time, captured timestamps take priority.
+        </div>
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="flex min-h-0 flex-1 flex-col overflow-hidden">
-            <div className="min-h-0 flex-1 overflow-y-auto bg-gradient-to-b from-background to-muted/10">
-              <div className="space-y-4 px-6 py-6">
-                <section className="grid gap-4 lg:grid-cols-[minmax(0,1.65fr)_360px]">
-                  <div className="rounded-2xl border border-border/70 bg-card/90 p-5 shadow-sm">
-                    <div className="mb-4">
-                      <div>
-                        <p className="text-sm font-semibold">Attempt Summary</p>
-                        <p className="text-xs text-muted-foreground">
-                          Keep the top-level details compact and legible.
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-6 sm:px-8 sm:py-8">
+                <section className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_320px]">
+                  <div className="rounded-3xl border border-border/70 bg-card/70 p-6 shadow-sm">
+                    <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+                      <div className="space-y-2">
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                          Step 1
                         </p>
+                        <div className="space-y-1">
+                          <h2 className="text-lg font-semibold tracking-tight">Core attempt details</h2>
+                          <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
+                            Start with the facts you will want later: language, result, and rough complexity.
+                          </p>
+                        </div>
                       </div>
+                      <Badge variant="outline" className="rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.18em]">
+                        Primary details
+                      </Badge>
                     </div>
 
-                    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                    <div className="grid gap-5 md:grid-cols-2">
                       <FormField
                         control={form.control}
                         name="language"
                         render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Language</FormLabel>
+                          <FormItem className="rounded-2xl border border-border/70 bg-background/80 p-4">
+                            <FormLabel className="text-sm font-semibold">Language</FormLabel>
+                            <FormDescription>Which language you used for the solve.</FormDescription>
                             <Select onValueChange={field.onChange} value={field.value}>
                               <FormControl>
-                                <SelectTrigger className="bg-background">
+                                <SelectTrigger className="h-11 bg-background">
                                   <SelectValue />
                                 </SelectTrigger>
                               </FormControl>
@@ -456,11 +502,12 @@ export function AttemptForm({ open, onOpenChange, problemId, attempt }: Props) {
                         control={form.control}
                         name="outcome"
                         render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Outcome</FormLabel>
+                          <FormItem className="rounded-2xl border border-border/70 bg-background/80 p-4">
+                            <FormLabel className="text-sm font-semibold">Outcome</FormLabel>
+                            <FormDescription>How the attempt finished.</FormDescription>
                             <Select onValueChange={field.onChange} value={field.value}>
                               <FormControl>
-                                <SelectTrigger className="bg-background">
+                                <SelectTrigger className="h-11 bg-background">
                                   <SelectValue />
                                 </SelectTrigger>
                               </FormControl>
@@ -481,15 +528,16 @@ export function AttemptForm({ open, onOpenChange, problemId, attempt }: Props) {
                         control={form.control}
                         name="timeComplexity"
                         render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Time Complexity</FormLabel>
+                          <FormItem className="rounded-2xl border border-border/70 bg-background/80 p-4">
+                            <FormLabel className="text-sm font-semibold">Time complexity</FormLabel>
+                            <FormDescription>Use a shorthand estimate if exact analysis is not the point.</FormDescription>
                             <FormControl>
                               <Input
                                 {...field}
                                 value={field.value ?? ""}
                                 list={timeComplexityListId}
-                                placeholder="e.g. O(n log n), O(d)"
-                                className="bg-background font-mono"
+                                placeholder="O(n log n), O(d), O(V + E)"
+                                className="h-11 bg-background font-mono"
                               />
                             </FormControl>
                             <FormMessage />
@@ -501,15 +549,16 @@ export function AttemptForm({ open, onOpenChange, problemId, attempt }: Props) {
                         control={form.control}
                         name="spaceComplexity"
                         render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Space Complexity</FormLabel>
+                          <FormItem className="rounded-2xl border border-border/70 bg-background/80 p-4">
+                            <FormLabel className="text-sm font-semibold">Space complexity</FormLabel>
+                            <FormDescription>Only add what materially helps future review.</FormDescription>
                             <FormControl>
                               <Input
                                 {...field}
                                 value={field.value ?? ""}
                                 list={spaceComplexityListId}
-                                placeholder="e.g. O(h), O(V + E)"
-                                className="bg-background font-mono"
+                                placeholder="O(1), O(h), O(n)"
+                                className="h-11 bg-background font-mono"
                               />
                             </FormControl>
                             <FormMessage />
@@ -519,38 +568,72 @@ export function AttemptForm({ open, onOpenChange, problemId, attempt }: Props) {
                     </div>
                   </div>
 
-                  <div className="rounded-2xl border border-border/70 bg-card/90 p-5 shadow-sm">
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <p className="text-sm font-semibold">Solve Timer</p>
-                        <p className="mt-1 text-4xl font-semibold tabular-nums tracking-tight">
-                          {formatElapsed(elapsedSeconds)}
+                  <aside className="rounded-3xl border border-border/70 bg-[linear-gradient(180deg,color-mix(in_oklab,var(--card)_86%,white_14%),var(--card))] p-6 shadow-sm">
+                    <div className="space-y-5">
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between gap-3">
+                          <div>
+                            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                              Step 2
+                            </p>
+                            <h2 className="mt-1 text-lg font-semibold tracking-tight">Solve timer</h2>
+                          </div>
+                          <Badge
+                            variant={timerStatus === "Live" ? "default" : "outline"}
+                            className="rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.18em]"
+                          >
+                            {timerStatus}
+                          </Badge>
+                        </div>
+                        <p className="text-sm leading-6 text-muted-foreground">
+                          Use the live timer or enter a manual duration if you only need a rough number.
                         </p>
                       </div>
-                      <div className="rounded-full border border-border/70 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
-                        {timerActive ? "Live" : startedAt && endedAt ? "Captured" : "Idle"}
+
+                      <div className="rounded-2xl border border-border/70 bg-background/90 p-5">
+                        <p className="text-4xl font-semibold tabular-nums tracking-tight sm:text-5xl">
+                          {formatElapsed(elapsedSeconds)}
+                        </p>
+                        <p className="mt-2 text-sm text-muted-foreground">
+                          {timerActive
+                            ? "Timer is running now."
+                            : startedAt && endedAt
+                              ? "Captured from recorded start and end times."
+                              : "No live timer running yet."}
+                        </p>
                       </div>
-                    </div>
 
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      <Button type="button" size="sm" onClick={handleStartSolving}>
-                        Start solving
-                      </Button>
-                      <Button type="button" size="sm" variant="secondary" onClick={handleEndSolving}>
-                        End
-                      </Button>
-                      <Button type="button" size="sm" variant="ghost" onClick={handleResetTimer}>
-                        Reset
-                      </Button>
-                    </div>
+                      <div className="grid gap-2 sm:grid-cols-3 xl:grid-cols-1">
+                        <Button type="button" className="h-11" onClick={handleStartSolving}>
+                          Start timer
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          className="h-11"
+                          onClick={handleEndSolving}
+                          disabled={!startedAt || Boolean(endedAt)}
+                        >
+                          Stop timer
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="h-11"
+                          onClick={handleResetTimer}
+                          disabled={!startedAt && !endedAt}
+                        >
+                          Clear timer
+                        </Button>
+                      </div>
 
-                    <div className="mt-4 grid gap-3">
                       <FormField
                         control={form.control}
                         name="durationMinutes"
                         render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Manual Time (minutes)</FormLabel>
+                          <FormItem className="rounded-2xl border border-border/70 bg-background/80 p-4">
+                            <FormLabel className="text-sm font-semibold">Manual duration</FormLabel>
+                            <FormDescription>Entering minutes clears existing start and end timestamps.</FormDescription>
                             <FormControl>
                               <Input
                                 type="number"
@@ -558,53 +641,7 @@ export function AttemptForm({ open, onOpenChange, problemId, attempt }: Props) {
                                 step={1}
                                 value={field.value ?? ""}
                                 onChange={(e) => handleManualDurationChange(e.target.value, field.onChange)}
-                                placeholder="Enter minutes manually"
-                                className="bg-background"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <div className="grid gap-2 text-xs text-muted-foreground">
-                        <div className="rounded-xl border border-border/70 bg-muted/35 px-3 py-2">
-                          Started: {formatTimestamp(startedAt)}
-                        </div>
-                        <div className="rounded-xl border border-border/70 bg-muted/35 px-3 py-2">
-                          Ended: {formatTimestamp(endedAt)}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </section>
-
-                <section className="grid gap-4 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
-                  <div className="rounded-2xl border border-border/70 bg-card/90 p-5 shadow-sm">
-                    <div className="mb-4 flex items-start justify-between gap-4">
-                      <div>
-                        <p className="text-sm font-semibold">Implementation Snapshot</p>
-                        <p className="text-xs text-muted-foreground">
-                          Keep the important context concise instead of sprawling.
-                        </p>
-                      </div>
-                      <div className="rounded-full border border-border/70 bg-muted/50 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
-                        Inputs Only
-                      </div>
-                    </div>
-
-                    <div className="grid gap-4">
-                      <FormField
-                        control={form.control}
-                        name="approach"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Approach</FormLabel>
-                            <FormControl>
-                              <Input
-                                {...field}
-                                value={field.value ?? ""}
-                                placeholder="High-level strategy, tradeoffs, edge cases"
+                                placeholder="Minutes spent"
                                 className="h-11 bg-background"
                               />
                             </FormControl>
@@ -613,38 +650,106 @@ export function AttemptForm({ open, onOpenChange, problemId, attempt }: Props) {
                         )}
                       />
 
-                      <FormField
-                        control={form.control}
-                        name="code"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Code</FormLabel>
-                            <FormControl>
-                              <Input
-                                {...field}
-                                value={field.value ?? ""}
-                                placeholder="Paste a compact code snapshot or key line"
-                                className="h-11 bg-background font-mono text-sm"
-                                autoCapitalize="off"
-                                autoCorrect="off"
-                                spellCheck={false}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                      <div className="grid gap-3">
+                        <div className="rounded-2xl border border-border/70 bg-background/80 p-4">
+                          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                            Started
+                          </p>
+                          <p className="mt-2 text-sm text-foreground">{formatTimestamp(startedAt)}</p>
+                        </div>
+                        <div className="rounded-2xl border border-border/70 bg-background/80 p-4">
+                          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                            Ended
+                          </p>
+                          <p className="mt-2 text-sm text-foreground">{formatTimestamp(endedAt)}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </aside>
+                </section>
+
+                <section className="rounded-3xl border border-border/70 bg-card/70 p-6 shadow-sm">
+                  <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+                    <div className="space-y-2">
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                        Step 3
+                      </p>
+                      <div className="space-y-1">
+                        <h2 className="text-lg font-semibold tracking-tight">Implementation snapshot</h2>
+                        <p className="max-w-3xl text-sm leading-6 text-muted-foreground">
+                          Keep this concise. Capture the strategy you took and the smallest useful code snippet or fragment.
+                        </p>
+                      </div>
+                    </div>
+                    <Badge variant="outline" className="rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.18em]">
+                      Concise notes
+                    </Badge>
+                  </div>
+
+                  <div className="grid gap-5 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+                    <FormField
+                      control={form.control}
+                      name="approach"
+                      render={({ field }) => (
+                        <FormItem className="rounded-2xl border border-border/70 bg-background/80 p-4">
+                          <FormLabel className="text-sm font-semibold">Approach</FormLabel>
+                          <FormDescription>
+                            High-level strategy, tradeoffs, edge cases, or where the plan broke down.
+                          </FormDescription>
+                          <FormControl>
+                            <Textarea
+                              {...field}
+                              value={field.value ?? ""}
+                              placeholder="Describe the path you took and any key tradeoffs."
+                              className="min-h-36 resize-y bg-background"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="code"
+                      render={({ field }) => (
+                        <FormItem className="rounded-2xl border border-border/70 bg-background/80 p-4">
+                          <FormLabel className="text-sm font-semibold">Code snapshot</FormLabel>
+                          <FormDescription>
+                            Paste only the most useful excerpt, not the entire submission.
+                          </FormDescription>
+                          <FormControl>
+                            <Textarea
+                              {...field}
+                              value={field.value ?? ""}
+                              placeholder="Key function, tricky loop, or the line that mattered."
+                              className="min-h-36 resize-y bg-background font-mono text-sm"
+                              autoCapitalize="off"
+                              autoCorrect="off"
+                              spellCheck={false}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </section>
+
+                <section className="rounded-3xl border border-border/70 bg-card/70 p-6 shadow-sm">
+                  <div className="mb-6 space-y-2">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                      Step 4
+                    </p>
+                    <div className="space-y-1">
+                      <h2 className="text-lg font-semibold tracking-tight">Retrospective</h2>
+                      <p className="max-w-3xl text-sm leading-6 text-muted-foreground">
+                        Select the mistakes that actually mattered, then keep the written takeaways short enough to reread later.
+                      </p>
                     </div>
                   </div>
 
-                  <div className="rounded-2xl border border-border/70 bg-card/90 p-5 shadow-sm">
-                    <div className="mb-4">
-                      <p className="text-sm font-semibold">Retrospective</p>
-                      <p className="text-xs text-muted-foreground">
-                        Capture mistakes, lessons, and future reminders without wasted space.
-                      </p>
-                    </div>
-
+                  <div className="grid gap-5 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
                     <FormField
                       control={form.control}
                       name="mistakes"
@@ -659,14 +764,24 @@ export function AttemptForm({ open, onOpenChange, problemId, attempt }: Props) {
                         }
 
                         return (
-                          <FormItem>
-                            <FormLabel>Mistakes</FormLabel>
+                          <FormItem className="rounded-2xl border border-border/70 bg-background/80 p-4">
+                            <div className="flex flex-wrap items-center justify-between gap-3">
+                              <div>
+                                <FormLabel className="text-sm font-semibold">Mistakes that mattered</FormLabel>
+                                <FormDescription>
+                                  Only tag the errors that explain the attempt outcome.
+                                </FormDescription>
+                              </div>
+                              <Badge variant="secondary" className="rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.18em]">
+                                {selectedMistakes.length} selected
+                              </Badge>
+                            </div>
                             <FormControl>
-                              <div className="rounded-xl border border-border/70 bg-muted/20 p-3">
+                              <div className="mt-2 rounded-2xl border border-dashed border-border/80 bg-muted/15 p-3">
                                 {mistakesLoading ? (
                                   <div className="grid gap-2 sm:grid-cols-2">
                                     {Array.from({ length: 8 }).map((_, index) => (
-                                      <Skeleton key={index} className="h-9 w-full rounded-full" />
+                                      <Skeleton key={index} className="h-10 w-full rounded-full" />
                                     ))}
                                   </div>
                                 ) : mistakeOptions?.length ? (
@@ -679,8 +794,9 @@ export function AttemptForm({ open, onOpenChange, problemId, attempt }: Props) {
                                           type="button"
                                           size="sm"
                                           variant={active ? "default" : "outline"}
+                                          aria-pressed={active}
                                           onClick={() => toggleMistake(mistake.value)}
-                                          className="rounded-full"
+                                          className="min-h-9 rounded-full px-4 text-xs"
                                         >
                                           {mistake.label || MISTAKE_LABELS[mistake.value]}
                                         </Button>
@@ -698,19 +814,20 @@ export function AttemptForm({ open, onOpenChange, problemId, attempt }: Props) {
                       }}
                     />
 
-                    <div className="mt-4 grid gap-4">
+                    <div className="grid gap-5">
                       <FormField
                         control={form.control}
                         name="learned"
                         render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>What I Learned</FormLabel>
+                          <FormItem className="rounded-2xl border border-border/70 bg-background/80 p-4">
+                            <FormLabel className="text-sm font-semibold">Key insight</FormLabel>
+                            <FormDescription>The single lesson most worth revisiting.</FormDescription>
                             <FormControl>
-                              <Input
+                              <Textarea
                                 {...field}
                                 value={field.value ?? ""}
-                                placeholder="Key insight from this attempt"
-                                className="h-11 bg-background"
+                                placeholder="What changed your understanding of the problem?"
+                                className="min-h-24 resize-y bg-background"
                               />
                             </FormControl>
                           </FormItem>
@@ -721,14 +838,15 @@ export function AttemptForm({ open, onOpenChange, problemId, attempt }: Props) {
                         control={form.control}
                         name="takeaways"
                         render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Takeaways</FormLabel>
+                          <FormItem className="rounded-2xl border border-border/70 bg-background/80 p-4">
+                            <FormLabel className="text-sm font-semibold">Pattern to remember</FormLabel>
+                            <FormDescription>A reusable rule, trigger, or heuristic for next time.</FormDescription>
                             <FormControl>
-                              <Input
+                              <Textarea
                                 {...field}
                                 value={field.value ?? ""}
-                                placeholder="Pattern or rule to remember"
-                                className="h-11 bg-background"
+                                placeholder="What should future-you recognize faster?"
+                                className="min-h-24 resize-y bg-background"
                               />
                             </FormControl>
                           </FormItem>
@@ -739,14 +857,15 @@ export function AttemptForm({ open, onOpenChange, problemId, attempt }: Props) {
                         control={form.control}
                         name="notes"
                         render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Notes</FormLabel>
+                          <FormItem className="rounded-2xl border border-border/70 bg-background/80 p-4">
+                            <FormLabel className="text-sm font-semibold">Anything worth preserving</FormLabel>
+                            <FormDescription>Small follow-ups, reminders, or context that does not fit above.</FormDescription>
                             <FormControl>
-                              <Input
+                              <Textarea
                                 {...field}
                                 value={field.value ?? ""}
-                                placeholder="Anything else worth keeping"
-                                className="h-11 bg-background"
+                                placeholder="Add anything still useful after the main reflection is done."
+                                className="min-h-24 resize-y bg-background"
                               />
                             </FormControl>
                           </FormItem>
@@ -770,16 +889,23 @@ export function AttemptForm({ open, onOpenChange, problemId, attempt }: Props) {
               ))}
             </datalist>
 
-            <div className="flex shrink-0 items-center justify-between border-t border-border/70 bg-card/95 px-6 py-4">
-              <p className="text-xs text-muted-foreground">
-                Manual time clears timer stamps. Timer stamps override manual time when both are set.
-              </p>
-              <div className="flex gap-2">
-                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <div className="flex shrink-0 flex-col gap-4 border-t border-border/70 bg-card/95 px-6 py-4 sm:px-8 lg:flex-row lg:items-center lg:justify-between">
+              <div className="space-y-1">
+                <p className="text-sm font-semibold text-foreground">Review for signal, not completeness.</p>
+                <p className="text-sm text-muted-foreground">
+                  The best attempt logs stay compact enough to scan quickly before a future retry.
+                </p>
+              </div>
+              <div className="flex flex-col-reverse gap-3 sm:flex-row">
+                <Button type="button" variant="outline" className="h-11 min-w-28" onClick={() => onOpenChange(false)}>
                   Cancel
                 </Button>
-                <Button type="submit" disabled={logMutation.isPending || updateMutation.isPending}>
-                  {isEdit ? "Update Attempt" : "Log Attempt"}
+                <Button
+                  type="submit"
+                  className="h-11 min-w-36"
+                  disabled={logMutation.isPending || updateMutation.isPending}
+                >
+                  {isEdit ? "Save Changes" : "Log Attempt"}
                 </Button>
               </div>
             </div>

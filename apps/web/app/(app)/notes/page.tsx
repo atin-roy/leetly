@@ -202,7 +202,7 @@ export default function NotesPage() {
   const [selectedNote, setSelectedNote] = useState<NoteDto | undefined>()
   const [dialogMode, setDialogMode] = useState<"view" | "edit">("view")
   const [deleteNoteId, setDeleteNoteId] = useState<number | null>(null)
-  const [viewMode, setViewMode] = useState<NotesViewMode>("cards")
+  const [viewMode, setViewMode] = useState<NotesViewMode>("table")
 
   const notes = pagedResponse?.content ?? []
   const page = pagedResponse?.page ?? 0
