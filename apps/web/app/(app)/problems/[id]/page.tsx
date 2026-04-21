@@ -640,17 +640,16 @@ export default function ProblemDetailPage({
     : null
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6">
+    <div className="w-full space-y-6">
+      <Button variant="ghost" size="sm" asChild className="-ml-2">
+        <Link href="/problems">
+          <ArrowLeft className="mr-1 h-4 w-4" />
+          Back
+        </Link>
+      </Button>
+
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px] xl:items-start">
         <div className="space-y-6">
-          {/* Back */}
-          <Button variant="ghost" size="sm" asChild className="-ml-2">
-            <Link href="/problems">
-              <ArrowLeft className="mr-1 h-4 w-4" />
-              Back
-            </Link>
-          </Button>
-
           {/* Header */}
           <div className="rounded-2xl border bg-background/95 p-6 shadow-sm">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -675,29 +674,30 @@ export default function ProblemDetailPage({
             </div>
           </div>
 
-          <div className="space-y-3 rounded-lg border p-4">
-            <div className="flex items-center justify-between gap-3">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                Note
-              </h2>
+          {note ? (
+            <div className="space-y-3 rounded-lg border p-4">
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                  Note
+                </h2>
+                <Button variant="outline" size="sm" onClick={() => setNoteDialogOpen(true)}>
+                  <StickyNote className="mr-1.5 h-4 w-4" />
+                  Edit Note
+                </Button>
+              </div>
+              <div className="space-y-2">
+                <p className="text-sm font-medium leading-snug">{note.title}</p>
+                <MarkdownContent content={note.content} className="text-sm text-muted-foreground" />
+              </div>
+            </div>
+          ) : (
+            <div className="flex justify-end">
               <Button variant="outline" size="sm" onClick={() => setNoteDialogOpen(true)}>
                 <StickyNote className="mr-1.5 h-4 w-4" />
-                {note ? "Edit Note" : "Create Note"}
+                Create Note
               </Button>
             </div>
-            <div className="space-y-2">
-              {note ? (
-                <>
-                  <p className="text-sm font-medium leading-snug">{note.title}</p>
-                  <MarkdownContent content={note.content} className="text-sm text-muted-foreground" />
-                </>
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  No note yet.
-                </p>
-              )}
-            </div>
-          </div>
+          )}
 
           {/* Attempts */}
           <div className="space-y-3">
@@ -724,12 +724,12 @@ export default function ProblemDetailPage({
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="w-20">#</TableHead>
-                      <TableHead className="w-36">Result</TableHead>
-                      <TableHead className="w-36">Time Complexity</TableHead>
-                      <TableHead className="w-36">Space Complexity</TableHead>
-                      <TableHead>Mistakes</TableHead>
-                      <TableHead className="w-28 text-right">Solve Time</TableHead>
+                      <TableHead className="w-20 text-center">#</TableHead>
+                      <TableHead className="w-36 text-center">Result</TableHead>
+                      <TableHead className="w-36 text-center">Time Complexity</TableHead>
+                      <TableHead className="w-36 text-center">Space Complexity</TableHead>
+                      <TableHead className="text-center">Mistakes</TableHead>
+                      <TableHead className="w-28 text-center">Solve Time</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -739,8 +739,8 @@ export default function ProblemDetailPage({
                         className="cursor-pointer"
                         onClick={() => setSelectedAttempt(attempt)}
                       >
-                        <TableCell className="font-medium">#{attempt.attemptNumber}</TableCell>
-                        <TableCell>
+                        <TableCell className="text-center font-medium">#{attempt.attemptNumber}</TableCell>
+                        <TableCell className="text-center">
                           <Badge
                             variant="outline"
                             className={getOutcomeBadgeClass(attempt.outcome)}
@@ -748,16 +748,16 @@ export default function ProblemDetailPage({
                             {OUTCOME_LABELS[attempt.outcome] ?? attempt.outcome}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">
+                        <TableCell className="text-center text-sm text-muted-foreground">
                           {attempt.timeComplexity ?? "—"}
                         </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">
+                        <TableCell className="text-center text-sm text-muted-foreground">
                           {attempt.spaceComplexity ?? "—"}
                         </TableCell>
-                        <TableCell className="max-w-md truncate text-sm text-muted-foreground">
+                        <TableCell className="max-w-md text-center text-sm text-muted-foreground">
                           {formatAttemptMistakes(attempt)}
                         </TableCell>
-                        <TableCell className="text-right text-sm text-muted-foreground">
+                        <TableCell className="text-center text-sm text-muted-foreground">
                           {formatDuration(attempt.durationMinutes) ?? "—"}
                         </TableCell>
                       </TableRow>
@@ -781,9 +781,10 @@ export default function ProblemDetailPage({
             <MetaRow label="status" align="center">
               <Select value={problem.status} onValueChange={(v) => statusMutation.mutate(v)}>
                 <SelectTrigger
+                  size="sm"
                   hideIcon
                   disabled={statusMutation.isPending}
-                  className="inline-flex h-auto w-fit cursor-pointer items-center border-0 bg-transparent p-0 shadow-none transition-opacity hover:opacity-80 focus-visible:ring-0 data-[state=open]:opacity-80"
+                  className="inline-flex h-6 min-h-0 w-fit cursor-pointer items-center border-0 bg-transparent p-0 leading-none shadow-none transition-opacity hover:opacity-80 focus-visible:ring-0 data-[state=open]:opacity-80"
                 >
                   <SelectValue>
                     <StatusBadge status={problem.status} />
