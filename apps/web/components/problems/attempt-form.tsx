@@ -1,9 +1,10 @@
 "use client"
 
-import { useEffect, useId, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
+import { ChevronDown } from "lucide-react"
 import { z } from "zod"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
@@ -25,6 +26,7 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import {
   Select,
   SelectContent,
@@ -33,7 +35,6 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Textarea } from "@/components/ui/textarea"
 import { useLogAttempt, useMistakeOptions, useUpdateAttempt } from "@/hooks/use-attempts"
 import { useSettings } from "@/hooks/use-settings"
 import type { AttemptDto, Language, MistakeType } from "@/lib/types"
@@ -292,6 +293,78 @@ function getTimerStatus(startedAt?: string, endedAt?: string) {
   return "Idle"
 }
 
+function ComplexityPicker({
+  label,
+  description,
+  value,
+  options,
+  placeholder,
+  onSelect,
+}: {
+  label: string
+  description: string
+  value?: string
+  options: readonly string[]
+  placeholder: string
+  onSelect: (value: string) => void
+}) {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <div className="grid gap-2">
+      <div className="space-y-1">
+        <FormLabel className="text-sm font-semibold">{label}</FormLabel>
+        <FormDescription>{description}</FormDescription>
+      </div>
+
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <button
+            type="button"
+            className="flex h-11 w-full items-center justify-between rounded-md border border-input bg-background px-3 text-left font-mono text-sm shadow-sm outline-none transition-all hover:border-primary/35 focus-visible:ring-2 focus-visible:ring-ring/40"
+          >
+            <span className={value ? "text-foreground" : "text-muted-foreground"}>
+              {value || placeholder}
+            </span>
+            <ChevronDown className="size-4 text-muted-foreground" />
+          </button>
+        </PopoverTrigger>
+        <PopoverContent
+          align="start"
+          className="w-[min(32rem,calc(100vw-4rem))] rounded-2xl border-border/70 bg-background/98 p-4"
+        >
+          <div className="mb-3 space-y-1">
+            <p className="text-sm font-semibold">{label}</p>
+            <p className="text-sm text-muted-foreground">
+              Pick the closest shorthand instead of typing a long expression list.
+            </p>
+          </div>
+          <div className="grid max-h-72 grid-cols-2 gap-2 overflow-y-auto pr-1 sm:grid-cols-3">
+            {options.map((option) => {
+              const active = value === option
+              return (
+                <Button
+                  key={option}
+                  type="button"
+                  variant={active ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => {
+                    onSelect(option)
+                    setOpen(false)
+                  }}
+                  className="h-10 justify-center rounded-xl px-3 font-mono text-xs"
+                >
+                  {option}
+                </Button>
+              )
+            })}
+          </div>
+        </PopoverContent>
+      </Popover>
+    </div>
+  )
+}
+
 export function AttemptForm({ open, onOpenChange, problemId, attempt }: Props) {
   const isEdit = !!attempt
   const { data: settings } = useSettings()
@@ -301,8 +374,6 @@ export function AttemptForm({ open, onOpenChange, problemId, attempt }: Props) {
   const [nowMs, setNowMs] = useState(() => Date.now())
   const wasOpenRef = useRef(false)
   const preferredLanguage = settings?.preferredLanguage
-  const timeComplexityListId = `${useId().replace(/:/g, "")}-time-complexities`
-  const spaceComplexityListId = `${useId().replace(/:/g, "")}-space-complexities`
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -529,16 +600,16 @@ export function AttemptForm({ open, onOpenChange, problemId, attempt }: Props) {
                         name="timeComplexity"
                         render={({ field }) => (
                           <FormItem className="rounded-2xl border border-border/70 bg-background/80 p-4">
-                            <FormLabel className="text-sm font-semibold">Time complexity</FormLabel>
-                            <FormDescription>Use a shorthand estimate if exact analysis is not the point.</FormDescription>
+                            <ComplexityPicker
+                              label="Time complexity"
+                              description="Use a shorthand estimate if exact analysis is not the point."
+                              value={field.value ?? ""}
+                              options={TIME_COMPLEXITY_OPTIONS}
+                              placeholder="Choose a time complexity"
+                              onSelect={field.onChange}
+                            />
                             <FormControl>
-                              <Input
-                                {...field}
-                                value={field.value ?? ""}
-                                list={timeComplexityListId}
-                                placeholder="O(n log n), O(d), O(V + E)"
-                                className="h-11 bg-background font-mono"
-                              />
+                              <input type="hidden" value={field.value ?? ""} onChange={field.onChange} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -550,20 +621,84 @@ export function AttemptForm({ open, onOpenChange, problemId, attempt }: Props) {
                         name="spaceComplexity"
                         render={({ field }) => (
                           <FormItem className="rounded-2xl border border-border/70 bg-background/80 p-4">
-                            <FormLabel className="text-sm font-semibold">Space complexity</FormLabel>
-                            <FormDescription>Only add what materially helps future review.</FormDescription>
+                            <ComplexityPicker
+                              label="Space complexity"
+                              description="Only add what materially helps future review."
+                              value={field.value ?? ""}
+                              options={SPACE_COMPLEXITY_OPTIONS}
+                              placeholder="Choose a space complexity"
+                              onSelect={field.onChange}
+                            />
                             <FormControl>
-                              <Input
-                                {...field}
-                                value={field.value ?? ""}
-                                list={spaceComplexityListId}
-                                placeholder="O(1), O(h), O(n)"
-                                className="h-11 bg-background font-mono"
-                              />
+                              <input type="hidden" value={field.value ?? ""} onChange={field.onChange} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="mistakes"
+                        render={({ field }) => {
+                          const selectedMistakes = field.value ?? []
+
+                          function toggleMistake(mistake: string) {
+                            const nextValue = selectedMistakes.includes(mistake)
+                              ? selectedMistakes.filter((value) => value !== mistake)
+                              : [...selectedMistakes, mistake]
+                            field.onChange(nextValue)
+                          }
+
+                          return (
+                            <FormItem className="rounded-2xl border border-border/70 bg-background/80 p-4 md:col-span-2">
+                              <div className="flex flex-wrap items-center justify-between gap-3">
+                                <div>
+                                  <FormLabel className="text-sm font-semibold">Mistakes that mattered</FormLabel>
+                                  <FormDescription>
+                                    Tag the mistakes that explain the result so the top section carries the important context.
+                                  </FormDescription>
+                                </div>
+                                <Badge variant="secondary" className="rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.18em]">
+                                  {selectedMistakes.length} selected
+                                </Badge>
+                              </div>
+                              <FormControl>
+                                <div className="mt-2 rounded-2xl border border-dashed border-border/80 bg-muted/15 p-3">
+                                  {mistakesLoading ? (
+                                    <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                                      {Array.from({ length: 8 }).map((_, index) => (
+                                        <Skeleton key={index} className="h-10 w-full rounded-full" />
+                                      ))}
+                                    </div>
+                                  ) : mistakeOptions?.length ? (
+                                    <div className="flex flex-wrap gap-2">
+                                      {mistakeOptions.map((mistake) => {
+                                        const active = selectedMistakes.includes(mistake.value)
+                                        return (
+                                          <Button
+                                            key={mistake.value}
+                                            type="button"
+                                            size="sm"
+                                            variant={active ? "default" : "outline"}
+                                            aria-pressed={active}
+                                            onClick={() => toggleMistake(mistake.value)}
+                                            className="min-h-9 rounded-full px-4 text-xs"
+                                          >
+                                            {mistake.label || MISTAKE_LABELS[mistake.value]}
+                                          </Button>
+                                        )
+                                      })}
+                                    </div>
+                                  ) : (
+                                    <p className="text-sm text-muted-foreground">No mistake options available.</p>
+                                  )}
+                                </div>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )
+                        }}
                       />
                     </div>
                   </div>
@@ -697,11 +832,11 @@ export function AttemptForm({ open, onOpenChange, problemId, attempt }: Props) {
                             High-level strategy, tradeoffs, edge cases, or where the plan broke down.
                           </FormDescription>
                           <FormControl>
-                            <Textarea
+                            <Input
                               {...field}
                               value={field.value ?? ""}
-                              placeholder="Describe the path you took and any key tradeoffs."
-                              className="min-h-36 resize-y bg-background"
+                              placeholder="Binary search on answer, then validate with a greedy pass."
+                              className="h-11 bg-background"
                             />
                           </FormControl>
                           <FormMessage />
@@ -719,11 +854,11 @@ export function AttemptForm({ open, onOpenChange, problemId, attempt }: Props) {
                             Paste only the most useful excerpt, not the entire submission.
                           </FormDescription>
                           <FormControl>
-                            <Textarea
+                            <Input
                               {...field}
                               value={field.value ?? ""}
-                              placeholder="Key function, tricky loop, or the line that mattered."
-                              className="min-h-36 resize-y bg-background font-mono text-sm"
+                              placeholder="if (freq.get(char) > 1) { left++; }"
+                              className="h-11 bg-background font-mono text-sm"
                               autoCapitalize="off"
                               autoCorrect="off"
                               spellCheck={false}
@@ -749,145 +884,72 @@ export function AttemptForm({ open, onOpenChange, problemId, attempt }: Props) {
                     </div>
                   </div>
 
-                  <div className="grid gap-5 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
-                    <FormField
-                      control={form.control}
-                      name="mistakes"
-                      render={({ field }) => {
-                        const selectedMistakes = field.value ?? []
-
-                        function toggleMistake(mistake: string) {
-                          const nextValue = selectedMistakes.includes(mistake)
-                            ? selectedMistakes.filter((value) => value !== mistake)
-                            : [...selectedMistakes, mistake]
-                          field.onChange(nextValue)
-                        }
-
-                        return (
-                          <FormItem className="rounded-2xl border border-border/70 bg-background/80 p-4">
-                            <div className="flex flex-wrap items-center justify-between gap-3">
-                              <div>
-                                <FormLabel className="text-sm font-semibold">Mistakes that mattered</FormLabel>
-                                <FormDescription>
-                                  Only tag the errors that explain the attempt outcome.
-                                </FormDescription>
-                              </div>
-                              <Badge variant="secondary" className="rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.18em]">
-                                {selectedMistakes.length} selected
-                              </Badge>
-                            </div>
-                            <FormControl>
-                              <div className="mt-2 rounded-2xl border border-dashed border-border/80 bg-muted/15 p-3">
-                                {mistakesLoading ? (
-                                  <div className="grid gap-2 sm:grid-cols-2">
-                                    {Array.from({ length: 8 }).map((_, index) => (
-                                      <Skeleton key={index} className="h-10 w-full rounded-full" />
-                                    ))}
-                                  </div>
-                                ) : mistakeOptions?.length ? (
-                                  <div className="flex flex-wrap gap-2">
-                                    {mistakeOptions.map((mistake) => {
-                                      const active = selectedMistakes.includes(mistake.value)
-                                      return (
-                                        <Button
-                                          key={mistake.value}
-                                          type="button"
-                                          size="sm"
-                                          variant={active ? "default" : "outline"}
-                                          aria-pressed={active}
-                                          onClick={() => toggleMistake(mistake.value)}
-                                          className="min-h-9 rounded-full px-4 text-xs"
-                                        >
-                                          {mistake.label || MISTAKE_LABELS[mistake.value]}
-                                        </Button>
-                                      )
-                                    })}
-                                  </div>
-                                ) : (
-                                  <p className="text-sm text-muted-foreground">No mistake options available.</p>
-                                )}
-                              </div>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )
-                      }}
-                    />
-
-                    <div className="grid gap-5">
+                  <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+                    <div className="grid gap-5 md:col-span-2 xl:col-span-3 xl:grid-cols-3">
                       <FormField
                         control={form.control}
                         name="learned"
                         render={({ field }) => (
                           <FormItem className="rounded-2xl border border-border/70 bg-background/80 p-4">
-                            <FormLabel className="text-sm font-semibold">Key insight</FormLabel>
-                            <FormDescription>The single lesson most worth revisiting.</FormDescription>
-                            <FormControl>
-                              <Textarea
-                                {...field}
-                                value={field.value ?? ""}
-                                placeholder="What changed your understanding of the problem?"
-                                className="min-h-24 resize-y bg-background"
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
+                          <FormLabel className="text-sm font-semibold">Key insight</FormLabel>
+                          <FormDescription>The single lesson most worth revisiting.</FormDescription>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              value={field.value ?? ""}
+                              placeholder="The invariant mattered more than the final loop structure."
+                              className="h-11 bg-background"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
                       <FormField
                         control={form.control}
                         name="takeaways"
                         render={({ field }) => (
                           <FormItem className="rounded-2xl border border-border/70 bg-background/80 p-4">
-                            <FormLabel className="text-sm font-semibold">Pattern to remember</FormLabel>
-                            <FormDescription>A reusable rule, trigger, or heuristic for next time.</FormDescription>
-                            <FormControl>
-                              <Textarea
-                                {...field}
-                                value={field.value ?? ""}
-                                placeholder="What should future-you recognize faster?"
-                                className="min-h-24 resize-y bg-background"
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
+                          <FormLabel className="text-sm font-semibold">Pattern to remember</FormLabel>
+                          <FormDescription>A reusable rule, trigger, or heuristic for next time.</FormDescription>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              value={field.value ?? ""}
+                              placeholder="If the answer is monotonic, test binary search on the answer."
+                              className="h-11 bg-background"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
                       <FormField
                         control={form.control}
                         name="notes"
                         render={({ field }) => (
                           <FormItem className="rounded-2xl border border-border/70 bg-background/80 p-4">
-                            <FormLabel className="text-sm font-semibold">Anything worth preserving</FormLabel>
-                            <FormDescription>Small follow-ups, reminders, or context that does not fit above.</FormDescription>
-                            <FormControl>
-                              <Textarea
-                                {...field}
-                                value={field.value ?? ""}
-                                placeholder="Add anything still useful after the main reflection is done."
-                                className="min-h-24 resize-y bg-background"
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
+                          <FormLabel className="text-sm font-semibold">Anything worth preserving</FormLabel>
+                          <FormDescription>Small follow-ups, reminders, or context that does not fit above.</FormDescription>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              value={field.value ?? ""}
+                              placeholder="Retry once without looking at the editorial."
+                              className="h-11 bg-background"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                     </div>
                   </div>
                 </section>
               </div>
             </div>
-
-            <datalist id={timeComplexityListId}>
-              {TIME_COMPLEXITY_OPTIONS.map((complexity) => (
-                <option key={complexity} value={complexity} />
-              ))}
-            </datalist>
-
-            <datalist id={spaceComplexityListId}>
-              {SPACE_COMPLEXITY_OPTIONS.map((complexity) => (
-                <option key={complexity} value={complexity} />
-              ))}
-            </datalist>
 
             <div className="flex shrink-0 flex-col gap-4 border-t border-border/70 bg-card/95 px-6 py-4 sm:px-8 lg:flex-row lg:items-center lg:justify-between">
               <div className="space-y-1">
