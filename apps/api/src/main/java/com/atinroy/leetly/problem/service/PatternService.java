@@ -20,7 +20,7 @@ public class PatternService {
 
     @Transactional(readOnly = true)
     public List<Pattern> findAll() {
-        return patternRepository.findAll();
+        return patternRepository.findAllByOrderByNameAsc();
     }
 
     @Transactional(readOnly = true)
@@ -32,7 +32,7 @@ public class PatternService {
     @Transactional(readOnly = true)
     public List<Pattern> findByTopic(long topicId) {
         Topic topic = topicService.findById(topicId);
-        return patternRepository.findByTopic(topic);
+        return patternRepository.findByTopicOrderByNameAsc(topic);
     }
 
     public Pattern create(String name, String description, Long topicId, boolean namedAlgorithm) {

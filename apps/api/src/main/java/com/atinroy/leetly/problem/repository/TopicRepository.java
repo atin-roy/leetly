@@ -6,4 +6,5 @@ import com.atinroy.leetly.problem.model.Topic;
 
 @Repository
 public interface TopicRepository extends JpaRepository<Topic, Long> {
+    java.util.List<Topic> findAllByOrderByNameAsc();
 }

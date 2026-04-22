@@ -34,7 +34,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Textarea } from "@/components/ui/textarea"
 import { CodeBlock as HighlightedCodeBlock } from "@/components/ui/code-block"
 import { MarkdownContent } from "@/components/ui/markdown-content"
 import { DifficultyBadge } from "@/components/problems/difficulty-badge"
@@ -46,8 +45,6 @@ import {
   useTopics,
   usePatterns,
   useProblems,
-  useCreateTopic,
-  useCreatePattern,
   useUpdateProblemStatus,
   useAddTopic,
   useRemoveTopics,
@@ -398,10 +395,8 @@ export default function ProblemDetailPage({
   const statusMutation = useUpdateProblemStatus(id)
   const addTopicMutation = useAddTopic(id)
   const removeTopicsMutation = useRemoveTopics(id)
-  const createTopicMutation = useCreateTopic()
   const addPatternMutation = useAddPattern(id)
   const removePatternMutation = useRemovePattern(id)
-  const createPatternMutation = useCreatePattern()
   const addRelatedMutation = useAddRelatedProblem(id)
   const deleteAttemptMutation = useDeleteAttempt(id)
 
@@ -426,12 +421,9 @@ export default function ProblemDetailPage({
   const [relatedModalOpen, setRelatedModalOpen] = useState(false)
   const [listModalOpen, setListModalOpen] = useState(false)
 
-  // Create flows inside selector modals
-  const [newTopicName, setNewTopicName] = useState("")
-  const [newTopicDescription, setNewTopicDescription] = useState("")
-  const [newPatternName, setNewPatternName] = useState("")
-  const [newPatternDescription, setNewPatternDescription] = useState("")
-  const [newPatternTopicId, setNewPatternTopicId] = useState<string>("none")
+  // Selector filters
+  const [topicSearch, setTopicSearch] = useState("")
+  const [patternSearch, setPatternSearch] = useState("")
   const [relatedSearch, setRelatedSearch] = useState("")
   const [newListName, setNewListName] = useState("")
 
@@ -462,12 +454,24 @@ export default function ProblemDetailPage({
   const patternIds = new Set((problem?.patterns ?? []).map((p) => p.id))
   const relatedIds = new Set((problem?.relatedProblems ?? []).map((r) => r.id))
 
-  const topicOptions = (allTopics ?? []).map((t: TopicDto) => ({ id: t.id, label: t.name }))
-  const patternOptions = (allPatterns ?? []).map((p: PatternDto) => ({
-    id: p.id,
-    label: p.name,
-    subtitle: p.topicName ?? undefined,
-  }))
+  const topicOptions = [...(allTopics ?? [])]
+    .sort((a: TopicDto, b: TopicDto) => a.name.localeCompare(b.name))
+    .map((t: TopicDto) => ({ id: t.id, label: t.name }))
+  const patternOptions = [...(allPatterns ?? [])]
+    .sort((a: PatternDto, b: PatternDto) => a.name.localeCompare(b.name))
+    .map((p: PatternDto) => ({
+      id: p.id,
+      label: p.name,
+      subtitle: p.topicName ?? undefined,
+    }))
+  const topicQuery = topicSearch.trim().toLowerCase()
+  const filteredTopicOptions = topicOptions.filter((option) =>
+    option.label.toLowerCase().includes(topicQuery),
+  )
+  const patternQuery = patternSearch.trim().toLowerCase()
+  const filteredPatternOptions = patternOptions.filter((option) =>
+    `${option.label} ${option.subtitle ?? ""}`.toLowerCase().includes(patternQuery),
+  )
   const relatedOptions = (allProblems?.content ?? [])
     .filter((p: ProblemSummaryDto) => p.id !== id)
     .map((p: ProblemSummaryDto) => ({
@@ -484,30 +488,10 @@ export default function ProblemDetailPage({
     try {
       await addTopicMutation.mutateAsync(topicId)
       toast.success("Topic added")
+      setTopicSearch("")
       setTopicModalOpen(false)
     } catch {
       toast.error("Failed to add topic")
-    }
-  }
-
-  async function handleCreateTopic() {
-    const name = newTopicName.trim()
-    if (!name) {
-      toast.error("Topic name is required")
-      return
-    }
-    try {
-      const created = await createTopicMutation.mutateAsync({
-        name,
-        description: newTopicDescription.trim() || undefined,
-      })
-      await addTopicMutation.mutateAsync(created.id)
-      toast.success("Topic created and added")
-      setNewTopicName("")
-      setNewTopicDescription("")
-      setTopicModalOpen(false)
-    } catch {
-      toast.error("Failed to create topic")
     }
   }
 
@@ -515,33 +499,10 @@ export default function ProblemDetailPage({
     try {
       await addPatternMutation.mutateAsync(patternId)
       toast.success("Pattern added")
+      setPatternSearch("")
       setPatternModalOpen(false)
     } catch {
       toast.error("Failed to add pattern")
-    }
-  }
-
-  async function handleCreatePattern() {
-    const name = newPatternName.trim()
-    if (!name) {
-      toast.error("Pattern name is required")
-      return
-    }
-    try {
-      const created = await createPatternMutation.mutateAsync({
-        name,
-        description: newPatternDescription.trim() || undefined,
-        topicId: newPatternTopicId === "none" ? null : Number(newPatternTopicId),
-        namedAlgorithm: false,
-      })
-      await addPatternMutation.mutateAsync(created.id)
-      toast.success("Pattern created and added")
-      setNewPatternName("")
-      setNewPatternDescription("")
-      setNewPatternTopicId("none")
-      setPatternModalOpen(false)
-    } catch {
-      toast.error("Failed to create pattern")
     }
   }
 
@@ -1018,43 +979,19 @@ export default function ProblemDetailPage({
         <DialogContent className="sm:max-w-3xl">
           <DialogHeader>
             <DialogTitle>Add Topics</DialogTitle>
-            <DialogDescription>Select one topic from the grid to add it to this problem.</DialogDescription>
+            <DialogDescription>Select from the predefined topic catalog.</DialogDescription>
           </DialogHeader>
+          <Input
+            value={topicSearch}
+            onChange={(e) => setTopicSearch(e.target.value)}
+            placeholder="Search topics..."
+          />
           <SelectorGrid
-            options={topicOptions}
+            options={filteredTopicOptions}
             selectedIds={topicIds}
             onSelect={handleAddTopic}
             isPending={addTopicMutation.isPending}
           />
-          <div className="space-y-2 rounded-md border border-dashed p-3">
-            <p className="text-xs font-medium">Create new topic</p>
-            <div className="grid gap-2 sm:grid-cols-2">
-              <div className="space-y-1">
-                <Label htmlFor="new-topic-name">Name</Label>
-                <Input
-                  id="new-topic-name"
-                  value={newTopicName}
-                  onChange={(e) => setNewTopicName(e.target.value)}
-                  placeholder="e.g. Backtracking"
-                />
-              </div>
-              <div className="space-y-1 sm:col-span-2">
-                <Label htmlFor="new-topic-description">Description</Label>
-                <Textarea
-                  id="new-topic-description"
-                  value={newTopicDescription}
-                  onChange={(e) => setNewTopicDescription(e.target.value)}
-                  className="min-h-20"
-                  placeholder="Short description (optional)"
-                />
-              </div>
-            </div>
-            <div className="flex justify-end">
-              <Button onClick={handleCreateTopic} disabled={createTopicMutation.isPending || addTopicMutation.isPending}>
-                Create and Add
-              </Button>
-            </div>
-          </div>
         </DialogContent>
       </Dialog>
 
@@ -1062,62 +999,19 @@ export default function ProblemDetailPage({
         <DialogContent className="sm:max-w-3xl">
           <DialogHeader>
             <DialogTitle>Add Patterns</DialogTitle>
-            <DialogDescription>Select one pattern from the grid to add it to this problem.</DialogDescription>
+            <DialogDescription>Select from the predefined pattern catalog.</DialogDescription>
           </DialogHeader>
+          <Input
+            value={patternSearch}
+            onChange={(e) => setPatternSearch(e.target.value)}
+            placeholder="Search patterns..."
+          />
           <SelectorGrid
-            options={patternOptions}
+            options={filteredPatternOptions}
             selectedIds={patternIds}
             onSelect={handleAddPattern}
             isPending={addPatternMutation.isPending}
           />
-          <div className="space-y-2 rounded-md border border-dashed p-3">
-            <p className="text-xs font-medium">Create new pattern</p>
-            <div className="grid gap-2 sm:grid-cols-2">
-              <div className="space-y-1">
-                <Label htmlFor="new-pattern-name">Name</Label>
-                <Input
-                  id="new-pattern-name"
-                  value={newPatternName}
-                  onChange={(e) => setNewPatternName(e.target.value)}
-                  placeholder="e.g. Two Pointers"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor="new-pattern-topic">Topic</Label>
-                <Select value={newPatternTopicId} onValueChange={setNewPatternTopicId}>
-                  <SelectTrigger id="new-pattern-topic">
-                    <SelectValue placeholder="Optional topic" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">None</SelectItem>
-                    {(allTopics ?? []).map((topic) => (
-                      <SelectItem key={topic.id} value={String(topic.id)}>
-                        {topic.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1 sm:col-span-2">
-                <Label htmlFor="new-pattern-description">Description</Label>
-                <Textarea
-                  id="new-pattern-description"
-                  value={newPatternDescription}
-                  onChange={(e) => setNewPatternDescription(e.target.value)}
-                  className="min-h-20"
-                  placeholder="Short description (optional)"
-                />
-              </div>
-            </div>
-            <div className="flex justify-end">
-              <Button
-                onClick={handleCreatePattern}
-                disabled={createPatternMutation.isPending || addPatternMutation.isPending}
-              >
-                Create and Add
-              </Button>
-            </div>
-          </div>
         </DialogContent>
       </Dialog>
 

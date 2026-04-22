@@ -16,7 +16,8 @@ public interface PatternRepository extends JpaRepository<Pattern, Long> {
      * trigger a separate SELECT per pattern (N+1).
      */
     @EntityGraph(attributePaths = {"topic"})
-    List<Pattern> findAll();
+    List<Pattern> findAllByOrderByNameAsc();
 
-    List<Pattern> findByTopic(Topic topic);
+    @EntityGraph(attributePaths = {"topic"})
+    List<Pattern> findByTopicOrderByNameAsc(Topic topic);
 }

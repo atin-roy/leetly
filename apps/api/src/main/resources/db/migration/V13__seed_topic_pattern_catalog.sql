@@ -1,0 +1,197 @@
+-- Canonical topic and pattern catalog for problem metadata.
+-- This keeps the selectable taxonomy fixed, exhaustive, and alphabetical.
+
+WITH canonical_topics(name, description) AS (
+    VALUES
+        ('Array', 'Contiguous indexed collections and array manipulation.'),
+        ('Backtracking', 'Systematic search with choices, pruning, and state rollback.'),
+        ('Binary Indexed Tree', 'Fenwick tree structures for prefix queries and updates.'),
+        ('Binary Search', 'Searching over sorted data or monotonic answer spaces.'),
+        ('Binary Tree', 'Problems centered on rooted binary tree traversal and structure.'),
+        ('Bit Manipulation', 'Problems that rely on bitwise operations and binary representation.'),
+        ('Bitmask', 'State compression and subset reasoning with bitmasks.'),
+        ('Breadth-First Search', 'Level-by-level traversal over graphs, trees, or state spaces.'),
+        ('Depth-First Search', 'Recursive or stack-based traversal for exploration and decomposition.'),
+        ('Design', 'Data structure and API design with specific behavioral constraints.'),
+        ('Divide and Conquer', 'Splitting problems into smaller subproblems and combining results.'),
+        ('Dynamic Programming', 'Optimal substructure and overlapping subproblems.'),
+        ('Enumeration', 'Complete or constrained iteration over candidate states.'),
+        ('Graph', 'General graph modeling, traversal, connectivity, and path reasoning.'),
+        ('Greedy', 'Locally optimal choices justified by a global invariant.'),
+        ('Hash Table', 'Constant-time lookup via hashing for counting, indexing, and grouping.'),
+        ('Heap (Priority Queue)', 'Ordered extraction and scheduling with heaps or priority queues.'),
+        ('Linked List', 'Pointer-based linear structures and node manipulation.'),
+        ('Math', 'Arithmetic, number properties, formulas, and mathematical reasoning.'),
+        ('Matrix', '2D grid traversal, transformation, and matrix-specific state handling.'),
+        ('Monotonic Queue', 'Queues that maintain monotonic order for window extrema.'),
+        ('Monotonic Stack', 'Stacks that maintain monotonic order for nearest greater or smaller relationships.'),
+        ('Number Theory', 'Divisibility, primes, modular arithmetic, and numeric structure.'),
+        ('Ordered Set', 'Sorted sets or maps for predecessor, successor, and rank-style queries.'),
+        ('Prefix Sum', 'Running aggregates for constant-time range computations.'),
+        ('Queue', 'FIFO processing, buffering, and queue-based simulation.'),
+        ('Randomized', 'Random sampling, probabilistic choices, or expected-value strategies.'),
+        ('Recursion', 'Self-referential solutions and recursive decomposition.'),
+        ('Segment Tree', 'Segment trees for range query and range update workflows.'),
+        ('Simulation', 'Directly modeling the process described by the problem statement.'),
+        ('Sliding Window', 'Expanding and shrinking contiguous ranges while tracking window state.'),
+        ('Sorting', 'Ordering data to simplify comparisons, grouping, or scanning.'),
+        ('Stack', 'LIFO processing, parsing, and stack-driven state management.'),
+        ('String', 'String parsing, matching, construction, and transformation.'),
+        ('Topological Sort', 'Ordering nodes in a directed acyclic dependency graph.'),
+        ('Tree', 'General rooted tree structure, traversal, and subtree reasoning.'),
+        ('Trie', 'Prefix trees for dictionary, prefix, and autocomplete operations.'),
+        ('Two Pointers', 'Coordinated pointer movement across one or more sequences.'),
+        ('Union Find', 'Disjoint set union for connectivity and component tracking.')
+)
+INSERT INTO topics (name, description, created_date, last_modified_date)
+SELECT name, description, NOW(), NOW()
+FROM canonical_topics
+ON CONFLICT (name) DO UPDATE
+SET description = EXCLUDED.description,
+    last_modified_date = NOW();
+
+WITH canonical_patterns(name, description, topic_name, named_algorithm) AS (
+    VALUES
+        ('Backtracking', 'Build candidates incrementally and backtrack after exploring each choice.', 'Backtracking', FALSE),
+        ('BFS', 'Explore nodes or states in layers using a queue.', 'Breadth-First Search', FALSE),
+        ('Binary Search', 'Shrink a search space by testing a midpoint predicate.', 'Binary Search', FALSE),
+        ('Binary Search on Answer', 'Search the answer space using a monotonic feasibility check.', 'Binary Search', FALSE),
+        ('Bitmask DP', 'Use bitmasks to encode state inside a dynamic programming transition.', 'Bitmask', FALSE),
+        ('Counting', 'Track frequencies or counts to derive the answer directly.', 'Hash Table', FALSE),
+        ('Cyclic Sort', 'Place values into index-corresponding positions via swaps.', 'Array', FALSE),
+        ('DFS', 'Traverse deeply before backtracking, usually with recursion or a stack.', 'Depth-First Search', FALSE),
+        ('Difference Array', 'Apply range updates lazily and reconstruct via prefix accumulation.', 'Prefix Sum', FALSE),
+        ('Digit DP', 'Run dynamic programming over the digits of a bounded number.', 'Dynamic Programming', FALSE),
+        ('Divide and Conquer', 'Split into subproblems, solve independently, then merge.', 'Divide and Conquer', FALSE),
+        ('Dynamic Programming', 'Store solved subproblems and reuse them in later transitions.', 'Dynamic Programming', FALSE),
+        ('Fast and Slow Pointers', 'Move pointers at different speeds to detect structure.', 'Two Pointers', FALSE),
+        ('Flood Fill', 'Expand through connected cells or nodes from a starting source.', 'Graph', FALSE),
+        ('Greedy', 'Take the best local action while preserving a provable invariant.', 'Greedy', FALSE),
+        ('Hashing', 'Encode lookup state through hashed keys for fast access.', 'Hash Table', FALSE),
+        ('Heap', 'Maintain best-next candidates with a priority queue.', 'Heap (Priority Queue)', FALSE),
+        ('In-Order Traversal', 'Traverse left subtree, node, then right subtree.', 'Binary Tree', FALSE),
+        ('Interval Merge', 'Sort intervals, then collapse overlapping ranges in one pass.', 'Sorting', FALSE),
+        ('Kadane''s Algorithm', 'Track the best subarray ending at each position.', 'Dynamic Programming', TRUE),
+        ('Level-Order Traversal', 'Process a tree level by level using queue-based traversal.', 'Binary Tree', FALSE),
+        ('Line Sweep', 'Sweep across sorted events while maintaining active state.', 'Sorting', FALSE),
+        ('Memoization', 'Cache recursive results by state to avoid recomputation.', 'Dynamic Programming', FALSE),
+        ('Monotonic Queue', 'Maintain a decreasing or increasing queue for window queries.', 'Monotonic Queue', FALSE),
+        ('Monotonic Stack', 'Maintain a monotonic stack for nearest greater or smaller lookups.', 'Monotonic Stack', FALSE),
+        ('Multi-Source BFS', 'Start BFS from every initial source at once.', 'Breadth-First Search', FALSE),
+        ('Post-Order Traversal', 'Traverse children before processing the current node.', 'Tree', FALSE),
+        ('Prefix Sum', 'Precompute cumulative values for fast range calculations.', 'Prefix Sum', FALSE),
+        ('Pre-Order Traversal', 'Process the current node before descending into children.', 'Tree', FALSE),
+        ('Sliding Window', 'Maintain a valid contiguous window while moving boundaries.', 'Sliding Window', FALSE),
+        ('Sort and Scan', 'Sort first, then answer with a linear pass.', 'Sorting', FALSE),
+        ('Top-Down DP', 'Use recursion with memoization to evaluate DP states on demand.', 'Dynamic Programming', FALSE),
+        ('Topological Sort', 'Order nodes by prerequisite edges in a DAG.', 'Topological Sort', FALSE),
+        ('Tree DFS', 'Use depth-first traversal to compute subtree information.', 'Tree', FALSE),
+        ('Trie Traversal', 'Walk or build a trie to process prefixes efficiently.', 'Trie', FALSE),
+        ('Two Heaps', 'Balance two heaps to track lower and upper partitions.', 'Heap (Priority Queue)', FALSE),
+        ('Two Pointers', 'Advance coordinated pointers to maintain a targeted relationship.', 'Two Pointers', FALSE),
+        ('Union Find', 'Merge and query connected components with disjoint sets.', 'Union Find', FALSE)
+)
+INSERT INTO patterns (name, description, topic_id, named_algorithm, created_date, last_modified_date)
+SELECT
+    canonical_patterns.name,
+    canonical_patterns.description,
+    topics.id,
+    canonical_patterns.named_algorithm,
+    NOW(),
+    NOW()
+FROM canonical_patterns
+JOIN topics ON topics.name = canonical_patterns.topic_name
+ON CONFLICT (name) DO UPDATE
+SET description = EXCLUDED.description,
+    topic_id = EXCLUDED.topic_id,
+    named_algorithm = EXCLUDED.named_algorithm,
+    last_modified_date = NOW();
+
+WITH canonical_patterns(name) AS (
+    VALUES
+        ('Backtracking'),
+        ('BFS'),
+        ('Binary Search'),
+        ('Binary Search on Answer'),
+        ('Bitmask DP'),
+        ('Counting'),
+        ('Cyclic Sort'),
+        ('DFS'),
+        ('Difference Array'),
+        ('Digit DP'),
+        ('Divide and Conquer'),
+        ('Dynamic Programming'),
+        ('Fast and Slow Pointers'),
+        ('Flood Fill'),
+        ('Greedy'),
+        ('Hashing'),
+        ('Heap'),
+        ('In-Order Traversal'),
+        ('Interval Merge'),
+        ('Kadane''s Algorithm'),
+        ('Level-Order Traversal'),
+        ('Line Sweep'),
+        ('Memoization'),
+        ('Monotonic Queue'),
+        ('Monotonic Stack'),
+        ('Multi-Source BFS'),
+        ('Post-Order Traversal'),
+        ('Prefix Sum'),
+        ('Pre-Order Traversal'),
+        ('Sliding Window'),
+        ('Sort and Scan'),
+        ('Top-Down DP'),
+        ('Topological Sort'),
+        ('Tree DFS'),
+        ('Trie Traversal'),
+        ('Two Heaps'),
+        ('Two Pointers'),
+        ('Union Find')
+)
+DELETE FROM patterns
+WHERE name NOT IN (SELECT name FROM canonical_patterns);
+
+WITH canonical_topics(name) AS (
+    VALUES
+        ('Array'),
+        ('Backtracking'),
+        ('Binary Indexed Tree'),
+        ('Binary Search'),
+        ('Binary Tree'),
+        ('Bit Manipulation'),
+        ('Bitmask'),
+        ('Breadth-First Search'),
+        ('Depth-First Search'),
+        ('Design'),
+        ('Divide and Conquer'),
+        ('Dynamic Programming'),
+        ('Enumeration'),
+        ('Graph'),
+        ('Greedy'),
+        ('Hash Table'),
+        ('Heap (Priority Queue)'),
+        ('Linked List'),
+        ('Math'),
+        ('Matrix'),
+        ('Monotonic Queue'),
+        ('Monotonic Stack'),
+        ('Number Theory'),
+        ('Ordered Set'),
+        ('Prefix Sum'),
+        ('Queue'),
+        ('Randomized'),
+        ('Recursion'),
+        ('Segment Tree'),
+        ('Simulation'),
+        ('Sliding Window'),
+        ('Sorting'),
+        ('Stack'),
+        ('String'),
+        ('Topological Sort'),
+        ('Tree'),
+        ('Trie'),
+        ('Two Pointers'),
+        ('Union Find')
+)
+DELETE FROM topics
+WHERE name NOT IN (SELECT name FROM canonical_topics);
