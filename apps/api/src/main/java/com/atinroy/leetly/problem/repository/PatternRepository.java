@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import com.atinroy.leetly.problem.model.Pattern;
 import com.atinroy.leetly.problem.model.Topic;
 
@@ -20,4 +21,6 @@ public interface PatternRepository extends JpaRepository<Pattern, Long> {
 
     @EntityGraph(attributePaths = {"topic"})
     List<Pattern> findByTopicOrderByNameAsc(Topic topic);
+
+    Optional<Pattern> findByName(String name);
 }

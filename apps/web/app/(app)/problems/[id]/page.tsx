@@ -26,6 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   Table,
   TableBody,
@@ -201,24 +202,31 @@ function SelectorGrid({
   }
 
   return (
-    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-      {options.map((option) => {
-        const isSelected = selectedIds.has(option.id)
-        return (
-          <button
-            key={option.id}
-            type="button"
-            disabled={isPending || isSelected}
-            onClick={() => onSelect(option.id)}
-            className="rounded-md border px-3 py-2 text-left transition-colors hover:border-foreground disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <p className="truncate text-xs font-medium">{option.label}</p>
-            {option.subtitle ? (
-              <p className="truncate text-[11px] text-muted-foreground">{option.subtitle}</p>
-            ) : null}
-          </button>
-        )
-      })}
+    <div className="space-y-2">
+      <p className="text-xs text-muted-foreground">
+        {options.length} option{options.length === 1 ? "" : "s"}
+      </p>
+      <ScrollArea className="h-80 rounded-md border">
+        <div className="grid grid-cols-1 gap-2 p-2 sm:grid-cols-2">
+          {options.map((option) => {
+            const isSelected = selectedIds.has(option.id)
+            return (
+              <button
+                key={option.id}
+                type="button"
+                disabled={isPending || isSelected}
+                onClick={() => onSelect(option.id)}
+                className="rounded-md border px-3 py-2 text-left transition-colors hover:border-foreground disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <p className="truncate text-xs font-medium">{option.label}</p>
+                {option.subtitle ? (
+                  <p className="truncate text-[11px] text-muted-foreground">{option.subtitle}</p>
+                ) : null}
+              </button>
+            )
+          })}
+        </div>
+      </ScrollArea>
     </div>
   )
 }
