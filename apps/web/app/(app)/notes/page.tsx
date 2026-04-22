@@ -42,7 +42,7 @@ import {
   NOTE_TAG_COLORS,
   NOTE_TAGS,
 } from "@/lib/note-display"
-import type { NoteDto, NoteFilters } from "@/lib/types"
+import type { NoteDto, NoteFilters, NoteTag } from "@/lib/types"
 
 const PAGE_SIZE = 20
 const DEFAULT_FILTERS: NoteFilters = { page: 0, size: PAGE_SIZE }
