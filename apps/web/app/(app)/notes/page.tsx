@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { format } from "date-fns"
+import { useRouter } from "next/navigation"
 import { ChevronLeft, ChevronRight, Grid3X3, List, Pencil, Plus, Search, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
@@ -24,7 +24,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { NoteEditorDialog } from "@/components/notes/note-editor-dialog"
 import { MarkdownContent } from "@/components/ui/markdown-content"
 import {
   Table,
@@ -34,32 +33,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { useNotes, useCreateNote, useUpdateNote, useDeleteNote } from "@/hooks/use-notes"
-import type { NoteDto, NoteFilters, NoteTag } from "@/lib/types"
-
-const TAG_COLORS: Record<NoteTag, string> = {
-  GENERAL: "bg-gray-100 text-gray-700",
-  INTERVIEW: "bg-blue-100 text-blue-700",
-  LEARNING: "bg-green-100 text-green-700",
-  REVIEW: "bg-orange-100 text-orange-700",
-  STRATEGY: "bg-purple-100 text-purple-700",
-}
-
-const TAGS: { value: NoteTag; label: string }[] = [
-  { value: "GENERAL", label: "General" },
-  { value: "INTERVIEW", label: "Interview" },
-  { value: "LEARNING", label: "Learning" },
-  { value: "REVIEW", label: "Review" },
-  { value: "STRATEGY", label: "Strategy" },
-]
+import { useNotes, useDeleteNote } from "@/hooks/use-notes"
+import {
+  formatNoteDate,
+  getNewNoteHref,
+  getNoteEditHref,
+  getNoteHref,
+  NOTE_TAG_COLORS,
+  NOTE_TAGS,
+} from "@/lib/note-display"
+import type { NoteDto, NoteFilters } from "@/lib/types"
 
 const PAGE_SIZE = 20
 const DEFAULT_FILTERS: NoteFilters = { page: 0, size: PAGE_SIZE }
 type NotesViewMode = "cards" | "table"
-
-function formatNoteDate(value: string) {
-  return format(new Date(value), "MMM d, yyyy")
-}
 
 function NoteCard({
   note,
@@ -82,7 +69,7 @@ function NoteCard({
           <div className="space-y-1">
             <CardTitle className="text-base">{note.title}</CardTitle>
             <div className="flex items-center gap-2">
-              <Badge variant="secondary" className={TAG_COLORS[note.tag]}>
+              <Badge variant="secondary" className={NOTE_TAG_COLORS[note.tag]}>
                 {note.tag}
               </Badge>
               <span className="text-xs text-muted-foreground">
@@ -153,7 +140,7 @@ function NoteTable({
               <div className="truncate">{note.title}</div>
             </TableCell>
             <TableCell>
-              <Badge variant="secondary" className={TAG_COLORS[note.tag]}>
+              <Badge variant="secondary" className={NOTE_TAG_COLORS[note.tag]}>
                 {note.tag}
               </Badge>
             </TableCell>
@@ -192,15 +179,10 @@ function NoteTable({
 }
 
 export default function NotesPage() {
+  const router = useRouter()
   const [filters, setFilters] = useState<NoteFilters>(DEFAULT_FILTERS)
   const { data: pagedResponse, isLoading } = useNotes(filters)
-  const createNoteMutation = useCreateNote()
-  const updateNoteMutation = useUpdateNote()
   const deleteNoteMutation = useDeleteNote()
-
-  const [formOpen, setFormOpen] = useState(false)
-  const [selectedNote, setSelectedNote] = useState<NoteDto | undefined>()
-  const [dialogMode, setDialogMode] = useState<"view" | "edit">("view")
   const [deleteNoteId, setDeleteNoteId] = useState<number | null>(null)
   const [viewMode, setViewMode] = useState<NotesViewMode>("table")
 
@@ -212,18 +194,6 @@ export default function NotesPage() {
     setFilters((f) => ({ ...f, ...partial }))
   }
 
-  function handleView(note: NoteDto) {
-    setSelectedNote(note)
-    setDialogMode("view")
-    setFormOpen(true)
-  }
-
-  function handleEdit(note: NoteDto) {
-    setSelectedNote(note)
-    setDialogMode("edit")
-    setFormOpen(true)
-  }
-
   async function handleDelete() {
     if (deleteNoteId == null) return
     try {
@@ -232,20 +202,6 @@ export default function NotesPage() {
       toast.success("Note deleted")
     } catch {
       toast.error("Failed to delete note")
-    }
-  }
-
-  async function handleSave({ tag, title, content }: { tag: NoteTag; title: string; content: string }) {
-    try {
-      if (selectedNote) {
-        await updateNoteMutation.mutateAsync({ id: selectedNote.id, body: { tag, title, content } })
-        toast.success("Note updated")
-      } else {
-        await createNoteMutation.mutateAsync({ tag, title, content })
-        toast.success("Note created")
-      }
-    } catch {
-      toast.error("Failed to save note")
     }
   }
 
@@ -274,14 +230,7 @@ export default function NotesPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold tracking-tight">Notes</h1>
-        <Button
-          size="sm"
-          onClick={() => {
-            setSelectedNote(undefined)
-            setDialogMode("edit")
-            setFormOpen(true)
-          }}
-        >
+        <Button size="sm" onClick={() => router.push(getNewNoteHref({ returnTo: "/notes" }))}>
           <Plus className="mr-1 h-4 w-4" />
           New Note
         </Button>
@@ -310,7 +259,7 @@ export default function NotesPage() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Tags</SelectItem>
-            {TAGS.map(({ value, label }) => (
+            {NOTE_TAGS.map(({ value, label }) => (
               <SelectItem key={value} value={value}>
                 {label}
               </SelectItem>
@@ -346,15 +295,7 @@ export default function NotesPage() {
       {notes.length === 0 ? (
         <div className="flex h-48 flex-col items-center justify-center gap-3 rounded-lg border border-dashed text-sm text-muted-foreground">
           <p>No notes yet.</p>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => {
-              setSelectedNote(undefined)
-              setDialogMode("edit")
-              setFormOpen(true)
-            }}
-          >
+          <Button size="sm" variant="outline" onClick={() => router.push(getNewNoteHref({ returnTo: "/notes" }))}>
             <Plus className="mr-1 h-4 w-4" />
             Create your first note
           </Button>
@@ -365,8 +306,8 @@ export default function NotesPage() {
             <NoteCard
               key={note.id}
               note={note}
-              onClick={() => handleView(note)}
-              onEdit={() => handleEdit(note)}
+              onClick={() => router.push(getNoteHref(note.id, "/notes"))}
+              onEdit={() => router.push(getNoteEditHref(note.id, "/notes"))}
               onDelete={() => setDeleteNoteId(note.id)}
             />
           ))}
@@ -374,8 +315,8 @@ export default function NotesPage() {
       ) : (
         <NoteTable
           notes={notes}
-          onView={handleView}
-          onEdit={handleEdit}
+          onView={(note) => router.push(getNoteHref(note.id, "/notes"))}
+          onEdit={(note) => router.push(getNoteEditHref(note.id, "/notes"))}
           onDelete={(note) => setDeleteNoteId(note.id)}
         />
       )}
@@ -407,14 +348,6 @@ export default function NotesPage() {
           </div>
         </div>
       )}
-
-      <NoteEditorDialog
-        open={formOpen}
-        onOpenChange={setFormOpen}
-        note={selectedNote}
-        initialMode={dialogMode}
-        onSave={handleSave}
-      />
 
       <Dialog open={deleteNoteId !== null} onOpenChange={(open) => !open && setDeleteNoteId(null)}>
         <DialogContent className="sm:max-w-md">

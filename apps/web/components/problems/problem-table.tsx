@@ -269,7 +269,7 @@ export function ProblemTable({
                                 : "inline-flex text-muted-foreground hover:text-foreground disabled:opacity-30"
                             }
                             disabled={!onNoteClick}
-                            title={hasNote ? "Edit note" : "Add note"}
+                            title={hasNote ? "Open note" : "Create note"}
                           >
                             <StickyNote className={`h-4 w-4 ${hasNote ? "fill-primary/20" : ""}`} />
                           </button>
@@ -380,7 +380,7 @@ export function ProblemTable({
                       </ContextMenuItem>
                       <ContextMenuItem disabled={!onNoteClick} onClick={() => onNoteClick?.(p)}>
                         <StickyNote />
-                        {hasNote ? "Edit note" : "Add note"}
+                        {hasNote ? "Open note" : "Create note"}
                       </ContextMenuItem>
                       <ContextMenuSeparator />
                       {p.reviewCard ? (

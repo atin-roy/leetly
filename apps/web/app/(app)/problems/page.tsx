@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
+import { useRouter } from "next/navigation"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { AlertCircle } from "lucide-react"
 import { toast } from "sonner"
@@ -18,11 +19,11 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { ProblemFilters } from "@/components/problems/problem-filters"
 import { ProblemTable } from "@/components/problems/problem-table"
 import { AddProblemDialog } from "@/components/problems/add-problem-dialog"
-import { NoteEditorDialog } from "@/components/notes/note-editor-dialog"
 import { useCreateProblem, useDeleteProblem, useProblems } from "@/hooks/use-problems"
-import { useNotes, useCreateNote } from "@/hooks/use-notes"
+import { useNotes } from "@/hooks/use-notes"
 import { useEnrollReview, useRemoveReview } from "@/hooks/use-reviews"
-import type { CreateProblemRequest, NoteTag, ProblemFilters as Filters, ProblemSummaryDto } from "@/lib/types"
+import { getNewNoteHref, getNoteHref } from "@/lib/note-display"
+import type { CreateProblemRequest, ProblemFilters as Filters, ProblemSummaryDto } from "@/lib/types"
 
 const PAGE_SIZE = 20
 const DEFAULT_FILTERS: Filters = { page: 0, size: PAGE_SIZE, sort: "createdDate,desc" }
@@ -56,28 +57,31 @@ function readStoredFilters(storageKey: string) {
 }
 
 export default function ProblemsPage() {
+  const router = useRouter()
   const [filters, setFilters] = useState<Filters>(() => readStoredFilters(PROBLEMS_FILTERS_STORAGE_KEY))
   const { data: pagedResponse, error, isError, isLoading } = useProblems(filters)
   const createProblemMutation = useCreateProblem()
   const deleteProblemMutation = useDeleteProblem()
-  const createNoteMutation = useCreateNote()
   const enrollReviewMutation = useEnrollReview()
   const removeReviewMutation = useRemoveReview()
   const { data: notesData } = useNotes({ size: 200 })
 
-  const notedProblemIds = useMemo(() => {
-    const ids = new Set<number>()
+  const noteIdsByProblemId = useMemo(() => {
+    const ids = new Map<number, number>()
+    const times = new Map<number, number>()
     if (notesData?.content) {
       for (const n of notesData.content) {
         if (n.problemId != null) {
-          ids.add(n.problemId)
+          const time = new Date(n.dateTime).getTime()
+          if ((times.get(n.problemId) ?? Number.NEGATIVE_INFINITY) < time) {
+            times.set(n.problemId, time)
+            ids.set(n.problemId, n.id)
+          }
         }
       }
     }
     return ids
   }, [notesData])
-  const [noteDialogOpen, setNoteDialogOpen] = useState(false)
-  const [selectedProblem, setSelectedProblem] = useState<ProblemSummaryDto | undefined>()
   const [pendingDeleteProblem, setPendingDeleteProblem] = useState<ProblemSummaryDto | null>(null)
 
   const problems = pagedResponse?.content ?? []
@@ -100,23 +104,12 @@ export default function ProblemsPage() {
   }
 
   function handleNoteClick(problem: ProblemSummaryDto) {
-    setSelectedProblem(problem)
-    setNoteDialogOpen(true)
-  }
-
-  async function handleNoteSave({ tag, title, content }: { tag: NoteTag; title: string; content: string }) {
-    if (!selectedProblem || !title.trim() || !content.trim()) return
-    try {
-      await createNoteMutation.mutateAsync({
-        problemId: selectedProblem.id,
-        tag,
-        title,
-        content,
-      })
-      setNoteDialogOpen(false)
-    } catch {
-      // Error handled by mutation
-    }
+    const noteId = noteIdsByProblemId.get(problem.id)
+    router.push(
+      noteId
+        ? getNoteHref(noteId, "/problems")
+        : getNewNoteHref({ problemId: problem.id, title: problem.title, returnTo: "/problems" }),
+    )
   }
 
   async function handleAdd(p: CreateProblemRequest): Promise<ProblemSummaryDto> {
@@ -203,7 +196,7 @@ export default function ProblemsPage() {
             pageSize={PAGE_SIZE}
             onNoteClick={handleNoteClick}
             onDelete={handleDelete}
-            notedProblemIds={notedProblemIds}
+            notedProblemIds={new Set(noteIdsByProblemId.keys())}
             onEnrollReview={(p) => enrollReviewMutation.mutate(p.id)}
             onRemoveReview={(_problemId, cardId) => removeReviewMutation.mutate(cardId)}
           />
@@ -238,13 +231,6 @@ export default function ProblemsPage() {
         </div>
       )}
 
-      <NoteEditorDialog
-        open={noteDialogOpen}
-        onOpenChange={setNoteDialogOpen}
-        initialMode="edit"
-        defaultTitle={selectedProblem?.title}
-        onSave={handleNoteSave}
-      />
       <Dialog
         open={pendingDeleteProblem !== null}
         onOpenChange={(open) => {

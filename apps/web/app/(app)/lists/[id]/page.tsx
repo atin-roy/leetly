@@ -2,6 +2,7 @@
 
 import { use, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
@@ -11,13 +12,13 @@ import { ProblemFilters } from "@/components/problems/problem-filters"
 import { Skeleton } from "@/components/ui/skeleton"
 import { AddProblemToListDialog } from "@/components/lists/add-problem-to-list-dialog"
 import { ProblemTable } from "@/components/problems/problem-table"
-import { NoteEditorDialog } from "@/components/notes/note-editor-dialog"
 import { useProblemList, useProblemListProblems, useRemoveProblemFromList } from "@/hooks/use-lists"
 import { useProblems } from "@/hooks/use-problems"
-import { useCreateNote, useNotes } from "@/hooks/use-notes"
+import { useNotes } from "@/hooks/use-notes"
 import { useEnrollReview, useRemoveReview } from "@/hooks/use-reviews"
 import { getListDisplayName } from "@/lib/list-display"
-import type { NoteTag, ProblemFilters as Filters, ProblemSummaryDto } from "@/lib/types"
+import { getNewNoteHref, getNoteHref } from "@/lib/note-display"
+import type { ProblemFilters as Filters, ProblemSummaryDto } from "@/lib/types"
 
 const PAGE_SIZE = 20
 const DEFAULT_FILTERS: Filters = { page: 0, size: PAGE_SIZE, sort: "createdDate,desc" }
@@ -54,6 +55,7 @@ export default function ListDetailPage({
 }: {
   params: Promise<{ id: string }>
 }) {
+  const router = useRouter()
   const { id: rawId } = use(params)
   const id = Number(rawId)
   const { data: list, isLoading } = useProblemList(id)
@@ -61,20 +63,22 @@ export default function ListDetailPage({
   const [filters, setFilters] = useState<Filters>(() => readStoredFilters(`leetly:list:${id}:filters`))
   const { data: pagedResponse, error, isError, isLoading: isProblemsLoading } = useProblemListProblems(id, filters)
   const removeMutation = useRemoveProblemFromList()
-  const createNoteMutation = useCreateNote()
   const enrollReviewMutation = useEnrollReview()
   const removeReviewMutation = useRemoveReview()
   const { data: notesData } = useNotes({ size: 200 })
   const { data: allProblems } = useProblems({ size: 200 })
-  const [noteDialogOpen, setNoteDialogOpen] = useState(false)
-  const [selectedProblem, setSelectedProblem] = useState<ProblemSummaryDto | undefined>()
 
-  const notedProblemIds = useMemo(() => {
-    const ids = new Set<number>()
+  const noteIdsByProblemId = useMemo(() => {
+    const ids = new Map<number, number>()
+    const times = new Map<number, number>()
     if (notesData?.content) {
       for (const n of notesData.content) {
         if (n.problemId != null) {
-          ids.add(n.problemId)
+          const time = new Date(n.dateTime).getTime()
+          if ((times.get(n.problemId) ?? Number.NEGATIVE_INFINITY) < time) {
+            times.set(n.problemId, time)
+            ids.set(n.problemId, n.id)
+          }
         }
       }
     }
@@ -100,23 +104,13 @@ export default function ListDetailPage({
   }
 
   function handleNoteClick(problem: ProblemSummaryDto) {
-    setSelectedProblem(problem)
-    setNoteDialogOpen(true)
-  }
-
-  async function handleNoteSave({ tag, title, content }: { tag: NoteTag; title: string; content: string }) {
-    if (!selectedProblem || !title.trim() || !content.trim()) return
-    try {
-      await createNoteMutation.mutateAsync({
-        problemId: selectedProblem.id,
-        tag,
-        title,
-        content,
-      })
-      setNoteDialogOpen(false)
-    } catch {
-      // Error handled by mutation
-    }
+    const returnTo = `/lists/${id}`
+    const noteId = noteIdsByProblemId.get(problem.id)
+    router.push(
+      noteId
+        ? getNoteHref(noteId, returnTo)
+        : getNewNoteHref({ problemId: problem.id, title: problem.title, returnTo }),
+    )
   }
 
   async function handleRemoveProblem(problem: ProblemSummaryDto) {
@@ -197,7 +191,7 @@ export default function ListDetailPage({
             pageSize={PAGE_SIZE}
             onNoteClick={handleNoteClick}
             onDelete={handleRemoveProblem}
-            notedProblemIds={notedProblemIds}
+            notedProblemIds={new Set(noteIdsByProblemId.keys())}
             onEnrollReview={(p) => enrollReviewMutation.mutate(p.id)}
             onRemoveReview={(_problemId, cardId) => removeReviewMutation.mutate(cardId)}
           />
@@ -230,13 +224,6 @@ export default function ListDetailPage({
           </div>
         </div>
       ) : null}
-      <NoteEditorDialog
-        open={noteDialogOpen}
-        onOpenChange={setNoteDialogOpen}
-        initialMode="edit"
-        defaultTitle={selectedProblem?.title}
-        onSave={handleNoteSave}
-      />
     </div>
   )
 }

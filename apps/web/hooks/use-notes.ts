@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useSession } from "next-auth/react"
-import { createNote, deleteNote, getNotes, updateNote } from "@/lib/api"
+import { createNote, deleteNote, getNote, getNotes, updateNote } from "@/lib/api"
 import type {
   CreateNoteRequest,
   NoteFilters,
@@ -18,13 +18,25 @@ export function useNotes(filters?: NoteFilters) {
   })
 }
 
+export function useNote(id: number) {
+  const { data: session } = useSession()
+  return useQuery({
+    queryKey: ["notes", id],
+    queryFn: () => getNote(session?.accessToken, id),
+    enabled: !!session?.accessToken && !!id,
+  })
+}
+
 export function useCreateNote() {
   const { data: session } = useSession()
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (body: CreateNoteRequest) =>
       createNote(session?.accessToken, body),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["notes"] }),
+    onSuccess: (note) => {
+      qc.setQueryData(["notes", note.id], note)
+      qc.invalidateQueries({ queryKey: ["notes"] })
+    },
   })
 }
 
@@ -34,7 +46,10 @@ export function useUpdateNote() {
   return useMutation({
     mutationFn: ({ id, body }: { id: number; body: UpdateNoteRequest }) =>
       updateNote(session?.accessToken, id, body),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["notes"] }),
+    onSuccess: (note) => {
+      qc.setQueryData(["notes", note.id], note)
+      qc.invalidateQueries({ queryKey: ["notes"] })
+    },
   })
 }
 
@@ -43,6 +58,9 @@ export function useDeleteNote() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (id: number) => deleteNote(session?.accessToken, id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["notes"] }),
+    onSuccess: (_, id) => {
+      qc.removeQueries({ queryKey: ["notes", id] })
+      qc.invalidateQueries({ queryKey: ["notes"] })
+    },
   })
 }

@@ -3,6 +3,7 @@
 import { use, useState } from "react"
 import Link from "next/link"
 import { format } from "date-fns"
+import { useRouter } from "next/navigation"
 import { ArrowLeft, ExternalLink, Plus, StickyNote, Trash2, X } from "lucide-react"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
@@ -40,7 +41,6 @@ import { DifficultyBadge } from "@/components/problems/difficulty-badge"
 import { StatusBadge } from "@/components/problems/status-badge"
 import { AttemptForm } from "@/components/problems/attempt-form"
 import { CopyProblemButton } from "@/components/problems/copy-problem-button"
-import { NoteEditorDialog } from "@/components/notes/note-editor-dialog"
 import {
   useProblem,
   useTopics,
@@ -58,7 +58,7 @@ import {
 import { useDeleteAttempt } from "@/hooks/use-attempts"
 import { useEnrollReview, useRemoveReview } from "@/hooks/use-reviews"
 import { QuickReviewButtons } from "@/components/review/quick-review-buttons"
-import { useNotes, useCreateNote, useDeleteNote, useUpdateNote } from "@/hooks/use-notes"
+import { useNotes } from "@/hooks/use-notes"
 import {
   useProblemLists,
   useCreateList,
@@ -66,13 +66,13 @@ import {
   useRemoveProblemFromList,
 } from "@/hooks/use-lists"
 import { getListDisplayName, getListHref } from "@/lib/list-display"
+import { formatNoteDate, getNewNoteHref, getNoteHref } from "@/lib/note-display"
 import type {
   AttemptDto,
   MistakeType,
   NoteDto,
   PatternDto,
   ProblemListDto,
-  NoteTag,
   ProblemStatus,
   ProblemSummaryDto,
   TopicDto,
@@ -377,6 +377,7 @@ export default function ProblemDetailPage({
 }: {
   params: Promise<{ id: string }>
 }) {
+  const router = useRouter()
   const { id: rawId } = use(params)
   const id = Number(rawId)
   const { data: problem, isLoading } = useProblem(id)
@@ -392,12 +393,6 @@ export default function ProblemDetailPage({
     (a, b) => new Date(b.dateTime).getTime() - new Date(a.dateTime).getTime(),
   )
   const noteCount = notes.length
-  const [noteDialogOpen, setNoteDialogOpen] = useState(false)
-  const [editingNote, setEditingNote] = useState<NoteDto | undefined>()
-  const [pendingDeleteNote, setPendingDeleteNote] = useState<NoteDto | null>(null)
-  const createNoteMutation = useCreateNote()
-  const deleteNoteMutation = useDeleteNote()
-  const updateNoteMutation = useUpdateNote()
 
   // Mutations
   const statusMutation = useUpdateProblemStatus(id)
@@ -455,49 +450,12 @@ export default function ProblemDetailPage({
     }
   }
 
-  async function handleNoteSave({ tag, title, content }: { tag: NoteTag; title: string; content: string }) {
-    try {
-      if (editingNote) {
-        await updateNoteMutation.mutateAsync({ id: editingNote.id, body: { tag, title, content } })
-      } else {
-        await createNoteMutation.mutateAsync({ problemId: id, tag, title, content })
-      }
-      toast.success(editingNote ? "Note updated" : "Note created")
-      setEditingNote(undefined)
-      setNoteDialogOpen(false)
-    } catch {
-      toast.error("Failed to save note")
-    }
-  }
-
   function handleCreateNote() {
-    setEditingNote(undefined)
-    setNoteDialogOpen(true)
+    router.push(getNewNoteHref({ problemId: id, title: problem?.title, returnTo: `/problems/${id}` }))
   }
 
   function handleOpenNote(note: NoteDto) {
-    setEditingNote(note)
-    setNoteDialogOpen(true)
-  }
-
-  function handleRequestDeleteNote(note: NoteDto) {
-    setPendingDeleteNote(note)
-  }
-
-  async function handleConfirmDeleteNote() {
-    if (!pendingDeleteNote) return
-
-    try {
-      await deleteNoteMutation.mutateAsync(pendingDeleteNote.id)
-      if (editingNote?.id === pendingDeleteNote.id) {
-        setEditingNote(undefined)
-        setNoteDialogOpen(false)
-      }
-      setPendingDeleteNote(null)
-      toast.success("Note deleted")
-    } catch {
-      toast.error("Failed to delete note")
-    }
+    router.push(getNoteHref(note.id, `/problems/${id}`))
   }
 
   const topicIds = new Set((problem?.topics ?? []).map((t) => t.id))
@@ -741,24 +699,12 @@ export default function ProblemDetailPage({
                       <div className="min-w-0 space-y-1">
                         <p className="truncate text-sm font-medium leading-snug">{note.title}</p>
                         <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                          {note.tag} · {format(new Date(note.dateTime), "MMM d, yyyy")}
+                          {note.tag} · {formatNoteDate(note.dateTime)}
                         </p>
                       </div>
-                      <div className="flex shrink-0 items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={(event) => {
-                            event.stopPropagation()
-                            handleRequestDeleteNote(note)
-                          }}
-                          className="rounded-md border px-2.5 py-1 text-xs font-medium text-destructive transition-colors hover:bg-destructive/5"
-                        >
-                          Delete
-                        </button>
-                        <span className="rounded-md border px-2.5 py-1 text-xs font-medium text-muted-foreground">
-                          Edit
-                        </span>
-                      </div>
+                      <span className="rounded-md border px-2.5 py-1 text-xs font-medium text-muted-foreground">
+                        Open
+                      </span>
                     </div>
                     <div className="mt-3 line-clamp-5 text-sm text-muted-foreground">
                       <MarkdownContent content={note.content} />
@@ -1255,53 +1201,6 @@ export default function ProblemDetailPage({
         </DialogContent>
       </Dialog>
 
-      <NoteEditorDialog
-        open={noteDialogOpen}
-        onOpenChange={(open) => {
-          setNoteDialogOpen(open)
-          if (!open) setEditingNote(undefined)
-        }}
-        note={editingNote}
-        initialMode={editingNote ? "view" : "edit"}
-        defaultTitle={problem.title}
-        onSave={handleNoteSave}
-        onDelete={editingNote ? () => handleRequestDeleteNote(editingNote) : undefined}
-        isDeleting={deleteNoteMutation.isPending}
-      />
-
-      <Dialog
-        open={pendingDeleteNote !== null}
-        onOpenChange={(open) => {
-          if (!open) setPendingDeleteNote(null)
-        }}
-      >
-        <DialogContent showCloseButton={!deleteNoteMutation.isPending}>
-          <DialogHeader>
-            <DialogTitle>Delete note?</DialogTitle>
-            <DialogDescription>
-              {pendingDeleteNote
-                ? `Remove "${pendingDeleteNote.title}" from this problem. This action cannot be undone.`
-                : "Remove this note from this problem."}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setPendingDeleteNote(null)}
-              disabled={deleteNoteMutation.isPending}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleConfirmDeleteNote}
-              disabled={deleteNoteMutation.isPending}
-            >
-              {deleteNoteMutation.isPending ? "Deleting..." : "Delete"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }
