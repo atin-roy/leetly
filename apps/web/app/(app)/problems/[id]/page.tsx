@@ -922,29 +922,33 @@ export default function ProblemDetailPage({
             </MetaRow>
 
             {/* Revision */}
-            <MetaRow label="revision" align="center">
+            <MetaRow label="revision">
               {problem.reviewCard ? (
-                <div className="flex flex-wrap items-center gap-3">
-                  <Badge variant="outline" className="text-xs">
-                    {problem.reviewCard.state}
-                  </Badge>
-                  <span className="text-xs text-muted-foreground">
-                    {reviewDueText}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    {problem.reviewCard.reps} reviews
-                  </span>
+                <div className="space-y-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge variant="outline" className="text-xs">
+                      {problem.reviewCard.state}
+                    </Badge>
+                    <span className="text-xs text-muted-foreground">
+                      {reviewDueText}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {problem.reviewCard.reps} reviews
+                    </span>
+                  </div>
                   {isReviewDue && (
                     <QuickReviewButtons cardId={problem.reviewCard.id} />
                   )}
-                  <button
-                    onClick={() => removeReview.mutate(problem.reviewCard!.id)}
-                    disabled={removeReview.isPending}
-                    className="inline-flex text-muted-foreground transition-colors hover:text-destructive"
-                    title="Remove from review"
-                  >
-                    <X className="h-3.5 w-3.5" />
-                  </button>
+                  <div className="flex justify-end">
+                    <button
+                      onClick={() => removeReview.mutate(problem.reviewCard!.id)}
+                      disabled={removeReview.isPending}
+                      className="inline-flex text-muted-foreground transition-colors hover:text-destructive"
+                      title="Remove from review"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <button

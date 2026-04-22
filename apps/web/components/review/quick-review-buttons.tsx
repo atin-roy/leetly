@@ -30,7 +30,7 @@ export function QuickReviewButtons({ cardId, size = "sm" }: Props) {
   }
 
   return (
-    <div className="flex gap-2">
+    <div className="flex flex-wrap gap-2">
       {RATINGS.map(({ value, label }) => (
         <Button
           key={value}
@@ -38,6 +38,7 @@ export function QuickReviewButtons({ cardId, size = "sm" }: Props) {
           size={size}
           disabled={reviewMutation.isPending}
           onClick={() => handleReview(value)}
+          className="min-w-0"
         >
           {label}
         </Button>
