@@ -189,6 +189,7 @@ export default function NotesPage() {
   const notes = pagedResponse?.content ?? []
   const page = pagedResponse?.page ?? 0
   const totalPages = pagedResponse?.totalPages ?? 1
+  const totalNotes = pagedResponse?.totalElements ?? 0
 
   function handleChange(partial: Partial<NoteFilters>) {
     setFilters((f) => ({ ...f, ...partial }))
@@ -229,7 +230,12 @@ export default function NotesPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight">Notes</h1>
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Notes</h1>
+          <p className="text-sm text-muted-foreground">
+            {totalNotes} {totalNotes === 1 ? "note" : "notes"}
+          </p>
+        </div>
         <Button size="sm" onClick={() => router.push(getNewNoteHref({ returnTo: "/notes" }))}>
           <Plus className="mr-1 h-4 w-4" />
           New Note
