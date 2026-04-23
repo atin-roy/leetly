@@ -8,7 +8,7 @@ export default async function SignInPage({
 }) {
     // If already authenticated, go to dashboard
     const session = await auth()
-    if (session) redirect("/dashboard")
+    if (session && session.error !== "RefreshTokenError") redirect("/dashboard")
 
     const { callbackUrl } = await searchParams
     redirect(`/auth/start?callbackUrl=${encodeURIComponent(callbackUrl ?? "/dashboard")}`)

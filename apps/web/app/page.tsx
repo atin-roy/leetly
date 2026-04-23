@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth"
 import Link from "next/link"
 import Image from "next/image"
+import { redirect } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { SignInButton } from "@/components/sign-in-button"
@@ -68,6 +69,7 @@ const features = [
 
 export default async function Home() {
   const session = await auth()
+  if (session && session.error !== "RefreshTokenError") redirect("/dashboard")
 
   return (
     <div className="aesthetic-background min-h-screen overflow-hidden text-foreground">
