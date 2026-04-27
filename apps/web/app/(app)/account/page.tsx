@@ -6,6 +6,8 @@ import { useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import {
+  Clock3,
+  Code2,
   Camera,
   Globe2,
   Github,
@@ -218,6 +220,31 @@ function normalizeSettings(values?: {
       : 1
 
   return { preferredLanguage, dailyGoal, timezone }
+}
+
+function getLanguageLabel(language: Language) {
+  switch (language) {
+    case "JAVA":
+      return "Java"
+    case "PYTHON":
+      return "Python"
+    case "JAVASCRIPT":
+      return "JavaScript"
+    case "TYPESCRIPT":
+      return "TypeScript"
+    case "CPP":
+      return "C++"
+    case "C":
+      return "C"
+    case "GO":
+      return "Go"
+    case "RUST":
+      return "Rust"
+    case "KOTLIN":
+      return "Kotlin"
+    case "SWIFT":
+      return "Swift"
+  }
 }
 
 function getInitials(name: string) {
@@ -735,49 +762,100 @@ function PreferencesSection({
   form: ReturnType<typeof useForm<SettingsFormValues>>
   isLoading: boolean
 }) {
+  const preferredLanguage = useWatch({
+    control: form.control,
+    name: "preferredLanguage",
+  })
+  const dailyGoal = useWatch({
+    control: form.control,
+    name: "dailyGoal",
+  })
+  const timezone = useWatch({
+    control: form.control,
+    name: "timezone",
+  })
+
+  const preferenceStats = [
+    {
+      label: "Language",
+      value: getLanguageLabel(preferredLanguage ?? "JAVA"),
+      note: "Default starter for new attempts",
+      icon: <Code2 className="h-4 w-4" />,
+    },
+    {
+      label: "Daily goal",
+      value: `${dailyGoal ?? 1} problems`,
+      note: "Used to anchor streak expectations",
+      icon: <Target className="h-4 w-4" />,
+    },
+    {
+      label: "Timezone",
+      value: timezone ?? "UTC",
+      note: "Controls reset windows and daily rollovers",
+      icon: <Clock3 className="h-4 w-4" />,
+    },
+  ]
+
   return (
-    <Card className="border-border/70 py-0">
-      <CardHeader className="border-b border-border/60 py-5">
+    <Card className="overflow-hidden border-border/70 py-0">
+      <CardHeader className="relative overflow-hidden border-b border-border/60 py-0">
+        <div className="absolute inset-0 bg-[linear-gradient(135deg,color-mix(in_oklab,var(--background)_84%,var(--primary)_16%),color-mix(in_oklab,var(--background)_92%,var(--accent)_8%))]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,hsl(var(--primary)/0.18),transparent_36%),radial-gradient(circle_at_85%_30%,hsl(var(--accent)/0.12),transparent_28%)]" />
+        <div className="relative px-6 py-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
+          <div className="max-w-2xl">
+            <Badge variant="outline" className="border-white/20 bg-background/70">
+              Practice defaults
+            </Badge>
             <CardTitle className="text-lg">Preferences</CardTitle>
-            <CardDescription>
+            <CardDescription className="mt-2 max-w-xl text-sm leading-6">
               Set the defaults that shape how you practice every day.
             </CardDescription>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Badge variant="outline" className="gap-1">
+            <Badge variant="outline" className="gap-1 border-white/20 bg-background/70">
               <Target className="h-3 w-3" />
               Daily rhythm
             </Badge>
-            <Badge variant="outline" className="gap-1">
+            <Badge variant="outline" className="gap-1 border-white/20 bg-background/70">
               <Globe2 className="h-3 w-3" />
               Regional time
             </Badge>
           </div>
         </div>
+        </div>
       </CardHeader>
       <CardContent className="py-6">
         <Form {...form}>
-          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_260px]">
-            <div className="space-y-5">
-              <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(280px,0.9fr)]">
+            <div className="space-y-4">
+              <div className="grid gap-4 lg:grid-cols-2">
                 <FormField
                   control={form.control}
                   name="preferredLanguage"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Preferred language</FormLabel>
+                    <FormItem className="rounded-[1.6rem] border border-border/70 bg-card/70 p-5 shadow-sm">
+                      <div className="mb-4 flex items-start justify-between gap-3">
+                        <div>
+                          <FormLabel>Preferred language</FormLabel>
+                          <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                            Use a readable default whenever you open a new attempt.
+                          </p>
+                        </div>
+                        <div className="rounded-full border border-border/70 bg-muted/60 p-2 text-muted-foreground">
+                          <Code2 className="h-4 w-4" />
+                        </div>
+                      </div>
                       <Select disabled={isLoading} onValueChange={field.onChange} value={field.value}>
                         <FormControl>
-                          <SelectTrigger>
+                          <SelectTrigger className="h-12 bg-background/80">
                             <SelectValue />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
                           {LANGUAGES.map((language) => (
                             <SelectItem key={language} value={language}>
-                              {language}
+                              {getLanguageLabel(language)}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -791,14 +869,25 @@ function PreferencesSection({
                   control={form.control}
                   name="dailyGoal"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Daily goal</FormLabel>
+                    <FormItem className="rounded-[1.6rem] border border-border/70 bg-card/70 p-5 shadow-sm">
+                      <div className="mb-4 flex items-start justify-between gap-3">
+                        <div>
+                          <FormLabel>Daily goal</FormLabel>
+                          <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                            Keep the target honest enough to survive normal weekdays.
+                          </p>
+                        </div>
+                        <div className="rounded-full border border-border/70 bg-muted/60 p-2 text-muted-foreground">
+                          <Target className="h-4 w-4" />
+                        </div>
+                      </div>
                       <FormControl>
                         <Input
                           type="number"
                           min={1}
                           max={50}
                           placeholder="Problems / day"
+                          className="h-12 bg-background/80"
                           disabled={isLoading}
                           value={Number.isFinite(field.value) ? field.value : ""}
                           onChange={(e) => {
@@ -814,6 +903,9 @@ function PreferencesSection({
                           name={field.name}
                         />
                       </FormControl>
+                      <p className="mt-3 text-sm text-muted-foreground">
+                        Recommended range is 3 to 8 if you want consistency without padding the stat.
+                      </p>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -824,11 +916,21 @@ function PreferencesSection({
                 control={form.control}
                 name="timezone"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Timezone</FormLabel>
+                  <FormItem className="rounded-[1.6rem] border border-border/70 bg-card/70 p-5 shadow-sm">
+                    <div className="mb-4 flex items-start justify-between gap-3">
+                      <div>
+                        <FormLabel>Timezone</FormLabel>
+                        <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                          This sets when your streak, daily goal, and session boundaries roll over.
+                        </p>
+                      </div>
+                      <div className="rounded-full border border-border/70 bg-muted/60 p-2 text-muted-foreground">
+                        <Clock3 className="h-4 w-4" />
+                      </div>
+                    </div>
                     <Select disabled={isLoading} onValueChange={field.onChange} value={field.value}>
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="h-12 bg-background/80">
                           <SelectValue placeholder="Select timezone" />
                         </SelectTrigger>
                       </FormControl>
@@ -840,18 +942,53 @@ function PreferencesSection({
                         ))}
                       </SelectContent>
                     </Select>
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      <Badge variant="secondary" className="bg-muted/70">
+                        Midnight reset
+                      </Badge>
+                      <Badge variant="secondary" className="bg-muted/70">
+                        Local day tracking
+                      </Badge>
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </div>
 
-            <div className="rounded-[1.6rem] border border-border/70 bg-muted/[0.28] p-4">
-              <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Setup Notes</p>
-              <div className="mt-4 space-y-4 text-sm leading-6 text-muted-foreground">
-                <p>Your language default is used as the starting point when you create new attempts.</p>
-                <p>Daily goal should be realistic enough to keep your streak intact on ordinary days.</p>
-                <p>Timezone controls when goals and streak boundaries reset.</p>
+            <div className="space-y-4">
+              <div className="rounded-[1.8rem] border border-border/70 bg-[linear-gradient(180deg,color-mix(in_oklab,var(--background)_92%,var(--primary)_8%),color-mix(in_oklab,var(--background)_97%,var(--accent)_3%))] p-5 shadow-sm">
+                <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Live Summary</p>
+                <div className="mt-4 space-y-3">
+                  {preferenceStats.map((stat) => (
+                    <div
+                      key={stat.label}
+                      className="flex items-start gap-3 rounded-[1.2rem] border border-border/60 bg-background/72 p-3"
+                    >
+                      <div className="mt-0.5 rounded-full border border-border/70 bg-muted/60 p-2 text-muted-foreground">
+                        {stat.icon}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
+                          {stat.label}
+                        </p>
+                        <p className="mt-1 break-words text-sm font-semibold text-foreground">
+                          {stat.value}
+                        </p>
+                        <p className="mt-1 text-sm leading-6 text-muted-foreground">{stat.note}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="rounded-[1.6rem] border border-border/70 bg-muted/[0.22] p-5">
+                <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Setup Notes</p>
+                <div className="mt-4 space-y-3 text-sm leading-6 text-muted-foreground">
+                  <p>Your language default becomes the starting point whenever you create a new attempt.</p>
+                  <p>Daily goal works best when it matches your ordinary pace instead of your best day.</p>
+                  <p>Timezone is the guardrail that keeps streak math aligned with your actual local day.</p>
+                </div>
               </div>
             </div>
           </div>
