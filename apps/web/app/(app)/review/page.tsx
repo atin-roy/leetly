@@ -562,12 +562,20 @@ function ReviewCardRow({
       : "border-slate-300/70 bg-slate-200/55 text-slate-700 dark:border-cyan-300/20 dark:bg-cyan-300/[0.08] dark:text-cyan-100"
 
   return (
-    <div className="rounded-[26px] border border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(247,250,252,0.94))] p-5 shadow-[0_18px_50px_rgba(15,23,42,0.07)] dark:border-white/[0.08] dark:bg-[linear-gradient(180deg,rgba(10,19,24,0.96),rgba(8,15,20,0.96))] dark:shadow-[0_22px_60px_rgba(0,0,0,0.28)]">
+    <div
+      className="rounded-[26px] border border-border/70 p-5 shadow-[0_18px_50px_color-mix(in_oklab,var(--foreground)_8%,transparent)]"
+      style={{
+        background: [
+          "linear-gradient(180deg, color-mix(in srgb, var(--card) 94%, var(--background) 6%), color-mix(in srgb, var(--card) 84%, var(--background) 16%))",
+          "radial-gradient(circle at top right, color-mix(in srgb, var(--primary) 10%, transparent), transparent 30%)",
+        ].join(", "),
+      }}
+    >
       <div className="flex flex-col gap-5">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0 flex-1 space-y-3">
             <div className="flex flex-wrap items-center gap-2">
-              <Badge className="border-slate-300/70 bg-slate-100/80 text-[11px] uppercase tracking-[0.18em] text-slate-600 hover:bg-slate-100/80 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-white/[0.55] dark:hover:bg-white/[0.04]">
+              <Badge className="border-border/70 bg-background/75 text-[11px] uppercase tracking-[0.18em] text-muted-foreground hover:bg-background/75">
                 Queue #{index + 1}
               </Badge>
               <Badge className={cn("border text-[11px] uppercase tracking-[0.18em] hover:bg-transparent", priorityClass)}>
@@ -581,20 +589,20 @@ function ReviewCardRow({
             </div>
 
             <div className="space-y-2">
-              <div className="flex flex-wrap items-center gap-2 text-sm text-slate-500 dark:text-white/[0.55]">
+              <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
                 <span className="font-mono text-xs">{card.leetcodeId}</span>
-                <span className="text-slate-400 dark:text-white/[0.28]">/</span>
+                <span className="text-muted-foreground/60">/</span>
                 <span className="capitalize">{card.problemStatus.toLowerCase()}</span>
               </div>
               <div className="flex items-start gap-3">
                 <div className="min-w-0 flex-1">
                   <Link
                     href={`/problems/${card.problemId}`}
-                    className="block truncate text-xl font-semibold tracking-tight text-slate-950 hover:text-primary dark:text-white dark:hover:text-cyan-200"
+                    className="block truncate text-xl font-semibold tracking-tight text-foreground hover:text-primary"
                   >
                     {card.problemTitle}
                   </Link>
-                  <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-white/[0.62]">
+                  <p className="mt-1 text-sm leading-6 text-muted-foreground">
                     Due {dueDistance}. Scheduled for {Math.max(card.scheduledDays, 0)} days with{" "}
                     {card.reps} total reviews and {card.lapses} lapses so far.
                   </p>
@@ -603,7 +611,7 @@ function ReviewCardRow({
                   href={card.problemUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="rounded-full border border-slate-300/70 bg-white/70 p-2 text-slate-500 transition-colors hover:text-slate-900 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-white/[0.54] dark:hover:text-white"
+                  className="rounded-full border border-border/70 bg-background/75 p-2 text-muted-foreground transition-colors hover:bg-background hover:text-foreground"
                   aria-label={`Open ${card.problemTitle} on LeetCode`}
                 >
                   <ExternalLink className="h-4 w-4" />
@@ -620,11 +628,11 @@ function ReviewCardRow({
         </div>
 
         <div className="grid gap-3 md:grid-cols-[1.4fr_1fr]">
-          <div className="rounded-2xl border border-slate-200/80 bg-slate-100/70 p-4 dark:border-white/[0.08] dark:bg-white/[0.04]">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-white/[0.45]">
+          <div className="rounded-2xl border border-border/70 bg-background/72 p-4">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
               Review action
             </p>
-            <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-white/[0.62]">
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">
               Rate from memory when recall is clean. If the implementation path feels shaky, log a full attempt and capture the failure mode instead.
             </p>
             <QuickReviewButtons
@@ -634,18 +642,18 @@ function ReviewCardRow({
             />
           </div>
 
-          <div className="flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-slate-100/70 p-4 dark:border-white/[0.08] dark:bg-white/[0.04]">
+          <div className="flex flex-col justify-between rounded-2xl border border-border/70 bg-background/72 p-4">
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-white/[0.45]">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                 Full attempt
               </p>
-              <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-white/[0.62]">
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
                 Use a deeper attempt when you need to rebuild the solution path, not just validate recognition.
               </p>
             </div>
             <Button
               variant="outline"
-              className="mt-4 h-10 rounded-xl justify-between border-slate-300/80 bg-white/80 text-slate-800 hover:bg-white dark:border-white/[0.1] dark:bg-white/[0.06] dark:text-white dark:hover:bg-white/[0.1]"
+              className="mt-4 h-10 justify-between rounded-xl border-border/70 bg-card/80 text-foreground hover:bg-card"
               onClick={onLogAttempt}
             >
               Log attempt
@@ -668,12 +676,12 @@ function ReviewMetric({
   detail: string
 }) {
   return (
-    <div className="rounded-2xl border border-slate-200/80 bg-slate-100/75 p-3.5 dark:border-white/[0.08] dark:bg-white/[0.05]">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-white/[0.42]">
+    <div className="rounded-2xl border border-border/70 bg-background/72 p-3.5">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
         {label}
       </p>
-      <p className="mt-2 text-lg font-semibold tracking-tight text-slate-950 dark:text-white">{value}</p>
-      <p className="mt-1 text-xs text-slate-500 dark:text-white/[0.5]">{detail}</p>
+      <p className="mt-2 text-lg font-semibold tracking-tight text-foreground">{value}</p>
+      <p className="mt-1 text-xs text-muted-foreground">{detail}</p>
     </div>
   )
 }
