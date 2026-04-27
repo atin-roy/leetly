@@ -11,11 +11,18 @@ export type ThemeId =
   | "sunset"
   | "graphite"
   | "rose"
+  | "bloom"
+  | "studio"
+  | "aurora"
+  | "atlas"
+  | "porcelain"
+  | "sol"
 
 export interface Theme {
   id: ThemeId
   name: string
   description: string
+  mode: "light" | "dark"
   /** Colors used to render the mini preview swatch */
   preview: {
     bg: string
@@ -32,6 +39,7 @@ export const THEMES: Theme[] = [
     id: "default",
     name: "Default",
     description: "Clean neutral grayscale",
+    mode: "light",
     preview: {
       bg: "oklch(1 0 0)",
       sidebar: "oklch(0.985 0 0)",
@@ -45,6 +53,7 @@ export const THEMES: Theme[] = [
     id: "void",
     name: "Void",
     description: "Dracula-inspired dark purple",
+    mode: "dark",
     preview: {
       bg: "oklch(0.19 0.035 285)",
       sidebar: "oklch(0.17 0.035 285)",
@@ -58,6 +67,7 @@ export const THEMES: Theme[] = [
     id: "ember",
     name: "Ember",
     description: "Dark charcoal with warm accents",
+    mode: "dark",
     preview: {
       bg: "oklch(0.20 0.008 95)",
       sidebar: "oklch(0.17 0.008 95)",
@@ -71,6 +81,7 @@ export const THEMES: Theme[] = [
     id: "arctic",
     name: "Arctic",
     description: "Nord-inspired cool blues",
+    mode: "light",
     preview: {
       bg: "oklch(0.96 0.01 225)",
       sidebar: "oklch(0.24 0.035 255)",
@@ -84,6 +95,7 @@ export const THEMES: Theme[] = [
     id: "dusk",
     name: "Dusk",
     description: "Desert noir with bronze glow",
+    mode: "dark",
     preview: {
       bg: "oklch(0.18 0.02 30)",
       sidebar: "oklch(0.14 0.018 28)",
@@ -97,6 +109,7 @@ export const THEMES: Theme[] = [
     id: "forest",
     name: "Forest",
     description: "Mossy green terminal calm",
+    mode: "dark",
     preview: {
       bg: "oklch(0.19 0.03 155)",
       sidebar: "oklch(0.15 0.028 155)",
@@ -110,6 +123,7 @@ export const THEMES: Theme[] = [
     id: "signal",
     name: "Signal",
     description: "High-contrast cyber teal",
+    mode: "dark",
     preview: {
       bg: "oklch(0.18 0.02 225)",
       sidebar: "oklch(0.14 0.018 225)",
@@ -123,6 +137,7 @@ export const THEMES: Theme[] = [
     id: "paper",
     name: "Paper",
     description: "Soft cream with ink blue",
+    mode: "light",
     preview: {
       bg: "oklch(0.97 0.015 95)",
       sidebar: "oklch(0.92 0.02 95)",
@@ -136,6 +151,7 @@ export const THEMES: Theme[] = [
     id: "lagoon",
     name: "Lagoon",
     description: "Deep ocean blue with aqua light",
+    mode: "dark",
     preview: {
       bg: "oklch(0.2 0.035 230)",
       sidebar: "oklch(0.16 0.03 230)",
@@ -149,6 +165,7 @@ export const THEMES: Theme[] = [
     id: "sunset",
     name: "Sunset",
     description: "Burnt coral evening glow",
+    mode: "dark",
     preview: {
       bg: "oklch(0.22 0.04 18)",
       sidebar: "oklch(0.18 0.035 18)",
@@ -162,6 +179,7 @@ export const THEMES: Theme[] = [
     id: "graphite",
     name: "Graphite",
     description: "Slate monochrome with cobalt edges",
+    mode: "dark",
     preview: {
       bg: "oklch(0.22 0.01 255)",
       sidebar: "oklch(0.17 0.01 255)",
@@ -175,6 +193,7 @@ export const THEMES: Theme[] = [
     id: "rose",
     name: "Rose",
     description: "Muted berry dark with blush accents",
+    mode: "dark",
     preview: {
       bg: "oklch(0.23 0.035 355)",
       sidebar: "oklch(0.19 0.03 355)",
@@ -182,6 +201,90 @@ export const THEMES: Theme[] = [
       primary: "oklch(0.78 0.14 355)",
       fg: "oklch(0.96 0.012 20)",
       border: "oklch(0.36 0.025 355)",
+    },
+  },
+  {
+    id: "bloom",
+    name: "Bloom",
+    description: "Blush paper with fresh botanical contrast",
+    mode: "light",
+    preview: {
+      bg: "oklch(0.97 0.02 16)",
+      sidebar: "oklch(0.93 0.035 16)",
+      card: "oklch(0.995 0.008 30)",
+      primary: "oklch(0.60 0.18 150)",
+      fg: "oklch(0.33 0.05 8)",
+      border: "oklch(0.89 0.03 16)",
+    },
+  },
+  {
+    id: "studio",
+    name: "Studio",
+    description: "Gallery white with vermilion editorial accents",
+    mode: "light",
+    preview: {
+      bg: "oklch(0.985 0.004 85)",
+      sidebar: "oklch(0.93 0.008 85)",
+      card: "oklch(1 0 0)",
+      primary: "oklch(0.59 0.20 30)",
+      fg: "oklch(0.22 0.01 40)",
+      border: "oklch(0.88 0.01 85)",
+    },
+  },
+  {
+    id: "aurora",
+    name: "Aurora",
+    description: "Icy mint with bright electric blue",
+    mode: "light",
+    preview: {
+      bg: "oklch(0.97 0.02 185)",
+      sidebar: "oklch(0.90 0.03 185)",
+      card: "oklch(0.995 0.008 200)",
+      primary: "oklch(0.61 0.18 238)",
+      fg: "oklch(0.28 0.03 220)",
+      border: "oklch(0.86 0.025 190)",
+    },
+  },
+  {
+    id: "atlas",
+    name: "Atlas",
+    description: "Mineral sand with map-room blues",
+    mode: "light",
+    preview: {
+      bg: "oklch(0.95 0.015 80)",
+      sidebar: "oklch(0.89 0.02 80)",
+      card: "oklch(0.985 0.008 82)",
+      primary: "oklch(0.45 0.11 245)",
+      fg: "oklch(0.30 0.03 70)",
+      border: "oklch(0.84 0.02 82)",
+    },
+  },
+  {
+    id: "porcelain",
+    name: "Porcelain",
+    description: "Cool porcelain with jade and plum details",
+    mode: "light",
+    preview: {
+      bg: "oklch(0.98 0.006 250)",
+      sidebar: "oklch(0.92 0.014 250)",
+      card: "oklch(0.995 0.004 250)",
+      primary: "oklch(0.54 0.12 170)",
+      fg: "oklch(0.28 0.02 280)",
+      border: "oklch(0.87 0.015 250)",
+    },
+  },
+  {
+    id: "sol",
+    name: "Sol",
+    description: "Golden morning notes with terracotta energy",
+    mode: "light",
+    preview: {
+      bg: "oklch(0.97 0.022 92)",
+      sidebar: "oklch(0.92 0.03 92)",
+      card: "oklch(0.995 0.01 95)",
+      primary: "oklch(0.67 0.15 55)",
+      fg: "oklch(0.31 0.03 58)",
+      border: "oklch(0.88 0.025 92)",
     },
   },
 ]

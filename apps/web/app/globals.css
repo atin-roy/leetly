@@ -773,3 +773,213 @@
   --chart-4: oklch(0.70 0.11 120);
   --chart-5: oklch(0.62 0.12 250);
 }
+
+/* Bloom – blush paper with leaf green accents */
+[data-theme="bloom"] {
+  --background: oklch(0.97 0.02 16);
+  --foreground: oklch(0.33 0.05 8);
+  --card: oklch(0.995 0.008 30);
+  --card-foreground: oklch(0.33 0.05 8);
+  --popover: oklch(1 0.004 25);
+  --popover-foreground: oklch(0.33 0.05 8);
+  --primary: oklch(0.60 0.18 150);
+  --primary-foreground: oklch(0.99 0.004 30);
+  --secondary: oklch(0.93 0.035 16);
+  --secondary-foreground: oklch(0.37 0.06 12);
+  --muted: oklch(0.94 0.022 18);
+  --muted-foreground: oklch(0.54 0.06 18);
+  --accent: oklch(0.74 0.13 35);
+  --accent-foreground: oklch(0.30 0.04 12);
+  --destructive: oklch(0.62 0.20 24);
+  --border: oklch(0.89 0.03 16);
+  --input: oklch(0.89 0.03 16);
+  --ring: oklch(0.60 0.18 150);
+  --sidebar: oklch(0.93 0.035 16);
+  --sidebar-foreground: oklch(0.33 0.05 8);
+  --sidebar-primary: oklch(0.60 0.18 150);
+  --sidebar-primary-foreground: oklch(0.99 0.004 30);
+  --sidebar-accent: oklch(0.90 0.03 24);
+  --sidebar-accent-foreground: oklch(0.38 0.05 15);
+  --sidebar-border: oklch(0.88 0.03 16);
+  --sidebar-ring: oklch(0.60 0.18 150);
+  --chart-1: oklch(0.60 0.18 150);
+  --chart-2: oklch(0.74 0.13 35);
+  --chart-3: oklch(0.65 0.14 350);
+  --chart-4: oklch(0.54 0.11 210);
+  --chart-5: oklch(0.72 0.10 95);
+}
+
+/* Studio – editorial whites with bold vermilion accents */
+[data-theme="studio"] {
+  --background: oklch(0.985 0.004 85);
+  --foreground: oklch(0.22 0.01 40);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.22 0.01 40);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.22 0.01 40);
+  --primary: oklch(0.59 0.20 30);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.93 0.008 85);
+  --secondary-foreground: oklch(0.24 0.01 40);
+  --muted: oklch(0.95 0.006 80);
+  --muted-foreground: oklch(0.51 0.012 60);
+  --accent: oklch(0.71 0.12 210);
+  --accent-foreground: oklch(0.22 0.01 40);
+  --destructive: oklch(0.60 0.21 28);
+  --border: oklch(0.88 0.01 85);
+  --input: oklch(0.88 0.01 85);
+  --ring: oklch(0.59 0.20 30);
+  --sidebar: oklch(0.93 0.008 85);
+  --sidebar-foreground: oklch(0.22 0.01 40);
+  --sidebar-primary: oklch(0.59 0.20 30);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.90 0.01 80);
+  --sidebar-accent-foreground: oklch(0.22 0.01 40);
+  --sidebar-border: oklch(0.87 0.01 85);
+  --sidebar-ring: oklch(0.59 0.20 30);
+  --chart-1: oklch(0.59 0.20 30);
+  --chart-2: oklch(0.71 0.12 210);
+  --chart-3: oklch(0.46 0.11 150);
+  --chart-4: oklch(0.78 0.12 90);
+  --chart-5: oklch(0.63 0.12 325);
+}
+
+/* Aurora – mint daylight with electric blue accents */
+[data-theme="aurora"] {
+  --background: oklch(0.97 0.02 185);
+  --foreground: oklch(0.28 0.03 220);
+  --card: oklch(0.995 0.008 200);
+  --card-foreground: oklch(0.28 0.03 220);
+  --popover: oklch(1 0.004 200);
+  --popover-foreground: oklch(0.28 0.03 220);
+  --primary: oklch(0.61 0.18 238);
+  --primary-foreground: oklch(0.98 0.004 190);
+  --secondary: oklch(0.90 0.03 185);
+  --secondary-foreground: oklch(0.30 0.03 220);
+  --muted: oklch(0.91 0.022 190);
+  --muted-foreground: oklch(0.50 0.03 220);
+  --accent: oklch(0.66 0.15 165);
+  --accent-foreground: oklch(0.25 0.03 220);
+  --destructive: oklch(0.60 0.19 22);
+  --border: oklch(0.86 0.025 190);
+  --input: oklch(0.86 0.025 190);
+  --ring: oklch(0.61 0.18 238);
+  --sidebar: oklch(0.90 0.03 185);
+  --sidebar-foreground: oklch(0.28 0.03 220);
+  --sidebar-primary: oklch(0.61 0.18 238);
+  --sidebar-primary-foreground: oklch(0.98 0.004 190);
+  --sidebar-accent: oklch(0.86 0.026 190);
+  --sidebar-accent-foreground: oklch(0.28 0.03 220);
+  --sidebar-border: oklch(0.85 0.024 190);
+  --sidebar-ring: oklch(0.61 0.18 238);
+  --chart-1: oklch(0.61 0.18 238);
+  --chart-2: oklch(0.66 0.15 165);
+  --chart-3: oklch(0.74 0.11 92);
+  --chart-4: oklch(0.70 0.13 320);
+  --chart-5: oklch(0.54 0.08 255);
+}
+
+/* Atlas – mineral paper with cartographic blue accents */
+[data-theme="atlas"] {
+  --background: oklch(0.95 0.015 80);
+  --foreground: oklch(0.30 0.03 70);
+  --card: oklch(0.985 0.008 82);
+  --card-foreground: oklch(0.30 0.03 70);
+  --popover: oklch(1 0.004 82);
+  --popover-foreground: oklch(0.30 0.03 70);
+  --primary: oklch(0.45 0.11 245);
+  --primary-foreground: oklch(0.98 0.004 82);
+  --secondary: oklch(0.89 0.02 80);
+  --secondary-foreground: oklch(0.32 0.03 72);
+  --muted: oklch(0.90 0.017 82);
+  --muted-foreground: oklch(0.51 0.02 70);
+  --accent: oklch(0.60 0.10 185);
+  --accent-foreground: oklch(0.27 0.03 72);
+  --destructive: oklch(0.58 0.19 24);
+  --border: oklch(0.84 0.02 82);
+  --input: oklch(0.84 0.02 82);
+  --ring: oklch(0.45 0.11 245);
+  --sidebar: oklch(0.89 0.02 80);
+  --sidebar-foreground: oklch(0.30 0.03 70);
+  --sidebar-primary: oklch(0.45 0.11 245);
+  --sidebar-primary-foreground: oklch(0.98 0.004 82);
+  --sidebar-accent: oklch(0.85 0.022 84);
+  --sidebar-accent-foreground: oklch(0.30 0.03 70);
+  --sidebar-border: oklch(0.83 0.02 82);
+  --sidebar-ring: oklch(0.45 0.11 245);
+  --chart-1: oklch(0.45 0.11 245);
+  --chart-2: oklch(0.60 0.10 185);
+  --chart-3: oklch(0.68 0.12 42);
+  --chart-4: oklch(0.56 0.10 130);
+  --chart-5: oklch(0.64 0.09 320);
+}
+
+/* Porcelain – cool porcelain with jade and plum accents */
+[data-theme="porcelain"] {
+  --background: oklch(0.98 0.006 250);
+  --foreground: oklch(0.28 0.02 280);
+  --card: oklch(0.995 0.004 250);
+  --card-foreground: oklch(0.28 0.02 280);
+  --popover: oklch(1 0.002 250);
+  --popover-foreground: oklch(0.28 0.02 280);
+  --primary: oklch(0.54 0.12 170);
+  --primary-foreground: oklch(0.99 0.002 250);
+  --secondary: oklch(0.92 0.014 250);
+  --secondary-foreground: oklch(0.29 0.02 280);
+  --muted: oklch(0.93 0.01 250);
+  --muted-foreground: oklch(0.50 0.02 275);
+  --accent: oklch(0.68 0.08 320);
+  --accent-foreground: oklch(0.27 0.02 280);
+  --destructive: oklch(0.59 0.19 22);
+  --border: oklch(0.87 0.015 250);
+  --input: oklch(0.87 0.015 250);
+  --ring: oklch(0.54 0.12 170);
+  --sidebar: oklch(0.92 0.014 250);
+  --sidebar-foreground: oklch(0.28 0.02 280);
+  --sidebar-primary: oklch(0.54 0.12 170);
+  --sidebar-primary-foreground: oklch(0.99 0.002 250);
+  --sidebar-accent: oklch(0.88 0.016 252);
+  --sidebar-accent-foreground: oklch(0.28 0.02 280);
+  --sidebar-border: oklch(0.86 0.015 250);
+  --sidebar-ring: oklch(0.54 0.12 170);
+  --chart-1: oklch(0.54 0.12 170);
+  --chart-2: oklch(0.68 0.08 320);
+  --chart-3: oklch(0.58 0.09 235);
+  --chart-4: oklch(0.72 0.10 85);
+  --chart-5: oklch(0.63 0.12 25);
+}
+
+/* Sol – warm parchment with solar gold and terracotta */
+[data-theme="sol"] {
+  --background: oklch(0.97 0.022 92);
+  --foreground: oklch(0.31 0.03 58);
+  --card: oklch(0.995 0.01 95);
+  --card-foreground: oklch(0.31 0.03 58);
+  --popover: oklch(1 0.004 95);
+  --popover-foreground: oklch(0.31 0.03 58);
+  --primary: oklch(0.67 0.15 55);
+  --primary-foreground: oklch(0.99 0.004 95);
+  --secondary: oklch(0.92 0.03 92);
+  --secondary-foreground: oklch(0.34 0.03 58);
+  --muted: oklch(0.93 0.022 95);
+  --muted-foreground: oklch(0.54 0.03 62);
+  --accent: oklch(0.62 0.14 25);
+  --accent-foreground: oklch(0.99 0.004 95);
+  --destructive: oklch(0.60 0.20 24);
+  --border: oklch(0.88 0.025 92);
+  --input: oklch(0.88 0.025 92);
+  --ring: oklch(0.67 0.15 55);
+  --sidebar: oklch(0.92 0.03 92);
+  --sidebar-foreground: oklch(0.31 0.03 58);
+  --sidebar-primary: oklch(0.67 0.15 55);
+  --sidebar-primary-foreground: oklch(0.99 0.004 95);
+  --sidebar-accent: oklch(0.89 0.026 90);
+  --sidebar-accent-foreground: oklch(0.34 0.03 58);
+  --sidebar-border: oklch(0.87 0.024 92);
+  --sidebar-ring: oklch(0.67 0.15 55);
+  --chart-1: oklch(0.67 0.15 55);
+  --chart-2: oklch(0.62 0.14 25);
+  --chart-3: oklch(0.58 0.10 145);
+  --chart-4: oklch(0.48 0.08 245);
+  --chart-5: oklch(0.74 0.10 90);
+}
