@@ -20,6 +20,12 @@ public class User extends BaseEntity {
     @Column(nullable = false, unique = true)
     private String keycloakId;
 
+    @Column(length = 100)
+    private String username;
+
+    @Column(length = 255)
+    private String email;
+
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private UserSettings settings;
 

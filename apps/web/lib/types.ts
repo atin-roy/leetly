@@ -288,6 +288,81 @@ export interface UserProfileDto {
   notesPublic: boolean
 }
 
+export type FriendshipState =
+  | "SELF"
+  | "NONE"
+  | "OUTGOING_REQUEST"
+  | "INCOMING_REQUEST"
+  | "FRIENDS"
+
+export interface SocialUserDto {
+  id: number
+  username: string | null
+  displayName: string
+  avatarDataUrl: string | null
+  bio: string | null
+  friendshipState: FriendshipState
+  friendshipRequestId: number | null
+}
+
+export interface FriendOverviewDto {
+  friends: SocialUserDto[]
+  incomingRequests: SocialUserDto[]
+  outgoingRequests: SocialUserDto[]
+}
+
+export interface PublicProblemListDto {
+  id: number
+  name: string
+  isDefault: boolean
+  totalProblems: number
+  completedProblems: number
+  remainingProblems: number
+  masteredProblems: number
+}
+
+export interface PublicUserStatsDto {
+  totalSolved: number
+  totalSolvedWithHelp: number
+  totalMastered: number
+  totalAttempts: number
+  currentStreak: number
+  longestStreak: number
+  solvedThisWeek: number
+  solvedThisMonth: number
+  distinctTopicsCovered: number
+  distinctPatternsCovered: number
+}
+
+export interface PublicNoteDto {
+  id: number
+  problemId: number | null
+  dateTime: string
+  tag: NoteTag
+  title: string
+  content: string
+}
+
+export interface PublicUserProfileDto {
+  userId: number
+  username: string | null
+  displayName: string
+  bio: string | null
+  avatarDataUrl: string | null
+  leetcodeUrl: string | null
+  githubUrl: string | null
+  isOwnProfile: boolean
+  progressPublic: boolean
+  streakPublic: boolean
+  listsPublic: boolean
+  notesPublic: boolean
+  friendshipState: FriendshipState
+  friendshipRequestId: number | null
+  stats: PublicUserStatsDto | null
+  lists: PublicProblemListDto[]
+  notes: PublicNoteDto[]
+}
+
 export interface UpdateProfileRequest {
   displayName: string | null
   bio: string | null

@@ -22,4 +22,6 @@ public interface NoteRepository extends JpaRepository<Note, Long> {
     List<Note> findByTagAndUser(NoteTag tag, User user);
 
     Optional<Note> findByIdAndUser(long id, User user);
+
+    List<Note> findTop6ByUserOrderByDateTimeDesc(User user);
 }

@@ -14,6 +14,7 @@ import {
   RotateCcw,
   StickyNote,
   UserCircle2,
+  Users,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -32,6 +33,7 @@ const navItems = [
   { href: "/review", label: "Review", icon: RotateCcw },
   { href: "/lists", label: "My Lists", icon: List },
   { href: "/notes", label: "Notes", icon: StickyNote },
+  { href: "/people", label: "People", icon: Users },
   { href: "/account", label: "Account", icon: UserCircle2 },
 ]
 

@@ -8,6 +8,7 @@ import type {
   CreateTopicRequest,
   DailyStatDto,
   EnrollReviewRequest,
+  FriendOverviewDto,
   Language,
   MistakeOptionDto,
   LogAttemptRequest,
@@ -15,6 +16,7 @@ import type {
   NoteFilters,
   PagedResponse,
   PatternDto,
+  PublicUserProfileDto,
   ProblemDetailDto,
   ProblemFilters,
   ProblemListDto,
@@ -23,6 +25,7 @@ import type {
   ReviewCardDto,
   ReviewLogDto,
   ReviewStatsDto,
+  SocialUserDto,
   ThemeDto,
   TopicDto,
   UpdateAttemptRequest,
@@ -466,6 +469,78 @@ export function updateUserProfile(
   return apiFetch("/api/me/profile", token, {
     method: "PUT",
     body: JSON.stringify(body),
+  })
+}
+
+// ─── Social ───────────────────────────────────────────────────────────────────
+
+export function discoverUsers(
+  token: string | undefined,
+  params?: { search?: string; page?: number; size?: number },
+): Promise<PagedResponse<SocialUserDto>> {
+  const qs = new URLSearchParams()
+  if (params?.search?.trim()) qs.set("search", params.search.trim())
+  if (params?.page != null) qs.set("page", String(params.page))
+  if (params?.size != null) qs.set("size", String(params.size))
+  const query = qs.toString()
+  return apiFetch(`/api/users${query ? `?${query}` : ""}`, token)
+}
+
+export function getPublicUserProfile(
+  token: string | undefined,
+  id: number,
+): Promise<PublicUserProfileDto> {
+  return apiFetch(`/api/users/${id}/profile`, token)
+}
+
+export function getFriendOverview(
+  token: string | undefined,
+): Promise<FriendOverviewDto> {
+  return apiFetch("/api/me/friends", token)
+}
+
+export function sendFriendRequest(
+  token: string | undefined,
+  userId: number,
+): Promise<SocialUserDto> {
+  return apiFetch(`/api/users/${userId}/friend-requests`, token, {
+    method: "POST",
+  })
+}
+
+export function acceptFriendRequest(
+  token: string | undefined,
+  requestId: number,
+): Promise<void> {
+  return apiFetch(`/api/me/friends/requests/${requestId}/accept`, token, {
+    method: "POST",
+  })
+}
+
+export function declineFriendRequest(
+  token: string | undefined,
+  requestId: number,
+): Promise<void> {
+  return apiFetch(`/api/me/friends/requests/${requestId}/decline`, token, {
+    method: "POST",
+  })
+}
+
+export function cancelFriendRequest(
+  token: string | undefined,
+  requestId: number,
+): Promise<void> {
+  return apiFetch(`/api/me/friends/requests/${requestId}`, token, {
+    method: "DELETE",
+  })
+}
+
+export function unfriend(
+  token: string | undefined,
+  userId: number,
+): Promise<void> {
+  return apiFetch(`/api/me/friends/${userId}`, token, {
+    method: "DELETE",
   })
 }
 
