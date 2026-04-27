@@ -387,22 +387,25 @@ function AttemptDetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-4xl">
-        <DialogHeader>
+      <DialogContent className="flex h-[92vh] max-w-[min(96vw,1400px)] flex-col gap-0 overflow-hidden p-0">
+        <DialogHeader className="shrink-0 border-b border-border/70 px-6 py-5">
           <DialogTitle>Attempt #{attempt.attemptNumber}</DialogTitle>
           <DialogDescription>
             Full attempt details, notes, and submitted code.
           </DialogDescription>
         </DialogHeader>
-        <AttemptDetails attempt={attempt} />
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onEdit(attempt)}>
+        <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
+          <AttemptDetails attempt={attempt} />
+        </div>
+        <DialogFooter className="shrink-0 border-t border-border/70 px-6 py-4">
+          <Button variant="outline" onClick={() => onEdit(attempt)} className="rounded-full">
             Edit
           </Button>
           <Button
             variant="destructive"
             onClick={() => onDelete(attempt)}
             disabled={isDeleting}
+            className="rounded-full"
           >
             <Trash2 className="mr-1.5 h-4 w-4" />
             Delete
