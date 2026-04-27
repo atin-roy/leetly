@@ -147,20 +147,20 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6 pb-2">
       <section className="grid gap-6 xl:grid-cols-[1.6fr_1fr]">
-        <Card className="overflow-hidden rounded-[28px] border-white/[0.08] bg-[radial-gradient(circle_at_top_left,rgba(34,197,94,0.28),transparent_34%),radial-gradient(circle_at_72%_30%,rgba(245,158,11,0.18),transparent_22%),linear-gradient(180deg,rgba(10,22,17,0.96),rgba(8,18,13,0.98))] text-white shadow-[0_24px_80px_rgba(6,14,10,0.38)]">
+        <Card className="overflow-hidden rounded-[28px] border-border/70 bg-[radial-gradient(circle_at_top_left,color-mix(in_oklab,var(--primary)_28%,transparent),transparent_34%),radial-gradient(circle_at_72%_30%,color-mix(in_oklab,var(--accent)_18%,transparent),transparent_22%),linear-gradient(180deg,color-mix(in_oklab,var(--card)_92%,var(--background)_8%),color-mix(in_oklab,var(--background)_84%,black_16%))] shadow-[0_24px_80px_color-mix(in_oklab,var(--foreground)_12%,transparent)]">
           <CardContent className="relative px-6 py-6 sm:px-7 sm:py-7">
-            <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.05),transparent_28%,transparent_72%,rgba(255,255,255,0.03))]" />
+            <div className="absolute inset-0 bg-[linear-gradient(135deg,color-mix(in_oklab,var(--foreground)_5%,transparent),transparent_28%,transparent_72%,color-mix(in_oklab,var(--foreground)_3%,transparent))]" />
             <div className="relative space-y-6">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                 <div className="max-w-2xl space-y-3">
-                  <Badge className="w-fit border-white/10 bg-white/[0.08] text-[11px] tracking-[0.22em] text-emerald-100 uppercase hover:bg-white/[0.08]">
+                  <Badge className="w-fit border-border/70 bg-background/55 text-[11px] tracking-[0.22em] text-primary uppercase hover:bg-background/55">
                     Daily command center
                   </Badge>
                   <div className="space-y-2">
                     <h1 className="text-3xl font-semibold tracking-[-0.03em] sm:text-4xl">
                       Build momentum, not just solved counts.
                     </h1>
-                    <p className="max-w-xl text-sm leading-6 text-white/[0.68] sm:text-[15px]">
+                    <p className="max-w-xl text-sm leading-6 text-muted-foreground sm:text-[15px]">
                       See what to review next, where your backlog is accumulating, and which
                       problem patterns deserve your next block of focused practice.
                     </p>
@@ -229,7 +229,7 @@ export default function DashboardPage() {
                   asChild
                   variant="outline"
                   size="lg"
-                  className="h-11 rounded-full border-white/[0.14] bg-white/[0.06] px-5 text-sm text-white hover:bg-white/10 hover:text-white"
+                  className="h-11 rounded-full border-border/70 bg-background/55 px-5 text-sm text-foreground hover:bg-background/80 hover:text-foreground"
                 >
                   <Link href="/problems">Browse problems</Link>
                 </Button>
@@ -238,20 +238,20 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-[28px] border-border/60 bg-[linear-gradient(180deg,rgba(8,24,16,0.92),rgba(10,18,14,0.98))] text-white">
-          <CardHeader className="gap-3 border-b border-white/[0.08] pb-4">
+        <Card className="rounded-[28px] border-border/70 bg-[linear-gradient(180deg,color-mix(in_oklab,var(--card)_94%,var(--background)_6%),color-mix(in_oklab,var(--background)_88%,black_12%))] shadow-[0_24px_80px_color-mix(in_oklab,var(--foreground)_10%,transparent)]">
+          <CardHeader className="gap-3 border-b border-border/70 pb-4">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <CardTitle className="text-xl tracking-tight text-white">Review pulse</CardTitle>
-                <CardDescription className="mt-1 text-white/[0.58]">
+                <CardTitle className="text-xl tracking-tight">Review pulse</CardTitle>
+                <CardDescription className="mt-1">
                   Keep your queue controlled before it turns into relearning.
                 </CardDescription>
               </div>
               <div className={cn(
                 "rounded-full px-3 py-1 text-xs font-semibold tracking-wide",
                 dueNow > 0
-                  ? "bg-orange-400/[0.14] text-orange-200"
-                  : "bg-emerald-400/[0.14] text-emerald-200"
+                  ? "border border-orange-400/25 bg-orange-400/[0.12] text-orange-700 dark:text-orange-200"
+                  : "border border-emerald-400/25 bg-emerald-400/[0.12] text-emerald-700 dark:text-emerald-200"
               )}>
                 {dueNow > 0 ? "Needs attention" : "In control"}
               </div>
@@ -264,25 +264,25 @@ export default function DashboardPage() {
               <ReviewStat label="Enrolled" value={reviewEnrolled} tone="neutral" />
             </div>
 
-            <div className="rounded-2xl border border-white/[0.08] bg-white/[0.04] p-4">
+            <div className="rounded-2xl border border-border/70 bg-background/40 p-4">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/[0.45]">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                     Next checkpoint
                   </p>
-                  <p className="mt-2 text-sm leading-6 text-white/[0.72]">
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
                     Between now and{" "}
-                    <span className="font-medium text-white">
+                    <span className="font-medium text-foreground">
                       {formatDistanceToNowStrict(nextBusyWindowEnd, { addSuffix: true })}
                     </span>
                     , you have{" "}
-                    <span className="font-semibold text-white">
+                    <span className="font-semibold text-foreground">
                       {upcoming + dueNow} reviews
                     </span>{" "}
                     likely to surface.
                   </p>
                 </div>
-                <Radar className="mt-1 h-5 w-5 text-cyan-200/80" />
+                <Radar className="mt-1 h-5 w-5 text-primary/75" />
               </div>
             </div>
 
@@ -425,16 +425,16 @@ function MetricChip({
   detail: string
 }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.06] p-3.5 backdrop-blur-sm">
+    <div className="rounded-2xl border border-border/70 bg-background/50 p-3.5 backdrop-blur-sm">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/[0.45]">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
             {label}
           </p>
-          <p className="mt-2 text-lg font-semibold text-white">{value}</p>
-          <p className="mt-1 text-xs leading-5 text-white/[0.56]">{detail}</p>
+          <p className="mt-2 text-lg font-semibold text-foreground">{value}</p>
+          <p className="mt-1 text-xs leading-5 text-muted-foreground">{detail}</p>
         </div>
-        <Icon className="mt-0.5 h-4 w-4 text-white/60" />
+        <Icon className="mt-0.5 h-4 w-4 text-primary/70" />
       </div>
     </div>
   )
@@ -450,12 +450,12 @@ function MiniStat({
   caption: string
 }) {
   return (
-    <div className="rounded-2xl border border-white/[0.08] bg-black/[0.18] px-4 py-3">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/[0.42]">
+    <div className="rounded-2xl border border-border/70 bg-[color-mix(in_oklab,var(--background)_55%,var(--card)_45%)] px-4 py-3">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
         {label}
       </p>
-      <p className="mt-2 text-2xl font-semibold text-white">{value}</p>
-      <p className="mt-1 text-xs text-white/[0.56]">{caption}</p>
+      <p className="mt-2 text-2xl font-semibold text-foreground">{value}</p>
+      <p className="mt-1 text-xs text-muted-foreground">{caption}</p>
     </div>
   )
 }
@@ -471,14 +471,14 @@ function ReviewStat({
 }) {
   const toneClass =
     tone === "warning"
-      ? "border-orange-300/[0.18] bg-orange-300/[0.08] text-orange-100"
+      ? "border-orange-400/25 bg-orange-400/[0.12] text-orange-700 dark:text-orange-200"
       : tone === "calm"
-        ? "border-emerald-300/[0.18] bg-emerald-300/[0.08] text-emerald-100"
-        : "border-white/[0.08] bg-white/[0.04] text-white"
+        ? "border-emerald-400/25 bg-emerald-400/[0.12] text-emerald-700 dark:text-emerald-200"
+        : "border-border/70 bg-background/40 text-foreground"
 
   return (
     <div className={cn("rounded-2xl border p-4", toneClass)}>
-      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/[0.45]">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
         {label}
       </p>
       <p className="mt-2 text-3xl font-semibold tabular-nums">{value}</p>
@@ -496,10 +496,10 @@ function InsightRow({
   caption: string
 }) {
   return (
-    <div className="rounded-2xl border border-white/[0.08] bg-white/[0.04] p-4">
-      <p className="text-xs font-medium text-white/[0.48]">{label}</p>
-      <p className="mt-1 text-lg font-semibold text-white">{value}</p>
-      <p className="mt-1 text-xs text-white/[0.56]">{caption}</p>
+    <div className="rounded-2xl border border-border/70 bg-background/40 p-4">
+      <p className="text-xs font-medium text-muted-foreground">{label}</p>
+      <p className="mt-1 text-lg font-semibold text-foreground">{value}</p>
+      <p className="mt-1 text-xs text-muted-foreground">{caption}</p>
     </div>
   )
 }

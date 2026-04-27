@@ -103,20 +103,20 @@ export default function ReviewPage() {
     <>
       <div className="space-y-6 pb-2">
         <section className="grid gap-6 xl:grid-cols-[1.55fr_1fr]">
-          <Card className="overflow-hidden rounded-[30px] border-white/[0.08] bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.22),transparent_32%),radial-gradient(circle_at_78%_18%,rgba(16,185,129,0.2),transparent_24%),linear-gradient(180deg,rgba(7,18,23,0.98),rgba(7,14,18,0.99))] text-white shadow-[0_30px_90px_rgba(2,8,12,0.44)]">
+          <Card className="overflow-hidden rounded-[30px] border-border/70 bg-[radial-gradient(circle_at_top_left,color-mix(in_oklab,var(--primary)_26%,transparent),transparent_32%),radial-gradient(circle_at_78%_18%,color-mix(in_oklab,var(--accent)_18%,transparent),transparent_24%),linear-gradient(180deg,color-mix(in_oklab,var(--card)_92%,var(--background)_8%),color-mix(in_oklab,var(--background)_84%,black_16%))] shadow-[0_30px_90px_color-mix(in_oklab,var(--foreground)_12%,transparent)]">
             <CardContent className="relative px-6 py-6 sm:px-7 sm:py-7">
-              <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.05),transparent_28%,transparent_70%,rgba(255,255,255,0.03))]" />
+              <div className="absolute inset-0 bg-[linear-gradient(135deg,color-mix(in_oklab,var(--foreground)_5%,transparent),transparent_28%,transparent_70%,color-mix(in_oklab,var(--foreground)_3%,transparent))]" />
               <div className="relative space-y-6">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                   <div className="max-w-2xl space-y-3">
-                    <Badge className="w-fit border-white/10 bg-white/[0.08] text-[11px] uppercase tracking-[0.24em] text-cyan-100 hover:bg-white/[0.08]">
+                    <Badge className="w-fit border-border/70 bg-background/55 text-[11px] uppercase tracking-[0.24em] text-primary hover:bg-background/55">
                       Review rhythm
                     </Badge>
                     <div className="space-y-2">
                       <h1 className="text-3xl font-semibold tracking-[-0.03em] sm:text-4xl">
                         Keep recall sharp before drift turns into relearning.
                       </h1>
-                      <p className="max-w-xl text-sm leading-6 text-white/[0.68] sm:text-[15px]">
+                      <p className="max-w-xl text-sm leading-6 text-muted-foreground sm:text-[15px]">
                         Clear today&apos;s highest-friction cards, preserve spaced repetition
                         momentum, and decide where a full attempt is worth the extra time.
                       </p>
@@ -182,24 +182,24 @@ export default function ReviewPage() {
                     </Link>
                   </Button>
                   <Button
-                    asChild
-                    variant="outline"
-                    size="lg"
-                    className="h-11 rounded-full border-white/[0.14] bg-white/[0.06] px-5 text-sm text-white hover:bg-white/10 hover:text-white"
-                  >
-                    <Link href="/problems">Browse all problems</Link>
-                  </Button>
+                  asChild
+                  variant="outline"
+                  size="lg"
+                  className="h-11 rounded-full border-border/70 bg-background/55 px-5 text-sm text-foreground hover:bg-background/80 hover:text-foreground"
+                >
+                  <Link href="/problems">Browse all problems</Link>
+                </Button>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="rounded-[30px] border-border/60 bg-[linear-gradient(180deg,rgba(7,16,21,0.92),rgba(10,17,20,0.98))] text-white">
-            <CardHeader className="gap-3 border-b border-white/[0.08] pb-4">
+          <Card className="rounded-[30px] border-border/70 bg-[linear-gradient(180deg,color-mix(in_oklab,var(--card)_94%,var(--background)_6%),color-mix(in_oklab,var(--background)_88%,black_12%))] shadow-[0_24px_80px_color-mix(in_oklab,var(--foreground)_10%,transparent)]">
+            <CardHeader className="gap-3 border-b border-border/70 pb-4">
               <div className="flex items-center justify-between gap-4">
                 <div>
-                  <CardTitle className="text-xl tracking-tight text-white">Queue health</CardTitle>
-                  <CardDescription className="mt-1 text-white/[0.58]">
+                  <CardTitle className="text-xl tracking-tight">Queue health</CardTitle>
+                  <CardDescription className="mt-1">
                     Read the pressure level before you choose between quick ratings and full attempts.
                   </CardDescription>
                 </div>
@@ -207,10 +207,10 @@ export default function ReviewPage() {
                   className={cn(
                     "rounded-full px-3 py-1 text-xs font-semibold tracking-wide",
                     dueNow > 6
-                      ? "bg-rose-400/[0.14] text-rose-200"
+                      ? "border border-rose-400/25 bg-rose-400/[0.12] text-rose-700 dark:text-rose-200"
                       : dueNow > 0
-                        ? "bg-amber-300/[0.14] text-amber-100"
-                        : "bg-emerald-400/[0.14] text-emerald-200"
+                        ? "border border-amber-400/25 bg-amber-400/[0.12] text-amber-700 dark:text-amber-200"
+                        : "border border-emerald-400/25 bg-emerald-400/[0.12] text-emerald-700 dark:text-emerald-200"
                   )}
                 >
                   {dailyCapacity} load
@@ -224,23 +224,23 @@ export default function ReviewPage() {
                 <HealthStat label="Overdue" value={overdueCards.length} tone={overdueCards.length > 0 ? "risk" : "neutral"} />
               </div>
 
-              <div className="rounded-2xl border border-white/[0.08] bg-white/[0.04] p-4">
+              <div className="rounded-2xl border border-border/70 bg-background/40 p-4">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/[0.45]">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                       Next checkpoint
                     </p>
-                    <p className="mt-2 text-sm leading-6 text-white/[0.72]">
+                    <p className="mt-2 text-sm leading-6 text-muted-foreground">
                       {nextDueCard ? (
                         <>
                           The next card opens{" "}
-                          <span className="font-medium text-white">
+                          <span className="font-medium text-foreground">
                             {formatDistanceToNowStrict(parseISO(nextDueCard.due), {
                               addSuffix: true,
                             })}
                           </span>{" "}
                           for{" "}
-                          <span className="font-semibold text-white">
+                          <span className="font-semibold text-foreground">
                             {nextDueCard.problemTitle}
                           </span>
                           .
@@ -250,7 +250,7 @@ export default function ReviewPage() {
                       )}
                     </p>
                   </div>
-                  <CalendarClock className="mt-1 h-5 w-5 text-cyan-200/80" />
+                  <CalendarClock className="mt-1 h-5 w-5 text-primary/75" />
                 </div>
               </div>
 
@@ -413,16 +413,16 @@ function HeroMetric({
   detail: string
 }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.06] p-3.5 backdrop-blur-sm">
+    <div className="rounded-2xl border border-border/70 bg-background/50 p-3.5 backdrop-blur-sm">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/[0.45]">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
             {label}
           </p>
-          <p className="mt-2 text-xl font-semibold text-white">{value}</p>
-          <p className="mt-1 text-xs leading-5 text-white/[0.56]">{detail}</p>
+          <p className="mt-2 text-xl font-semibold text-foreground">{value}</p>
+          <p className="mt-1 text-xs leading-5 text-muted-foreground">{detail}</p>
         </div>
-        <Icon className="mt-0.5 h-4 w-4 text-white/60" />
+        <Icon className="mt-0.5 h-4 w-4 text-primary/70" />
       </div>
     </div>
   )
@@ -438,12 +438,12 @@ function MiniSignal({
   caption: string
 }) {
   return (
-    <div className="rounded-2xl border border-white/[0.08] bg-black/[0.18] px-4 py-3">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/[0.42]">
+    <div className="rounded-2xl border border-border/70 bg-[color-mix(in_oklab,var(--background)_55%,var(--card)_45%)] px-4 py-3">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
         {label}
       </p>
-      <p className="mt-2 text-2xl font-semibold text-white">{value}</p>
-      <p className="mt-1 text-xs text-white/[0.56]">{caption}</p>
+      <p className="mt-2 text-2xl font-semibold text-foreground">{value}</p>
+      <p className="mt-1 text-xs text-muted-foreground">{caption}</p>
     </div>
   )
 }
@@ -459,16 +459,16 @@ function HealthStat({
 }) {
   const toneClass =
     tone === "warm"
-      ? "border-amber-300/[0.18] bg-amber-300/[0.08] text-amber-100"
+      ? "border-amber-400/25 bg-amber-400/[0.12] text-amber-700 dark:text-amber-200"
       : tone === "calm"
-        ? "border-emerald-300/[0.18] bg-emerald-300/[0.08] text-emerald-100"
+        ? "border-emerald-400/25 bg-emerald-400/[0.12] text-emerald-700 dark:text-emerald-200"
         : tone === "risk"
-          ? "border-rose-300/[0.18] bg-rose-300/[0.08] text-rose-100"
-          : "border-white/[0.08] bg-white/[0.04] text-white"
+          ? "border-rose-400/25 bg-rose-400/[0.12] text-rose-700 dark:text-rose-200"
+          : "border-border/70 bg-background/40 text-foreground"
 
   return (
     <div className={cn("rounded-2xl border p-4", toneClass)}>
-      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/[0.45]">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
         {label}
       </p>
       <p className="mt-2 text-3xl font-semibold tabular-nums">{value}</p>
@@ -492,13 +492,13 @@ function PressureRow({
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-3 text-sm">
-        <span className="text-white/[0.74]">{label}</span>
-        <span className="tabular-nums text-white">
+        <span className="text-muted-foreground">{label}</span>
+        <span className="tabular-nums text-foreground">
           {value}
-          <span className="text-white/[0.46]"> / {total}</span>
+          <span className="text-muted-foreground"> / {total}</span>
         </span>
       </div>
-      <div className="h-2.5 overflow-hidden rounded-full bg-white/[0.06]">
+      <div className="h-2.5 overflow-hidden rounded-full bg-muted/70">
         <div
           className={cn("h-full rounded-full bg-gradient-to-r", accent)}
           style={{ width: `${width.toFixed(1)}%` }}
