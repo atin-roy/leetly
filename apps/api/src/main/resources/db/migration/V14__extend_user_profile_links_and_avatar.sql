@@ -1,0 +1,4 @@
+ALTER TABLE user_profile
+    ADD COLUMN IF NOT EXISTS avatar_data_url TEXT,
+    ADD COLUMN IF NOT EXISTS leetcode_url VARCHAR(255),
+    ADD COLUMN IF NOT EXISTS github_url VARCHAR(255);
