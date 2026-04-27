@@ -187,32 +187,36 @@ function SurfaceSection({
   )
 }
 
-// ── Meta Row ──────────────────────────────────────────────────────────────────
-
-function MetaRow({
-  label,
+function MetadataSection({
+  title,
   children,
-  align = "start",
 }: {
-  label: string
+  title: string
   children: React.ReactNode
-  align?: "start" | "center"
 }) {
   return (
-    <div
-      className={`flex gap-0 border-b px-3 py-2 last:border-b-0 ${
-        align === "center" ? "items-center" : "items-start"
-      }`}
-    >
-      <span
-        className={`w-24 shrink-0 select-none text-xs text-muted-foreground ${
-          align === "center" ? "" : "pt-0.5"
-        }`}
-      >
-        {label}
-      </span>
-      <div className="flex-1 min-w-0">{children}</div>
+    <div className="rounded-2xl border border-border/70 bg-background/55 p-4">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+        {title}
+      </p>
+      <div className="mt-3 min-w-0">{children}</div>
     </div>
+  )
+}
+
+function MetadataChip({
+  children,
+  className = "",
+}: {
+  children: React.ReactNode
+  className?: string
+}) {
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-card/80 px-2.5 py-1 text-xs font-medium text-foreground ${className}`}
+    >
+      {children}
+    </span>
   )
 }
 
@@ -641,6 +645,9 @@ export default function ProblemDetailPage({
       ? `Overdue by ${Math.ceil((reviewNow.getTime() - reviewDueDate.getTime()) / 86400000)}d`
       : `Due ${formatRelativeDate(reviewDueDate)}`
     : null
+  const primaryActionButtonClass = "h-10 rounded-full px-4 text-sm"
+  const metadataAddButtonClass =
+    "inline-flex items-center gap-1 rounded-full border border-dashed border-border/80 px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:border-foreground hover:text-foreground"
 
   return (
     <div className="w-full space-y-6">
@@ -674,9 +681,6 @@ export default function ProblemDetailPage({
                     <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
                       {problem.title}
                     </h1>
-                    <p className="max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
-                      Keep the full context for this problem in one place: attempts, notes, review state, and metadata that should actually help you study.
-                    </p>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
                     <DifficultyBadge difficulty={problem.difficulty} />
@@ -691,11 +695,16 @@ export default function ProblemDetailPage({
                 </div>
 
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                  <Button variant="outline" onClick={handleCreateNote} className="rounded-full">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCreateNote}
+                    className={primaryActionButtonClass}
+                  >
                     <StickyNote className="mr-2 h-4 w-4" />
                     Create Note
                   </Button>
-                  <Button onClick={handleLogAttempt} className="rounded-full">
+                  <Button size="sm" onClick={handleLogAttempt} className={primaryActionButtonClass}>
                     <Plus className="mr-2 h-4 w-4" />
                     Log Attempt
                   </Button>
@@ -705,7 +714,7 @@ export default function ProblemDetailPage({
                     notes={notesData?.content}
                     listNames={problemListNames}
                     variant="outline"
-                    className="shrink-0 rounded-full"
+                    className={`shrink-0 ${primaryActionButtonClass}`}
                     label="Copy details"
                     title="Copy problem details"
                   />
@@ -893,204 +902,183 @@ export default function ProblemDetailPage({
 
         <aside className="space-y-6 xl:sticky xl:top-6 xl:self-start">
           <div className="overflow-hidden rounded-[28px] border border-border/70 bg-card/80 shadow-[0_20px_60px_-40px_rgba(15,23,42,0.35)]">
-            <div className="border-b border-border/70 px-4 py-4">
+            <div className="border-b border-border/70 px-5 py-4">
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
                 Problem Metadata
               </p>
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <Select value={problem.status} onValueChange={(v) => statusMutation.mutate(v)}>
+                  <SelectTrigger
+                    size="sm"
+                    hideIcon
+                    disabled={statusMutation.isPending}
+                    className="inline-flex h-auto min-h-0 w-fit cursor-pointer items-center border-0 bg-transparent p-0 leading-none shadow-none transition-opacity hover:opacity-80 focus-visible:ring-0 data-[state=open]:opacity-80"
+                  >
+                    <SelectValue>
+                      <StatusBadge status={problem.status} />
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {STATUSES.map((s) => (
+                      <SelectItem key={s.value} value={s.value}>
+                        <StatusBadge status={s.value} />
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <DifficultyBadge difficulty={problem.difficulty} />
+                {problem.reviewCard ? (
+                  <MetadataChip className="text-muted-foreground">
+                    {problem.reviewCard.state}
+                    {reviewDueText ? <span className="text-foreground">{reviewDueText}</span> : null}
+                  </MetadataChip>
+                ) : null}
+              </div>
             </div>
-
-            {/* Status */}
-            <MetaRow label="status" align="center">
-              <Select value={problem.status} onValueChange={(v) => statusMutation.mutate(v)}>
-                <SelectTrigger
-                  size="sm"
-                  hideIcon
-                  disabled={statusMutation.isPending}
-                  className="inline-flex h-6 min-h-0 w-fit cursor-pointer items-center border-0 bg-transparent p-0 leading-none shadow-none transition-opacity hover:opacity-80 focus-visible:ring-0 data-[state=open]:opacity-80"
+            <div className="grid gap-3 p-4">
+              <MetadataSection title="Reference">
+                <a
+                  href={problem.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
-                  <SelectValue>
-                    <StatusBadge status={problem.status} />
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {STATUSES.map((s) => (
-                    <SelectItem key={s.value} value={s.value}>
-                      <StatusBadge status={s.value} />
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </MetaRow>
+                  <ExternalLink className="h-3.5 w-3.5" />
+                  <span className="truncate">{problem.url.replace("https://", "")}</span>
+                </a>
+              </MetadataSection>
 
-            {/* Difficulty */}
-            <MetaRow label="difficulty" align="center">
-              <DifficultyBadge difficulty={problem.difficulty} />
-            </MetaRow>
-
-            {/* LeetCode link */}
-            <MetaRow label="leetcode" align="center">
-              <a
-                href={problem.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
-              >
-                <ExternalLink className="h-3 w-3" />
-                {problem.url.replace("https://", "")}
-              </a>
-            </MetaRow>
-
-            {/* Topics */}
-            <MetaRow label="topics">
-              <div className="flex flex-wrap items-center gap-1.5">
-                {problem.topics.map((t) => (
-                  <span
-                    key={t.id}
-                    className="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium"
-                  >
-                    {t.name}
-                    <button
-                      onClick={() => removeTopicsMutation.mutate([t.id])}
-                      className="rounded-full p-0.5 hover:bg-muted-foreground/20"
-                    >
-                      <X className="h-2.5 w-2.5" />
-                    </button>
-                  </span>
-                ))}
-                <button
-                  onClick={() => setTopicModalOpen(true)}
-                  className="inline-flex items-center gap-1 rounded-full border border-dashed px-2.5 py-0.5 text-xs text-muted-foreground transition-colors hover:border-foreground hover:text-foreground"
-                >
-                  <Plus className="h-2.5 w-2.5" />
-                  Add
-                </button>
-              </div>
-            </MetaRow>
-
-            {/* Patterns */}
-            <MetaRow label="patterns">
-              <div className="space-y-1">
-                {problem.patterns.map((p) => (
-                  <div key={p.id} className="group/item flex items-center justify-between gap-2">
-                    <div className="min-w-0 flex items-center gap-1.5">
-                      <span className="text-xs font-medium">{p.name}</span>
-                      {p.topicName && (
-                        <span className="text-xs text-muted-foreground">· {p.topicName}</span>
-                      )}
-                    </div>
-                    <button
-                      onClick={() => removePatternMutation.mutate(p.id)}
-                      className="shrink-0 rounded p-0.5 text-muted-foreground opacity-0 transition-opacity hover:bg-muted hover:text-foreground group-hover/item:opacity-100"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </div>
-                ))}
-                <button
-                  onClick={() => setPatternModalOpen(true)}
-                  className="inline-flex items-center gap-1 rounded-full border border-dashed px-2.5 py-0.5 text-xs text-muted-foreground transition-colors hover:border-foreground hover:text-foreground"
-                >
-                  <Plus className="h-2.5 w-2.5" />
-                  Add
-                </button>
-              </div>
-            </MetaRow>
-
-            {/* Related */}
-            <MetaRow label="related">
-              <div className="space-y-1">
-                {problem.relatedProblems.map((r) => (
-                  <div key={r.id} className="flex items-center gap-2">
-                    <div className="flex min-w-0 items-center gap-2">
-                      <Link
-                        href={`/problems/${r.id}`}
-                        className="truncate text-xs font-medium hover:underline"
+              <MetadataSection title="Topics">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {problem.topics.map((t) => (
+                    <MetadataChip key={t.id} className="bg-secondary text-foreground">
+                      {t.name}
+                      <button
+                        onClick={() => removeTopicsMutation.mutate([t.id])}
+                        className="rounded-full p-0.5 text-muted-foreground transition-colors hover:bg-muted-foreground/20 hover:text-foreground"
                       >
-                        #{r.leetcodeId} {r.title}
-                      </Link>
+                        <X className="h-2.5 w-2.5" />
+                      </button>
+                    </MetadataChip>
+                  ))}
+                  <button onClick={() => setTopicModalOpen(true)} className={metadataAddButtonClass}>
+                    <Plus className="h-2.5 w-2.5" />
+                    Add
+                  </button>
+                </div>
+              </MetadataSection>
+
+              <MetadataSection title="Patterns">
+                <div className="space-y-2">
+                  {problem.patterns.map((p) => (
+                    <div
+                      key={p.id}
+                      className="group/item flex items-center justify-between gap-3 rounded-xl border border-border/60 bg-card/70 px-3 py-2"
+                    >
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium text-foreground">{p.name}</p>
+                        {p.topicName ? (
+                          <p className="text-xs text-muted-foreground">{p.topicName}</p>
+                        ) : null}
+                      </div>
+                      <button
+                        onClick={() => removePatternMutation.mutate(p.id)}
+                        className="shrink-0 rounded-full p-1 text-muted-foreground opacity-0 transition-all hover:bg-muted hover:text-foreground group-hover/item:opacity-100"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                  <button onClick={() => setPatternModalOpen(true)} className={metadataAddButtonClass}>
+                    <Plus className="h-2.5 w-2.5" />
+                    Add
+                  </button>
+                </div>
+              </MetadataSection>
+
+              <MetadataSection title="Related Problems">
+                <div className="space-y-2">
+                  {problem.relatedProblems.map((r) => (
+                    <Link
+                      key={r.id}
+                      href={`/problems/${r.id}`}
+                      className="flex items-center justify-between gap-3 rounded-xl border border-border/60 bg-card/70 px-3 py-2 transition-colors hover:border-border hover:bg-card"
+                    >
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium text-foreground">
+                          #{r.leetcodeId} {r.title}
+                        </p>
+                      </div>
                       <DifficultyBadge difficulty={r.difficulty} />
+                    </Link>
+                  ))}
+                  <button onClick={() => setRelatedModalOpen(true)} className={metadataAddButtonClass}>
+                    <Plus className="h-2.5 w-2.5" />
+                    Add
+                  </button>
+                </div>
+              </MetadataSection>
+
+              <MetadataSection title="Lists">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {problemLists.map((l) => (
+                    <MetadataChip key={l.id} className="bg-secondary text-foreground">
+                      <Link href={getListHref(l)} className="hover:underline">
+                        {getListDisplayName(l)}
+                      </Link>
+                      <button
+                        onClick={() => handleRemoveFromList(l.id)}
+                        className="rounded-full p-0.5 text-muted-foreground transition-colors hover:bg-muted-foreground/20 hover:text-foreground"
+                      >
+                        <X className="h-2.5 w-2.5" />
+                      </button>
+                    </MetadataChip>
+                  ))}
+                  <button onClick={() => setListModalOpen(true)} className={metadataAddButtonClass}>
+                    <Plus className="h-2.5 w-2.5" />
+                    Add
+                  </button>
+                </div>
+              </MetadataSection>
+
+              <MetadataSection title="Revision">
+                {problem.reviewCard ? (
+                  <div className="space-y-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge variant="outline" className="text-xs">
+                        {problem.reviewCard.state}
+                      </Badge>
+                      {reviewDueText ? (
+                        <span className="text-xs text-muted-foreground">{reviewDueText}</span>
+                      ) : null}
+                      <span className="text-xs text-muted-foreground">
+                        {problem.reviewCard.reps} reviews
+                      </span>
+                    </div>
+                    {isReviewDue ? <QuickReviewButtons cardId={problem.reviewCard.id} /> : null}
+                    <div className="flex justify-end">
+                      <button
+                        onClick={() => removeReview.mutate(problem.reviewCard!.id)}
+                        disabled={removeReview.isPending}
+                        className="inline-flex rounded-full p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-destructive"
+                        title="Remove from review"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
                     </div>
                   </div>
-                ))}
-                <button
-                  onClick={() => setRelatedModalOpen(true)}
-                  className="inline-flex items-center gap-1 rounded-full border border-dashed px-2.5 py-0.5 text-xs text-muted-foreground transition-colors hover:border-foreground hover:text-foreground"
-                >
-                  <Plus className="h-2.5 w-2.5" />
-                  Add
-                </button>
-              </div>
-            </MetaRow>
-
-            {/* Lists */}
-            <MetaRow label="lists">
-              <div className="flex flex-wrap items-center gap-1.5">
-                {problemLists.map((l) => (
-                  <span
-                    key={l.id}
-                    className="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium"
+                ) : (
+                  <button
+                    onClick={() => enrollReview.mutate(problem.id)}
+                    disabled={enrollReview.isPending}
+                    className={metadataAddButtonClass}
                   >
-                    <Link href={getListHref(l)} className="hover:underline">
-                      {getListDisplayName(l)}
-                    </Link>
-                    <button
-                      onClick={() => handleRemoveFromList(l.id)}
-                      className="rounded-full p-0.5 hover:bg-muted-foreground/20"
-                    >
-                      <X className="h-2.5 w-2.5" />
-                    </button>
-                  </span>
-                ))}
-                <button
-                  onClick={() => setListModalOpen(true)}
-                  className="inline-flex items-center gap-1 rounded-full border border-dashed px-2.5 py-0.5 text-xs text-muted-foreground transition-colors hover:border-foreground hover:text-foreground"
-                >
-                  <Plus className="h-2.5 w-2.5" />
-                  Add
-                </button>
-              </div>
-            </MetaRow>
-
-            {/* Revision */}
-            <MetaRow label="revision">
-              {problem.reviewCard ? (
-                <div className="space-y-2">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Badge variant="outline" className="text-xs">
-                      {problem.reviewCard.state}
-                    </Badge>
-                    <span className="text-xs text-muted-foreground">
-                      {reviewDueText}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {problem.reviewCard.reps} reviews
-                    </span>
-                  </div>
-                  {isReviewDue && (
-                    <QuickReviewButtons cardId={problem.reviewCard.id} />
-                  )}
-                  <div className="flex justify-end">
-                    <button
-                      onClick={() => removeReview.mutate(problem.reviewCard!.id)}
-                      disabled={removeReview.isPending}
-                      className="inline-flex text-muted-foreground transition-colors hover:text-destructive"
-                      title="Remove from review"
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <button
-                  onClick={() => enrollReview.mutate(problem.id)}
-                  disabled={enrollReview.isPending}
-                  className="inline-flex items-center gap-1 rounded-full border border-dashed px-2.5 py-0.5 text-xs text-muted-foreground transition-colors hover:border-foreground hover:text-foreground"
-                >
-                  <Plus className="h-2.5 w-2.5" />
-                  Add to Review
-                </button>
-              )}
-            </MetaRow>
+                    <Plus className="h-2.5 w-2.5" />
+                    Add to Review
+                  </button>
+                )}
+              </MetadataSection>
+            </div>
           </div>
 
           <div className="overflow-hidden rounded-[28px] border border-border/70 bg-card/80 shadow-[0_20px_60px_-40px_rgba(15,23,42,0.35)]">
