@@ -24,7 +24,7 @@ export default function PeoplePage() {
 
   return (
     <div className="space-y-6 pb-8">
-      <section className="overflow-hidden rounded-[2rem] border border-border/70 bg-[linear-gradient(135deg,color-mix(in_oklab,var(--background)_88%,var(--primary)_12%),color-mix(in_oklab,var(--background)_94%,var(--accent)_6%))] px-6 py-6 shadow-[0_24px_70px_rgba(0,0,0,0.08)]">
+      <section className="overflow-hidden rounded-[2rem] border border-border/70 bg-[linear-gradient(135deg,color-mix(in_oklab,var(--background)_88%,var(--primary)_12%),color-mix(in_oklab,var(--background)_94%,var(--accent)_6%))] px-5 py-5 shadow-[0_24px_70px_rgba(0,0,0,0.08)] sm:px-6 sm:py-6">
         <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
           <div className="max-w-3xl">
             <Badge variant="outline" className="border-white/20 bg-background/70">
@@ -61,7 +61,7 @@ export default function PeoplePage() {
       </section>
 
       <Card className="border-border/70 py-0">
-        <CardHeader className="border-b border-border/60">
+        <CardHeader className="border-b border-border/60 px-5 py-5 sm:px-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <CardTitle>People directory</CardTitle>
@@ -69,7 +69,7 @@ export default function PeoplePage() {
                 Search by display name or username and jump into any public profile.
               </CardDescription>
             </div>
-            <div className="relative w-full max-w-md">
+            <div className="relative w-full lg:max-w-md">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 value={search}
@@ -83,7 +83,7 @@ export default function PeoplePage() {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-5 py-6">
+        <CardContent className="space-y-5 px-5 py-5 sm:px-6 sm:py-6">
           {isDirectoryLoading ? (
             <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
               {Array.from({ length: 6 }).map((_, index) => (
@@ -118,7 +118,7 @@ export default function PeoplePage() {
               ) : null}
             </>
           ) : (
-            <div className="rounded-[1.5rem] border border-dashed border-border/70 bg-muted/20 px-6 py-12 text-center">
+            <div className="rounded-[1.5rem] border border-dashed border-border/70 bg-muted/20 px-6 py-14 text-center sm:px-8">
               <Users className="mx-auto h-8 w-8 text-muted-foreground" />
               <p className="mt-4 text-lg font-semibold">No matching people yet</p>
               <p className="mt-2 text-sm text-muted-foreground">
@@ -131,11 +131,11 @@ export default function PeoplePage() {
 
       <div className="grid items-start gap-6 xl:grid-cols-3">
         <Card className="self-start border-border/70 py-0">
-          <CardHeader className="border-b border-border/60">
+          <CardHeader className="border-b border-border/60 px-5 py-5">
             <CardTitle>Incoming requests</CardTitle>
             <CardDescription>Accept or decline people who want to connect.</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4 py-6">
+          <CardContent className="space-y-4 px-5 py-5 sm:py-6">
             {isOverviewLoading ? (
               <Skeleton className="h-40 rounded-[1.5rem]" />
             ) : overview?.incomingRequests.length ? (
@@ -151,11 +151,11 @@ export default function PeoplePage() {
         </Card>
 
         <Card className="self-start border-border/70 py-0">
-          <CardHeader className="border-b border-border/60">
+          <CardHeader className="border-b border-border/60 px-5 py-5">
             <CardTitle>Friends</CardTitle>
             <CardDescription>Your accepted connections.</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4 py-6">
+          <CardContent className="space-y-4 px-5 py-5 sm:py-6">
             {isOverviewLoading ? (
               <Skeleton className="h-40 rounded-[1.5rem]" />
             ) : overview?.friends.length ? (
@@ -171,11 +171,11 @@ export default function PeoplePage() {
         </Card>
 
         <Card className="self-start border-border/70 py-0">
-          <CardHeader className="border-b border-border/60">
+          <CardHeader className="border-b border-border/60 px-5 py-5">
             <CardTitle>Outgoing requests</CardTitle>
             <CardDescription>Pending requests you can still cancel.</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4 py-6">
+          <CardContent className="space-y-4 px-5 py-5 sm:py-6">
             {isOverviewLoading ? (
               <Skeleton className="h-40 rounded-[1.5rem]" />
             ) : overview?.outgoingRequests.length ? (
@@ -192,7 +192,7 @@ export default function PeoplePage() {
       </div>
 
       <Card className="border-border/70 py-0">
-        <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+        <CardContent className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <div>
             <p className="text-sm font-medium text-foreground">Want a profile URL to share directly?</p>
             <p className="text-sm text-muted-foreground">
