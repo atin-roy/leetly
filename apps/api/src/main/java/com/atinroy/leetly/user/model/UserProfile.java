@@ -21,6 +21,15 @@ public class UserProfile extends BaseEntity {
     @Column(length = 500)
     private String bio;
 
+    @Column(name = "avatar_data_url", columnDefinition = "TEXT")
+    private String avatarDataUrl;
+
+    @Column(name = "leetcode_url", length = 255)
+    private String leetcodeUrl;
+
+    @Column(name = "github_url", length = 255)
+    private String githubUrl;
+
     @Column(nullable = false)
     private boolean progressPublic = true;
 

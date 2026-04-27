@@ -26,10 +26,17 @@ public class UserProfileService {
         UserProfile profile = getByUser(user);
         profile.setDisplayName(request.displayName());
         profile.setBio(request.bio());
+        profile.setAvatarDataUrl(blankToNull(request.avatarDataUrl()));
+        profile.setLeetcodeUrl(blankToNull(request.leetcodeUrl()));
+        profile.setGithubUrl(blankToNull(request.githubUrl()));
         profile.setProgressPublic(request.progressPublic());
         profile.setStreakPublic(request.streakPublic());
         profile.setListsPublic(request.listsPublic());
         profile.setNotesPublic(request.notesPublic());
         return userProfileRepository.save(profile);
+    }
+
+    private String blankToNull(String value) {
+        return value == null || value.isBlank() ? null : value.trim();
     }
 }

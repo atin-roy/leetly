@@ -1,19 +1,23 @@
 "use client"
 
-import { type ReactNode, useEffect, useState } from "react"
+import { type ChangeEvent, type ReactNode, useEffect, useState } from "react"
 import { useSession, signOut } from "next-auth/react"
 import { useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import {
+  Camera,
   Globe2,
+  Github,
   LogOut,
+  MonitorSmartphone,
   MoonStar,
   Palette,
   ShieldCheck,
   Sparkles,
   SunMedium,
   Target,
+  Trash2,
   User,
 } from "lucide-react"
 import { toast } from "sonner"
@@ -117,9 +121,32 @@ const TIMEZONES = [
   "Pacific/Fiji",
 ]
 
+const MAX_AVATAR_FILE_BYTES = 8 * 1024 * 1024
+const MAX_AVATAR_DATA_URL_LENGTH = 500_000
+
+function isAllowedProfileUrl(value: string, domain: "github.com" | "leetcode.com") {
+  if (!value) return true
+
+  try {
+    const url = new URL(value)
+    return url.protocol === "https:" && (url.hostname === domain || url.hostname === `www.${domain}`)
+  } catch {
+    return false
+  }
+}
+
 const profileSchema = z.object({
   displayName: z.string().max(100),
   bio: z.string().max(500),
+  avatarDataUrl: z.string().max(MAX_AVATAR_DATA_URL_LENGTH),
+  leetcodeUrl: z
+    .string()
+    .max(255)
+    .refine((value) => isAllowedProfileUrl(value.trim(), "leetcode.com"), "Use a valid https://leetcode.com profile URL"),
+  githubUrl: z
+    .string()
+    .max(255)
+    .refine((value) => isAllowedProfileUrl(value.trim(), "github.com"), "Use a valid https://github.com profile URL"),
   progressPublic: z.boolean(),
   streakPublic: z.boolean(),
   listsPublic: z.boolean(),
@@ -209,6 +236,9 @@ function isMissingThemeSaveEndpoint(error: unknown) {
 function normalizeProfile(values?: {
   displayName?: string | null
   bio?: string | null
+  avatarDataUrl?: string | null
+  leetcodeUrl?: string | null
+  githubUrl?: string | null
   progressPublic?: boolean | null
   streakPublic?: boolean | null
   listsPublic?: boolean | null
@@ -217,10 +247,57 @@ function normalizeProfile(values?: {
   return {
     displayName: values?.displayName ?? "",
     bio: values?.bio ?? "",
+    avatarDataUrl: values?.avatarDataUrl ?? "",
+    leetcodeUrl: values?.leetcodeUrl ?? "",
+    githubUrl: values?.githubUrl ?? "",
     progressPublic: values?.progressPublic ?? true,
     streakPublic: values?.streakPublic ?? true,
     listsPublic: values?.listsPublic ?? false,
     notesPublic: values?.notesPublic ?? false,
+  }
+}
+
+async function compressAvatarFile(file: File) {
+  if (file.size > MAX_AVATAR_FILE_BYTES) {
+    throw new Error("Choose an image smaller than 8 MB")
+  }
+
+  const imageUrl = URL.createObjectURL(file)
+
+  try {
+    const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const img = new Image()
+      img.onload = () => resolve(img)
+      img.onerror = () => reject(new Error("Could not read that image"))
+      img.src = imageUrl
+    })
+
+    const maxDimension = 512
+    const scale = Math.min(1, maxDimension / Math.max(image.width, image.height))
+    const width = Math.max(1, Math.round(image.width * scale))
+    const height = Math.max(1, Math.round(image.height * scale))
+
+    const canvas = document.createElement("canvas")
+    canvas.width = width
+    canvas.height = height
+
+    const context = canvas.getContext("2d")
+    if (!context) {
+      throw new Error("Your browser could not process that image")
+    }
+
+    context.imageSmoothingEnabled = true
+    context.imageSmoothingQuality = "high"
+    context.drawImage(image, 0, 0, width, height)
+
+    const dataUrl = canvas.toDataURL("image/jpeg", 0.84)
+    if (dataUrl.length > MAX_AVATAR_DATA_URL_LENGTH) {
+      throw new Error("That image is still too large after compression")
+    }
+
+    return dataUrl
+  } finally {
+    URL.revokeObjectURL(imageUrl)
   }
 }
 
@@ -388,8 +465,24 @@ function ProfileSection({
 
   const name = session.user?.name ?? ""
   const email = session.user?.email ?? ""
-  const image = session.user?.image ?? undefined
+  const uploadedAvatar = form.watch("avatarDataUrl")
+  const image = uploadedAvatar || session.user?.image || undefined
   const visibleCount = visibilityFields.filter(({ name: fieldName }) => form.watch(fieldName)).length
+
+  async function handleAvatarChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    try {
+      const dataUrl = await compressAvatarFile(file)
+      form.setValue("avatarDataUrl", dataUrl, { shouldDirty: true, shouldValidate: true })
+      toast.success("Profile picture ready to save")
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to process image")
+    } finally {
+      event.target.value = ""
+    }
+  }
 
   return (
     <Form {...form}>
@@ -434,6 +527,51 @@ function ProfileSection({
                   Shape how your name and study identity appear across Leetly.
                 </p>
               </div>
+              <div className="rounded-[1.6rem] border border-border/70 bg-muted/[0.28] p-4">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-center gap-4">
+                    <Avatar className="h-20 w-20 border border-border/70 text-lg shadow-sm">
+                      <AvatarImage src={image} alt={name || "User"} />
+                      <AvatarFallback>
+                        {name ? getInitials(name) : <User className="h-7 w-7" />}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium">Profile picture</p>
+                      <p className="max-w-sm text-sm leading-5 text-muted-foreground">
+                        Upload a square-friendly headshot or logo. Images are compressed before saving.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Button type="button" variant="secondary" className="gap-2" asChild>
+                      <label>
+                        <Camera className="h-4 w-4" />
+                        Upload photo
+                        <input
+                          type="file"
+                          accept="image/png,image/jpeg,image/webp,image/gif"
+                          className="sr-only"
+                          disabled={isLoading}
+                          onChange={handleAvatarChange}
+                        />
+                      </label>
+                    </Button>
+                    {uploadedAvatar ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="gap-2"
+                        disabled={isLoading}
+                        onClick={() => form.setValue("avatarDataUrl", "", { shouldDirty: true, shouldValidate: true })}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        Remove custom
+                      </Button>
+                    ) : null}
+                  </div>
+                </div>
+              </div>
               <FormField
                 control={form.control}
                 name="displayName"
@@ -475,41 +613,112 @@ function ProfileSection({
                   </FormItem>
                 )}
               />
+              <div className="grid gap-4 lg:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="leetcodeUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>LeetCode profile</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <MonitorSmartphone className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                          <Input
+                            placeholder="https://leetcode.com/u/your-handle/"
+                            className="pl-9"
+                            disabled={isLoading}
+                            {...field}
+                            value={field.value ?? ""}
+                          />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="githubUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>GitHub profile</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Github className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                          <Input
+                            placeholder="https://github.com/your-handle"
+                            className="pl-9"
+                            disabled={isLoading}
+                            {...field}
+                            value={field.value ?? ""}
+                          />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
 
-            <div className="rounded-[1.6rem] border border-border/70 bg-muted/[0.28] p-4">
-              <div className="flex items-center gap-2">
-                <ShieldCheck className="h-4 w-4 text-primary" />
-                <h3 className="text-lg font-semibold tracking-tight">Visibility controls</h3>
+            <div className="space-y-4">
+              <div className="rounded-[1.6rem] border border-border/70 bg-muted/[0.28] p-4">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="h-4 w-4 text-primary" />
+                  <h3 className="text-lg font-semibold tracking-tight">Visibility controls</h3>
+                </div>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Keep your public profile useful without exposing everything.
+                </p>
+                <div className="mt-4 space-y-1">
+                  {visibilityFields.map(({ name: fieldName, label, description }, index) => (
+                    <div key={fieldName}>
+                      <FormField
+                        control={form.control}
+                        name={fieldName}
+                        render={({ field }) => (
+                          <FormItem className="flex items-center justify-between gap-4 rounded-2xl px-1 py-3">
+                            <div className="min-w-0">
+                              <FormLabel className="cursor-pointer text-sm font-medium">{label}</FormLabel>
+                              <p className="mt-1 text-sm leading-5 text-muted-foreground">{description}</p>
+                            </div>
+                            <FormControl>
+                              <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                                disabled={isLoading}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                      {index < visibilityFields.length - 1 && <Separator />}
+                    </div>
+                  ))}
+                </div>
               </div>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Keep your public profile useful without exposing everything.
-              </p>
-              <div className="mt-4 space-y-1">
-                {visibilityFields.map(({ name: fieldName, label, description }, index) => (
-                  <div key={fieldName}>
-                    <FormField
-                      control={form.control}
-                      name={fieldName}
-                      render={({ field }) => (
-                        <FormItem className="flex items-center justify-between gap-4 rounded-2xl px-1 py-3">
-                          <div className="min-w-0">
-                            <FormLabel className="cursor-pointer text-sm font-medium">{label}</FormLabel>
-                            <p className="mt-1 text-sm leading-5 text-muted-foreground">{description}</p>
-                          </div>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                              disabled={isLoading}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                    {index < visibilityFields.length - 1 && <Separator />}
+              <div className="rounded-[1.6rem] border border-border/70 bg-muted/[0.28] p-4">
+                <div className="flex items-center gap-2">
+                  <Globe2 className="h-4 w-4 text-primary" />
+                  <h3 className="text-lg font-semibold tracking-tight">Linked profiles</h3>
+                </div>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Add the public places people already know you from.
+                </p>
+                <div className="mt-4 space-y-3">
+                  <div className="rounded-2xl border border-border/60 bg-background/75 px-4 py-3">
+                    <p className="text-sm font-medium">LeetCode</p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {form.watch("leetcodeUrl") ? "Connected for your public study identity." : "No LeetCode profile linked yet."}
+                    </p>
                   </div>
-                ))}
+                  <div className="rounded-2xl border border-border/60 bg-background/75 px-4 py-3">
+                    <p className="text-sm font-medium">GitHub</p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {form.watch("githubUrl") ? "Connected for project and code visibility." : "No GitHub profile linked yet."}
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -786,6 +995,9 @@ export default function AccountPage() {
     const profileChanged =
       profileValues.displayName !== normalizedProfile.displayName ||
       profileValues.bio !== normalizedProfile.bio ||
+      profileValues.avatarDataUrl !== normalizedProfile.avatarDataUrl ||
+      profileValues.leetcodeUrl.trim() !== normalizedProfile.leetcodeUrl.trim() ||
+      profileValues.githubUrl.trim() !== normalizedProfile.githubUrl.trim() ||
       profileValues.progressPublic !== normalizedProfile.progressPublic ||
       profileValues.streakPublic !== normalizedProfile.streakPublic ||
       profileValues.listsPublic !== normalizedProfile.listsPublic ||
@@ -812,6 +1024,9 @@ export default function AccountPage() {
           ...profileValues,
           displayName: profileValues.displayName || null,
           bio: profileValues.bio || null,
+          avatarDataUrl: profileValues.avatarDataUrl || null,
+          leetcodeUrl: profileValues.leetcodeUrl.trim() || null,
+          githubUrl: profileValues.githubUrl.trim() || null,
         }
         operations.push(
           updateProfile(payload).then((updatedProfile) => {

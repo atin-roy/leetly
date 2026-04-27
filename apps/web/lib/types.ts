@@ -279,6 +279,9 @@ export interface UpdateSettingsRequest {
 export interface UserProfileDto {
   displayName: string | null
   bio: string | null
+  avatarDataUrl: string | null
+  leetcodeUrl: string | null
+  githubUrl: string | null
   progressPublic: boolean
   streakPublic: boolean
   listsPublic: boolean
@@ -288,6 +291,9 @@ export interface UserProfileDto {
 export interface UpdateProfileRequest {
   displayName: string | null
   bio: string | null
+  avatarDataUrl: string | null
+  leetcodeUrl: string | null
+  githubUrl: string | null
   progressPublic: boolean
   streakPublic: boolean
   listsPublic: boolean
