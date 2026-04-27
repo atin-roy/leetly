@@ -286,7 +286,7 @@ function AttemptCodeBlock({
       showCopyButton
       code={content}
       language={language}
-      preClassName="max-h-64 overflow-y-auto"
+      preClassName="max-h-[60vh] overflow-y-auto"
     />
   )
 }
