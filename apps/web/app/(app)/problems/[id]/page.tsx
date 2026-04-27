@@ -1044,28 +1044,28 @@ export default function ProblemDetailPage({
               <MetadataSection title="Revision">
                 {problem.reviewCard ? (
                   <div className="space-y-3">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Badge variant="outline" className="text-xs">
-                        {problem.reviewCard.state}
-                      </Badge>
-                      {reviewDueText ? (
-                        <span className="text-xs text-muted-foreground">{reviewDueText}</span>
-                      ) : null}
-                      <span className="text-xs text-muted-foreground">
-                        {problem.reviewCard.reps} reviews
-                      </span>
-                    </div>
-                    {isReviewDue ? <QuickReviewButtons cardId={problem.reviewCard.id} /> : null}
-                    <div className="flex justify-end">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge variant="outline" className="text-xs">
+                          {problem.reviewCard.state}
+                        </Badge>
+                        {reviewDueText ? (
+                          <span className="text-xs text-muted-foreground">{reviewDueText}</span>
+                        ) : null}
+                        <span className="text-xs text-muted-foreground">
+                          {problem.reviewCard.reps} reviews
+                        </span>
+                      </div>
                       <button
                         onClick={() => removeReview.mutate(problem.reviewCard!.id)}
                         disabled={removeReview.isPending}
-                        className="inline-flex rounded-full p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-destructive"
+                        className="inline-flex shrink-0 rounded-full p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-destructive"
                         title="Remove from review"
                       >
                         <X className="h-3.5 w-3.5" />
                       </button>
                     </div>
+                    {isReviewDue ? <QuickReviewButtons cardId={problem.reviewCard.id} /> : null}
                   </div>
                 ) : (
                   <button
