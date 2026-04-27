@@ -118,7 +118,7 @@ export default function PeoplePage() {
               ) : null}
             </>
           ) : (
-            <div className="rounded-[1.5rem] border border-dashed border-border/70 bg-muted/20 p-8 text-center">
+            <div className="rounded-[1.5rem] border border-dashed border-border/70 bg-muted/20 px-6 py-12 text-center">
               <Users className="mx-auto h-8 w-8 text-muted-foreground" />
               <p className="mt-4 text-lg font-semibold">No matching people yet</p>
               <p className="mt-2 text-sm text-muted-foreground">
@@ -129,8 +129,8 @@ export default function PeoplePage() {
         </CardContent>
       </Card>
 
-      <div className="grid gap-6 xl:grid-cols-3">
-        <Card className="border-border/70 py-0">
+      <div className="grid items-start gap-6 xl:grid-cols-3">
+        <Card className="self-start border-border/70 py-0">
           <CardHeader className="border-b border-border/60">
             <CardTitle>Incoming requests</CardTitle>
             <CardDescription>Accept or decline people who want to connect.</CardDescription>
@@ -143,12 +143,14 @@ export default function PeoplePage() {
                 <SocialUserCard key={person.id} user={person} />
               ))
             ) : (
-              <p className="text-sm text-muted-foreground">No incoming requests right now.</p>
+              <div className="rounded-[1.1rem] border border-dashed border-border/60 bg-muted/15 px-4 py-5 text-sm text-muted-foreground">
+                No incoming requests right now.
+              </div>
             )}
           </CardContent>
         </Card>
 
-        <Card className="border-border/70 py-0">
+        <Card className="self-start border-border/70 py-0">
           <CardHeader className="border-b border-border/60">
             <CardTitle>Friends</CardTitle>
             <CardDescription>Your accepted connections.</CardDescription>
@@ -161,12 +163,14 @@ export default function PeoplePage() {
                 <SocialUserCard key={person.id} user={person} />
               ))
             ) : (
-              <p className="text-sm text-muted-foreground">No friends yet. Start with the directory above.</p>
+              <div className="rounded-[1.1rem] border border-dashed border-border/60 bg-muted/15 px-4 py-5 text-sm text-muted-foreground">
+                No friends yet. Start with the directory above.
+              </div>
             )}
           </CardContent>
         </Card>
 
-        <Card className="border-border/70 py-0">
+        <Card className="self-start border-border/70 py-0">
           <CardHeader className="border-b border-border/60">
             <CardTitle>Outgoing requests</CardTitle>
             <CardDescription>Pending requests you can still cancel.</CardDescription>
@@ -179,14 +183,16 @@ export default function PeoplePage() {
                 <SocialUserCard key={person.id} user={person} />
               ))
             ) : (
-              <p className="text-sm text-muted-foreground">No outgoing requests at the moment.</p>
+              <div className="rounded-[1.1rem] border border-dashed border-border/60 bg-muted/15 px-4 py-5 text-sm text-muted-foreground">
+                No outgoing requests at the moment.
+              </div>
             )}
           </CardContent>
         </Card>
       </div>
 
       <Card className="border-border/70 py-0">
-        <CardContent className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
+        <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-sm font-medium text-foreground">Want a profile URL to share directly?</p>
             <p className="text-sm text-muted-foreground">
