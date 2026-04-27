@@ -5,6 +5,7 @@ import { format } from "date-fns"
 import { useRouter } from "next/navigation"
 import { Check, Clock, ExternalLink, Plus, SquareArrowOutUpRight, StickyNote, Trash2, X } from "lucide-react"
 import { toast } from "sonner"
+import { Button } from "@/components/ui/button"
 import {
   Table,
   TableBody,
@@ -30,14 +31,15 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useUpdateProblemStatus } from "@/hooks/use-problems"
 import { ReviewIndicator } from "@/components/review/review-indicator"
 import { QuickReviewButtons } from "@/components/review/quick-review-buttons"
+import { cn } from "@/lib/utils"
 import { AttemptForm } from "./attempt-form"
 import { CopyProblemButton } from "./copy-problem-button"
 import { DifficultyBadge } from "./difficulty-badge"
 import { statusLabels, statusStyles } from "./status-badge"
 import type { ProblemStatus, ProblemSummaryDto } from "@/lib/types"
 
-const COLS = 11
-const ROW_H = "h-11"
+const COLS = 6
+const ROW_H = "h-[108px]"
 const STATUSES: ProblemStatus[] = [
   "UNSEEN",
   "ATTEMPTED",
@@ -57,6 +59,12 @@ interface Props {
   onRemoveReview?: (problemId: number, cardId: number) => void
 }
 
+interface ProblemActionProps {
+  problem: ProblemSummaryDto
+  hasNote: boolean
+  onNoteClick?: (problem: ProblemSummaryDto) => void
+}
+
 function isInteractiveTarget(target: EventTarget | null) {
   return target instanceof HTMLElement && Boolean(target.closest("[data-interactive='true']"))
 }
@@ -74,6 +82,11 @@ function FillerRow() {
 function formatLastAttempt(value: string | null) {
   if (!value) return "Never"
   return format(new Date(value), "MMM d, yyyy")
+}
+
+function formatLastAttemptDetail(value: string | null) {
+  if (!value) return "No logged attempts yet"
+  return `Last active ${format(new Date(value), "MMM d, yyyy")}`
 }
 
 function getProblemHref(problemId: number) {
@@ -145,6 +158,56 @@ function StatusCell({ problem }: { problem: ProblemSummaryDto }) {
   )
 }
 
+function ActionIconButton({
+  children,
+  className,
+  ...props
+}: React.ComponentProps<typeof Button>) {
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      className={cn("h-8 w-8 rounded-full text-muted-foreground hover:bg-accent hover:text-foreground", className)}
+      {...props}
+    >
+      {children}
+    </Button>
+  )
+}
+
+function ProblemUtilityActions({ problem, hasNote, onNoteClick }: ProblemActionProps) {
+  return (
+    <div className="flex items-center gap-1.5" data-interactive="true" onClick={(e) => e.stopPropagation()}>
+      <ActionIconButton asChild title="Open in LeetCode">
+        <a
+          href={problem.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          data-interactive="true"
+        >
+          <ExternalLink className="h-4 w-4" />
+        </a>
+      </ActionIconButton>
+      <ActionIconButton
+        onClick={() => onNoteClick?.(problem)}
+        data-interactive="true"
+        disabled={!onNoteClick}
+        title={hasNote ? "Open note" : "Create note"}
+        className={hasNote ? "text-primary hover:text-primary" : undefined}
+      >
+        <StickyNote className={cn("h-4 w-4", hasNote ? "fill-primary/15" : "")} />
+      </ActionIconButton>
+      <CopyProblemButton
+        problemId={problem.id}
+        size="icon"
+        showText={false}
+        title="Copy full problem details"
+        className="h-8 w-8 rounded-full text-muted-foreground hover:bg-accent hover:text-foreground"
+      />
+    </div>
+  )
+}
+
 export function ProblemTable({
   problems,
   isLoading,
@@ -164,17 +227,12 @@ export function ProblemTable({
 
   const header = (
     <TableHeader>
-      <TableRow>
-        <TableHead className="w-16">#</TableHead>
-        <TableHead>Title</TableHead>
-        <TableHead className="w-36 text-center">Last Attempt</TableHead>
-        <TableHead className="w-24 text-center">LeetCode</TableHead>
-        <TableHead className="w-20 text-center">Note</TableHead>
-        <TableHead className="w-28 text-center">Difficulty</TableHead>
-        <TableHead className="w-40 text-center">Status</TableHead>
-        <TableHead className="w-24 text-center">Review</TableHead>
-        <TableHead className="w-24 text-center">Export Details</TableHead>
-        <TableHead className="w-24 text-center">Attempts</TableHead>
+      <TableRow className="border-b border-border/70 bg-background/65">
+        <TableHead className="w-[44%] py-4">Problem</TableHead>
+        <TableHead className="w-[18%] py-4">Last Activity</TableHead>
+        <TableHead className="w-[16%] py-4 text-center">Progress</TableHead>
+        <TableHead className="w-[12%] py-4 text-center">Review</TableHead>
+        <TableHead className="w-[10%] py-4 text-center">Attempts</TableHead>
         <TableHead className="w-10" />
       </TableRow>
     </TableHeader>
@@ -182,20 +240,46 @@ export function ProblemTable({
 
   if (isLoading) {
     return (
-      <Table>
-        {header}
-        <TableBody>
-          {Array.from({ length: pageSize }).map((_, i) => (
-            <TableRow key={i} className={ROW_H}>
-              {Array.from({ length: COLS }).map((_, j) => (
-                <TableCell key={j}>
-                  <Skeleton className="h-4 w-full" />
-                </TableCell>
-              ))}
-            </TableRow>
+      <>
+        <div className="grid gap-3 p-3 sm:hidden">
+          {Array.from({ length: Math.min(pageSize, 6) }).map((_, i) => (
+            <div key={i} className="rounded-3xl border border-border/70 bg-card/70 p-4">
+              <div className="space-y-3">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-6 w-3/4" />
+                <div className="flex gap-2">
+                  <Skeleton className="h-6 w-16 rounded-full" />
+                  <Skeleton className="h-6 w-24 rounded-full" />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <Skeleton className="h-14 rounded-2xl" />
+                  <Skeleton className="h-14 rounded-2xl" />
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <Skeleton className="h-9 rounded-full" />
+                  <Skeleton className="h-9 rounded-full" />
+                  <Skeleton className="h-9 rounded-full" />
+                </div>
+              </div>
+            </div>
           ))}
-        </TableBody>
-      </Table>
+        </div>
+
+        <Table className="hidden sm:table">
+          {header}
+          <TableBody>
+            {Array.from({ length: pageSize }).map((_, i) => (
+              <TableRow key={i} className={ROW_H}>
+                {Array.from({ length: COLS }).map((_, j) => (
+                  <TableCell key={j}>
+                    <Skeleton className="h-4 w-full" />
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </>
     )
   }
 
@@ -204,7 +288,145 @@ export function ProblemTable({
 
   return (
     <>
-      <Table>
+      <div className="space-y-3 p-3 sm:hidden">
+        {rows.length === 0 ? (
+          <div className="rounded-3xl border border-dashed border-border/70 bg-card/50 px-5 py-12 text-center text-sm text-muted-foreground">
+            No problems found.
+          </div>
+        ) : (
+          rows.map((p) => {
+            const hasNote = notedProblemIds?.has(p.id) ?? false
+
+            return (
+              <article
+                key={p.id}
+                className="rounded-3xl border border-border/70 bg-card/75 p-4 shadow-[0_18px_50px_-36px_rgba(15,23,42,0.35)]"
+              >
+                <div
+                  className="space-y-4"
+                  onClick={() => openProblem(p.id)}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 space-y-2">
+                      <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+                        <span className="rounded-full border border-border/70 bg-background/70 px-2 py-1 font-mono tracking-[0.18em]">
+                          #{p.leetcodeId}
+                        </span>
+                        <span>{formatLastAttemptDetail(p.lastAttemptedAt)}</span>
+                      </div>
+                      <h3 className="text-base font-semibold leading-6 text-foreground">{p.title}</h3>
+                    </div>
+
+                    <ProblemUtilityActions
+                      problem={p}
+                      hasNote={hasNote}
+                      onNoteClick={onNoteClick}
+                    />
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    <DifficultyBadge difficulty={p.difficulty} />
+                    <StatusCell problem={p} />
+                    {p.reviewCard ? (
+                      <Badge
+                        variant="outline"
+                        className="rounded-full border-emerald-500/25 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-medium text-emerald-700 dark:text-emerald-300"
+                      >
+                        In review
+                      </Badge>
+                    ) : null}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2" data-interactive="true" onClick={(e) => e.stopPropagation()}>
+                    <div className="rounded-2xl border border-border/70 bg-background/70 px-3 py-3">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Last Attempt</p>
+                      <p className="mt-1 text-sm font-medium text-foreground">{formatLastAttempt(p.lastAttemptedAt)}</p>
+                    </div>
+                    <div className="rounded-2xl border border-border/70 bg-background/70 px-3 py-3">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Attempts</p>
+                      <p className="mt-1 text-sm font-medium text-foreground">
+                        {p.totalAttempts > 0 ? `${p.totalAttempts} logged` : "None yet"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2" data-interactive="true" onClick={(e) => e.stopPropagation()}>
+                    {p.reviewCard ? (
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className="h-11 rounded-full border-border/70 bg-background/70 justify-center"
+                            data-interactive="true"
+                          >
+                            <ReviewIndicator reviewCard={p.reviewCard} />
+                            <span className="ml-2">Review</span>
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[calc(100vw-3rem)] max-w-72 p-3" align="center">
+                          <QuickReviewButtons cardId={p.reviewCard.id} size="sm" />
+                          {onRemoveReview ? (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="mt-2 w-full rounded-full text-muted-foreground hover:text-foreground"
+                              onClick={() => onRemoveReview(p.id, p.reviewCard!.id)}
+                            >
+                              Remove from review
+                            </Button>
+                          ) : null}
+                        </PopoverContent>
+                      </Popover>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        className="h-11 rounded-full border-border/70 bg-background/70"
+                        onClick={() => onEnrollReview?.(p)}
+                        data-interactive="true"
+                        disabled={!onEnrollReview}
+                      >
+                        <Clock className="mr-2 h-4 w-4" />
+                        Queue Review
+                      </Button>
+                    )}
+
+                    <Button
+                      variant="outline"
+                      className="h-11 rounded-full border-border/70 bg-background/70"
+                      onClick={() => setAttemptProblem(p)}
+                      data-interactive="true"
+                    >
+                      <Plus className="mr-2 h-4 w-4" />
+                      {p.totalAttempts > 0 ? "Log Again" : "Log Attempt"}
+                    </Button>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2" data-interactive="true" onClick={(e) => e.stopPropagation()}>
+                    <Button
+                      variant="ghost"
+                      className="h-11 rounded-full text-muted-foreground hover:text-foreground"
+                      onClick={() => openProblem(p.id)}
+                    >
+                      Open Detail
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className="h-11 rounded-full text-muted-foreground hover:text-destructive"
+                      onClick={() => onDelete?.(p)}
+                      disabled={!onDelete}
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Remove
+                    </Button>
+                  </div>
+                </div>
+              </article>
+            )
+          })
+        )}
+      </div>
+
+      <Table className="hidden sm:table">
         {header}
         <TableBody>
           {rows.length === 0 ? (
@@ -226,7 +448,7 @@ export function ProblemTable({
                   <ContextMenu key={p.id}>
                     <ContextMenuTrigger asChild>
                       <TableRow
-                        className={`${ROW_H} group cursor-pointer`}
+                        className={`${ROW_H} group cursor-pointer border-b border-border/60 transition-colors hover:bg-accent/25`}
                         onClick={(e) => {
                           if (isInteractiveTarget(e.target)) return
                           openProblem(p.id)
@@ -241,84 +463,89 @@ export function ProblemTable({
                           openProblemInNewTab(p.id)
                         }}
                       >
-                        <TableCell className="font-mono text-sm text-muted-foreground">
-                          {p.leetcodeId}
+                        <TableCell className="py-4">
+                          <div className="space-y-3">
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="min-w-0 space-y-1">
+                                <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+                                  <span className="rounded-full border border-border/70 bg-background/70 px-2 py-1 font-mono tracking-[0.18em]">
+                                    #{p.leetcodeId}
+                                  </span>
+                                  <span>{formatLastAttemptDetail(p.lastAttemptedAt)}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <p className="truncate text-base font-semibold text-foreground">{p.title}</p>
+                                </div>
+                              </div>
+
+                              <ProblemUtilityActions
+                                problem={p}
+                                hasNote={hasNote}
+                                onNoteClick={onNoteClick}
+                              />
+                            </div>
+
+                            <div className="flex flex-wrap items-center gap-2">
+                              <DifficultyBadge difficulty={p.difficulty} />
+                              <StatusCell problem={p} />
+                              {p.reviewCard ? (
+                                <Badge
+                                  variant="outline"
+                                  className="rounded-full border-emerald-500/25 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-medium text-emerald-700 dark:text-emerald-300"
+                                >
+                                  In review
+                                </Badge>
+                              ) : null}
+                            </div>
+                          </div>
                         </TableCell>
-                        <TableCell className="font-medium">{p.title}</TableCell>
-                        <TableCell className="text-center text-sm text-muted-foreground">
-                          {formatLastAttempt(p.lastAttemptedAt)}
+                        <TableCell className="py-4">
+                          <div className="space-y-1">
+                            <p className="text-sm font-medium text-foreground">{formatLastAttempt(p.lastAttemptedAt)}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {p.totalAttempts > 0 ? `${p.totalAttempts} logged attempt${p.totalAttempts === 1 ? "" : "s"}` : "Fresh in backlog"}
+                            </p>
+                          </div>
                         </TableCell>
-                        <TableCell className="text-center" data-interactive="true" onClick={(e) => e.stopPropagation()}>
-                          <a
-                            href={p.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            data-interactive="true"
-                            className="inline-flex text-muted-foreground hover:text-foreground"
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                          </a>
+                        <TableCell className="py-4 text-center" data-interactive="true" onClick={(e) => e.stopPropagation()}>
+                          <div className="flex flex-col items-center gap-2">
+                            <DifficultyBadge difficulty={p.difficulty} />
+                            <StatusCell problem={p} />
+                          </div>
                         </TableCell>
-                        <TableCell className="text-center" data-interactive="true" onClick={(e) => e.stopPropagation()}>
-                          <button
-                            onClick={() => onNoteClick?.(p)}
-                            data-interactive="true"
-                            className={
-                              hasNote
-                                ? "inline-flex text-primary hover:text-primary/70"
-                                : "inline-flex text-muted-foreground hover:text-foreground disabled:opacity-30"
-                            }
-                            disabled={!onNoteClick}
-                            title={hasNote ? "Open note" : "Create note"}
-                          >
-                            <StickyNote className={`h-4 w-4 ${hasNote ? "fill-primary/20" : ""}`} />
-                          </button>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <DifficultyBadge difficulty={p.difficulty} />
-                        </TableCell>
-                        <TableCell className="text-center" data-interactive="true" onClick={(e) => e.stopPropagation()}>
-                          <StatusCell problem={p} />
-                        </TableCell>
-                        {/* Review column */}
-                        <TableCell className="text-center" data-interactive="true" onClick={(e) => e.stopPropagation()}>
+                        <TableCell className="py-4 text-center" data-interactive="true" onClick={(e) => e.stopPropagation()}>
                           {p.reviewCard ? (
                             <Popover>
                               <PopoverTrigger asChild>
                                 <button
                                   data-interactive="true"
-                                  className="inline-flex"
+                                  className="inline-flex flex-col items-center gap-2 rounded-2xl border border-border/70 bg-background/70 px-3 py-2 text-sm text-muted-foreground transition-colors hover:border-border hover:bg-accent/30 hover:text-foreground"
                                   onClick={(e) => e.stopPropagation()}
                                 >
                                   <ReviewIndicator reviewCard={p.reviewCard} />
+                                  <span className="text-xs font-medium">Review live</span>
                                 </button>
                               </PopoverTrigger>
-                              <PopoverContent className="w-auto p-2" align="center">
+                              <PopoverContent className="w-72 p-3" align="center">
                                 <QuickReviewButtons cardId={p.reviewCard.id} size="sm" />
                               </PopoverContent>
                             </Popover>
                           ) : (
-                            <button
+                            <Button
+                              variant="outline"
+                              size="sm"
                               onClick={() => onEnrollReview?.(p)}
                               data-interactive="true"
                               disabled={!onEnrollReview}
                               title="Mark for review"
-                              className="inline-flex opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-foreground disabled:pointer-events-none"
+                              className="rounded-full border-border/70 bg-background/70 text-muted-foreground transition-colors hover:bg-accent/30 hover:text-foreground disabled:pointer-events-none"
                             >
-                              <Clock className="h-3.5 w-3.5" />
-                            </button>
+                              <Clock className="mr-1.5 h-3.5 w-3.5" />
+                              Queue
+                            </Button>
                           )}
                         </TableCell>
-                        <TableCell className="text-center" data-interactive="true" onClick={(e) => e.stopPropagation()}>
-                          <CopyProblemButton
-                            problemId={p.id}
-                            size="icon"
-                            showText={false}
-                            title="Copy full problem details"
-                          />
-                        </TableCell>
-                        {/* Attempts column */}
-                        <TableCell className="text-center" data-interactive="true" onClick={(e) => e.stopPropagation()}>
+                        <TableCell className="py-4 text-center" data-interactive="true" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center justify-center">
                             {p.totalAttempts > 0 ? (
                               <button
@@ -330,7 +557,7 @@ export function ProblemTable({
                               >
                                 <Badge
                                   variant="secondary"
-                                  className="relative inline-flex min-w-7 items-center justify-center rounded-full px-2 py-0.5 text-xs font-medium tabular-nums transition-colors group-hover/attempt:bg-foreground group-hover/attempt:text-background"
+                                  className="relative inline-flex min-w-9 items-center justify-center rounded-full border border-border/70 bg-background px-2.5 py-1 text-xs font-semibold tabular-nums transition-colors group-hover/attempt:bg-foreground group-hover/attempt:text-background"
                                 >
                                   <span className="transition-opacity group-hover/attempt:opacity-0">
                                     {p.totalAttempts}
@@ -344,23 +571,24 @@ export function ProblemTable({
                                 data-interactive="true"
                                 title="Log attempt"
                                 aria-label={`Log attempt for ${p.title}`}
-                                className="inline-flex text-muted-foreground transition-colors hover:text-foreground"
+                                className="inline-flex items-center gap-1 rounded-full border border-dashed border-border/80 px-3 py-1 text-xs font-medium text-muted-foreground transition-colors hover:border-border hover:text-foreground"
                               >
                                 <Plus className="h-3.5 w-3.5" />
+                                Log
                               </button>
                             )}
                           </div>
                         </TableCell>
-                        <TableCell className="text-center" data-interactive="true" onClick={(e) => e.stopPropagation()}>
-                          <button
+                        <TableCell className="py-4 text-center" data-interactive="true" onClick={(e) => e.stopPropagation()}>
+                          <ActionIconButton
                             onClick={() => onDelete?.(p)}
                             data-interactive="true"
                             disabled={!onDelete}
                             title="Remove problem"
-                            className="inline-flex opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive disabled:pointer-events-none"
+                            className="opacity-0 transition-opacity group-hover:opacity-100 hover:text-destructive"
                           >
                             <Trash2 className="h-4 w-4" />
-                          </button>
+                          </ActionIconButton>
                         </TableCell>
                       </TableRow>
                     </ContextMenuTrigger>

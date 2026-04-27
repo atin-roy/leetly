@@ -2,8 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
-import { ChevronLeft, ChevronRight } from "lucide-react"
-import { AlertCircle } from "lucide-react"
+import { AlertCircle, ChevronLeft, ChevronRight, Clock3, Layers3, Sparkles, Target } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -84,7 +83,7 @@ export default function ProblemsPage() {
   }, [notesData])
   const [pendingDeleteProblem, setPendingDeleteProblem] = useState<ProblemSummaryDto | null>(null)
 
-  const problems = pagedResponse?.content ?? []
+  const problems = useMemo(() => pagedResponse?.content ?? [], [pagedResponse?.content])
   const page = pagedResponse?.page ?? 0
   const totalPages = pagedResponse?.totalPages ?? 1
   const totalElements = pagedResponse?.totalElements ?? 0
@@ -132,6 +131,30 @@ export default function ProblemsPage() {
   }
 
   const existingProblems = new Map(problems.map((p) => [p.leetcodeId, p.id]))
+  const solvedCount = useMemo(
+    () => problems.filter((problem) => problem.status === "SOLVED" || problem.status === "MASTERED").length,
+    [problems],
+  )
+  const reviewCount = useMemo(
+    () => problems.filter((problem) => problem.reviewCard !== null).length,
+    [problems],
+  )
+  const activeAttemptCount = useMemo(
+    () => problems.filter((problem) => problem.totalAttempts > 0).length,
+    [problems],
+  )
+  const activeFilterCount = useMemo(
+    () =>
+      [
+        filters.difficulty,
+        filters.status,
+        filters.topicId,
+        filters.patternId,
+        filters.search,
+        filters.sort && filters.sort !== DEFAULT_FILTERS.sort ? filters.sort : undefined,
+      ].filter(Boolean).length,
+    [filters],
+  )
 
   if (isLoading && !pagedResponse) {
     return (
@@ -174,14 +197,79 @@ export default function ProblemsPage() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight">Problems</h1>
-        <div className="flex items-center gap-3">
-          <p className="text-sm text-muted-foreground">{totalElements} problems</p>
-          <AddProblemDialog onAdd={handleAdd} existingProblems={existingProblems} />
-        </div>
-      </div>
+    <div className="space-y-5">
+      <Card
+        className="overflow-hidden border-border/70"
+        style={{
+          background: [
+            "radial-gradient(circle at 12% 20%, color-mix(in srgb, var(--primary) 16%, transparent), transparent 34%)",
+            "radial-gradient(circle at 86% 18%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 30%)",
+            "linear-gradient(145deg, color-mix(in srgb, var(--card) 90%, var(--background) 10%), color-mix(in srgb, var(--background) 92%, var(--card) 8%))",
+          ].join(", "),
+        }}
+      >
+        <CardContent className="space-y-5 p-4 sm:p-6">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+            <div className="max-w-3xl space-y-3">
+              <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+                <Sparkles className="h-3.5 w-3.5" />
+                Practice Inventory
+              </div>
+              <div className="space-y-2">
+                <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-4xl">
+                  Curate your problem set like a real working backlog.
+                </h1>
+                <p className="max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
+                  Search faster, filter with intention, and act on each problem without getting buried in admin-table noise.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="rounded-2xl border border-border/70 bg-background/75 px-4 py-3 text-left sm:text-right">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">Visible now</p>
+                <p className="text-2xl font-semibold text-foreground">{totalElements}</p>
+              </div>
+              <AddProblemDialog onAdd={handleAdd} existingProblems={existingProblems} />
+            </div>
+          </div>
+
+          <div className="grid gap-3 grid-cols-2 xl:grid-cols-4">
+            <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
+              <div className="flex items-center justify-between">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">Solved Momentum</p>
+                <Target className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <p className="mt-3 text-2xl font-semibold text-foreground">{solvedCount}</p>
+              <p className="mt-1 text-sm text-muted-foreground">Solved or mastered in this view.</p>
+            </div>
+            <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
+              <div className="flex items-center justify-between">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">Review Pressure</p>
+                <Clock3 className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <p className="mt-3 text-2xl font-semibold text-foreground">{reviewCount}</p>
+              <p className="mt-1 text-sm text-muted-foreground">Problems already enrolled in spaced review.</p>
+            </div>
+            <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
+              <div className="flex items-center justify-between">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">Active Attempts</p>
+                <Layers3 className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <p className="mt-3 text-2xl font-semibold text-foreground">{activeAttemptCount}</p>
+              <p className="mt-1 text-sm text-muted-foreground">Problems with at least one logged attempt.</p>
+            </div>
+            <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
+              <div className="flex items-center justify-between">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">Filter Load</p>
+                <Sparkles className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <p className="mt-3 text-2xl font-semibold text-foreground">{activeFilterCount}</p>
+              <p className="mt-1 text-sm text-muted-foreground">Constraints shaping the current result set.</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <ProblemFilters
         filters={filters}
@@ -189,7 +277,22 @@ export default function ProblemsPage() {
         onReset={handleReset}
       />
 
-      <Card className="py-0">
+      <Card className="overflow-hidden border-border/70 py-0 shadow-[0_20px_60px_-40px_rgba(15,23,42,0.35)]">
+        <div className="flex flex-col gap-3 border-b border-border/70 px-4 py-4 sm:px-5 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-lg font-semibold text-foreground">Problem Index</p>
+            <p className="text-sm text-muted-foreground">
+              Browse the current slice, jump into detail, or act inline without leaving the table.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+            <span>{totalElements} total</span>
+            <span className="text-border">•</span>
+            <span>{problems.length} on this page</span>
+            <span className="text-border">•</span>
+            <span>Page {page + 1} of {totalPages}</span>
+          </div>
+        </div>
         <CardContent className="p-0">
           <ProblemTable
             problems={problems}
@@ -204,11 +307,11 @@ export default function ProblemsPage() {
       </Card>
 
       {totalPages > 1 && (
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-muted-foreground">
             Page {page + 1} of {totalPages}
           </p>
-          <div className="flex gap-2">
+          <div className="grid grid-cols-2 gap-2 sm:flex">
             <Button
               variant="outline"
               size="sm"
