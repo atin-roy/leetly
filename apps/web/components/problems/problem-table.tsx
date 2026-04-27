@@ -464,7 +464,7 @@ export function ProblemTable({
                         }}
                       >
                         <TableCell className="py-4">
-                          <div className="space-y-3">
+                          <div className="space-y-1">
                             <div className="flex items-start justify-between gap-4">
                               <div className="min-w-0 space-y-1">
                                 <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
@@ -483,19 +483,6 @@ export function ProblemTable({
                                 hasNote={hasNote}
                                 onNoteClick={onNoteClick}
                               />
-                            </div>
-
-                            <div className="flex flex-wrap items-center gap-2">
-                              <DifficultyBadge difficulty={p.difficulty} />
-                              <StatusCell problem={p} />
-                              {p.reviewCard ? (
-                                <Badge
-                                  variant="outline"
-                                  className="rounded-full border-emerald-500/25 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-medium text-emerald-700 dark:text-emerald-300"
-                                >
-                                  In review
-                                </Badge>
-                              ) : null}
                             </div>
                           </div>
                         </TableCell>
