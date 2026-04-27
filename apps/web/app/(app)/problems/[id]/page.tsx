@@ -153,6 +153,40 @@ function AttemptStat({
   )
 }
 
+function SurfaceSection({
+  eyebrow,
+  title,
+  description,
+  actions,
+  children,
+}: {
+  eyebrow?: string
+  title: string
+  description?: string
+  actions?: React.ReactNode
+  children: React.ReactNode
+}) {
+  return (
+    <div className="overflow-hidden rounded-[28px] border border-border/70 bg-card/80 shadow-[0_20px_60px_-40px_rgba(15,23,42,0.35)]">
+      <div className="flex flex-col gap-3 border-b border-border/70 px-5 py-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="space-y-1">
+          {eyebrow ? (
+            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+              {eyebrow}
+            </p>
+          ) : null}
+          <h2 className="text-lg font-semibold tracking-tight text-foreground">{title}</h2>
+          {description ? (
+            <p className="text-sm text-muted-foreground">{description}</p>
+          ) : null}
+        </div>
+        {actions ? <div className="flex items-center gap-2">{actions}</div> : null}
+      </div>
+      <div className="p-5">{children}</div>
+    </div>
+  )
+}
+
 // ── Meta Row ──────────────────────────────────────────────────────────────────
 
 function MetaRow({
@@ -596,6 +630,9 @@ export default function ProblemDetailPage({
   const attempts = [...problem.attempts].sort(
     (a, b) => new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime(),
   )
+  const latestAttempt = attempts[0] ?? null
+  const acceptedAttempts = attempts.filter((attempt) => attempt.outcome === "ACCEPTED").length
+  const totalSolveMinutes = attempts.reduce((sum, attempt) => sum + (attempt.durationMinutes ?? 0), 0)
   const reviewNow = new Date()
   const reviewDueDate = problem.reviewCard ? new Date(problem.reviewCard.due) : null
   const isReviewDue = reviewDueDate ? reviewDueDate <= reviewNow : false
@@ -607,71 +644,131 @@ export default function ProblemDetailPage({
 
   return (
     <div className="w-full space-y-6">
-      <Button variant="ghost" size="sm" asChild className="-ml-2">
+      <Button variant="ghost" size="sm" asChild className="-ml-2 rounded-full">
         <Link href="/problems">
           <ArrowLeft className="mr-1 h-4 w-4" />
           Back
         </Link>
       </Button>
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px] xl:items-start">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_360px] xl:items-start">
         <div className="space-y-6">
-          {/* Header */}
-          <div className="rounded-2xl border bg-background/95 p-6 shadow-sm">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-              <div className="min-w-0 space-y-2">
-                <p className="font-mono text-sm text-muted-foreground">#{problem.leetcodeId}</p>
-                <h1 className="text-3xl font-semibold tracking-tight">{problem.title}</h1>
-                <div className="flex flex-wrap items-center gap-2">
-                  <DifficultyBadge difficulty={problem.difficulty} />
-                  <StatusBadge status={problem.status} />
+          <div
+            className="overflow-hidden rounded-[30px] border border-border/70 shadow-[0_30px_90px_color-mix(in_oklab,var(--foreground)_12%,transparent)]"
+            style={{
+              background: [
+                "radial-gradient(circle at 14% 18%, color-mix(in srgb, var(--primary) 16%, transparent), transparent 34%)",
+                "radial-gradient(circle at 86% 22%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 30%)",
+                "linear-gradient(145deg, color-mix(in srgb, var(--card) 90%, var(--background) 10%), color-mix(in srgb, var(--background) 92%, var(--card) 8%))",
+              ].join(", "),
+            }}
+          >
+            <div className="space-y-6 p-5 sm:p-6">
+              <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+                <div className="min-w-0 max-w-3xl space-y-3">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+                    Problem Workspace
+                  </div>
+                  <div className="space-y-2">
+                    <p className="font-mono text-sm text-muted-foreground">#{problem.leetcodeId}</p>
+                    <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+                      {problem.title}
+                    </h1>
+                    <p className="max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
+                      Keep the full context for this problem in one place: attempts, notes, review state, and metadata that should actually help you study.
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <DifficultyBadge difficulty={problem.difficulty} />
+                    <StatusBadge status={problem.status} />
+                    {problem.reviewCard ? (
+                      <Badge variant="outline" className="rounded-full border-border/70 bg-background/70 px-3 py-1 text-xs text-muted-foreground">
+                        {problem.reviewCard.state}
+                        {reviewDueText ? <span className="ml-2 text-foreground">{reviewDueText}</span> : null}
+                      </Badge>
+                    ) : null}
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <Button variant="outline" onClick={handleCreateNote} className="rounded-full">
+                    <StickyNote className="mr-2 h-4 w-4" />
+                    Create Note
+                  </Button>
+                  <Button onClick={handleLogAttempt} className="rounded-full">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Log Attempt
+                  </Button>
+                  <CopyProblemButton
+                    problemId={id}
+                    problem={problem}
+                    notes={notesData?.content}
+                    listNames={problemListNames}
+                    variant="outline"
+                    className="shrink-0 rounded-full"
+                    label="Copy details"
+                    title="Copy problem details"
+                  />
                 </div>
               </div>
-              <CopyProblemButton
-                problemId={id}
-                problem={problem}
-                notes={notesData?.content}
-                listNames={problemListNames}
-                variant="outline"
-                className="shrink-0"
-                label="Copy details"
-                title="Copy problem details"
-              />
+
+              <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+                <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">Attempts</p>
+                  <p className="mt-3 text-2xl font-semibold text-foreground">{attempts.length}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {latestAttempt ? `Last on ${format(new Date(latestAttempt.createdDate), "MMM d, yyyy")}` : "No attempts logged yet"}
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">Accepted</p>
+                  <p className="mt-3 text-2xl font-semibold text-foreground">{acceptedAttempts}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">Successful submissions captured here.</p>
+                </div>
+                <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">Notes</p>
+                  <p className="mt-3 text-2xl font-semibold text-foreground">{noteCount}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {noteCount > 0 ? "Strategy, review, and learning context attached." : "No written notes yet."}
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">Solve Time</p>
+                  <p className="mt-3 text-2xl font-semibold text-foreground">{formatDuration(totalSolveMinutes) ?? "—"}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">Combined logged duration across attempts.</p>
+                </div>
+              </div>
             </div>
           </div>
 
-          {noteCount > 0 ? (
-            <div className="space-y-3 rounded-lg border p-4">
-              <div className="flex items-center justify-between gap-3">
-                <div className="space-y-1">
-                  <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                    Notes ({noteCount})
-                  </h2>
-                  <p className="text-sm text-muted-foreground">
-                    Keep multiple strategy, review, and interview notes attached to this problem.
-                  </p>
-                </div>
-                <Button variant="outline" size="sm" onClick={handleCreateNote}>
-                  <StickyNote className="mr-1.5 h-4 w-4" />
-                  Add Note
-                </Button>
-              </div>
+          <SurfaceSection
+            eyebrow="Attached Notes"
+            title={`Notes (${noteCount})`}
+            description="Keep multiple strategy, review, and interview notes attached to this problem."
+            actions={
+              <Button variant="outline" size="sm" onClick={handleCreateNote} className="rounded-full">
+                <StickyNote className="mr-1.5 h-4 w-4" />
+                Add Note
+              </Button>
+            }
+          >
+            {noteCount > 0 ? (
               <div className="grid gap-3 md:grid-cols-2">
                 {notes.map((note) => (
                   <button
                     key={note.id}
                     type="button"
                     onClick={() => handleOpenNote(note)}
-                    className="rounded-xl border bg-background p-4 text-left transition-colors hover:border-foreground/30 hover:bg-accent/10"
+                    className="rounded-2xl border border-border/70 bg-background/70 p-4 text-left transition-colors hover:border-border hover:bg-background"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0 space-y-1">
-                        <p className="truncate text-sm font-medium leading-snug">{note.title}</p>
+                        <p className="truncate text-sm font-medium leading-snug text-foreground">{note.title}</p>
                         <p className="text-xs uppercase tracking-wide text-muted-foreground">
                           {note.tag} · {formatNoteDate(note.dateTime)}
                         </p>
                       </div>
-                      <span className="rounded-md border px-2.5 py-1 text-xs font-medium text-muted-foreground">
+                      <span className="rounded-full border border-border/70 bg-card/80 px-2.5 py-1 text-xs font-medium text-muted-foreground">
                         Open
                       </span>
                     </div>
@@ -681,89 +778,122 @@ export default function ProblemDetailPage({
                   </button>
                 ))}
               </div>
-            </div>
-          ) : (
-            <div className="flex justify-end">
-              <Button variant="outline" size="sm" onClick={handleCreateNote}>
-                <StickyNote className="mr-1.5 h-4 w-4" />
-                Create Note
-              </Button>
-            </div>
-          )}
+            ) : (
+              <div className="flex min-h-44 flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border/70 bg-background/40 text-sm text-muted-foreground">
+                <p>No notes attached yet.</p>
+                <Button variant="outline" size="sm" onClick={handleCreateNote} className="rounded-full">
+                  <StickyNote className="mr-1.5 h-4 w-4" />
+                  Create Note
+                </Button>
+              </div>
+            )}
+          </SurfaceSection>
 
-          {/* Attempts */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                Attempts ({problem.attempts.length})
-              </h2>
-              <Button size="sm" onClick={handleLogAttempt}>
+          <SurfaceSection
+            eyebrow="Attempt History"
+            title={`Attempts (${problem.attempts.length})`}
+            description="Track outcomes, mistakes, and the quality of each solve rather than just whether it passed."
+            actions={
+              <Button size="sm" onClick={handleLogAttempt} className="rounded-full">
                 <Plus className="mr-1.5 h-4 w-4" />
                 Log Attempt
               </Button>
-            </div>
-
+            }
+          >
             {problem.attempts.length === 0 ? (
-              <div className="flex h-32 flex-col items-center justify-center gap-3 rounded-lg border border-dashed text-sm text-muted-foreground">
+              <div className="flex min-h-44 flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border/70 bg-background/40 text-sm text-muted-foreground">
                 <p>No attempts yet.</p>
-                <Button size="sm" variant="outline" onClick={handleLogAttempt}>
+                <Button size="sm" variant="outline" onClick={handleLogAttempt} className="rounded-full">
                   <Plus className="mr-1.5 h-4 w-4" />
                   Log first attempt
                 </Button>
               </div>
             ) : (
-              <div className="overflow-hidden rounded-lg border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-20 text-center">#</TableHead>
-                      <TableHead className="w-36 text-center">Result</TableHead>
-                      <TableHead className="w-36 text-center">Time Complexity</TableHead>
-                      <TableHead className="w-36 text-center">Space Complexity</TableHead>
-                      <TableHead className="text-center">Mistakes</TableHead>
-                      <TableHead className="w-28 text-center">Solve Time</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {attempts.map((attempt) => (
-                      <TableRow
-                        key={attempt.id}
-                        className="cursor-pointer"
-                        onClick={() => setSelectedAttempt(attempt)}
-                      >
-                        <TableCell className="text-center font-medium">#{attempt.attemptNumber}</TableCell>
-                        <TableCell className="text-center">
-                          <Badge
-                            variant="outline"
-                            className={getOutcomeBadgeClass(attempt.outcome)}
-                          >
-                            {OUTCOME_LABELS[attempt.outcome] ?? attempt.outcome}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-center text-sm text-muted-foreground">
-                          {attempt.timeComplexity ?? "—"}
-                        </TableCell>
-                        <TableCell className="text-center text-sm text-muted-foreground">
-                          {attempt.spaceComplexity ?? "—"}
-                        </TableCell>
-                        <TableCell className="max-w-md text-center text-sm text-muted-foreground">
-                          {formatAttemptMistakes(attempt)}
-                        </TableCell>
-                        <TableCell className="text-center text-sm text-muted-foreground">
-                          {formatDuration(attempt.durationMinutes) ?? "—"}
-                        </TableCell>
+              <div className="space-y-4">
+                {latestAttempt ? (
+                  <div className="grid gap-3 md:grid-cols-4">
+                    <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Latest Result</p>
+                      <div className="mt-3">
+                        <Badge variant="outline" className={getOutcomeBadgeClass(latestAttempt.outcome)}>
+                          {OUTCOME_LABELS[latestAttempt.outcome] ?? latestAttempt.outcome}
+                        </Badge>
+                      </div>
+                    </div>
+                    <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Latest Attempt</p>
+                      <p className="mt-3 text-lg font-semibold text-foreground">
+                        {format(new Date(latestAttempt.createdDate), "MMM d, yyyy")}
+                      </p>
+                    </div>
+                    <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Duration</p>
+                      <p className="mt-3 text-lg font-semibold text-foreground">
+                        {formatDuration(latestAttempt.durationMinutes) ?? "—"}
+                      </p>
+                    </div>
+                    <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Mistakes</p>
+                      <p className="mt-3 line-clamp-2 text-sm font-medium text-foreground">
+                        {formatAttemptMistakes(latestAttempt)}
+                      </p>
+                    </div>
+                  </div>
+                ) : null}
+
+                <div className="overflow-hidden rounded-2xl border border-border/70">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-background/65">
+                        <TableHead className="w-20 text-center">#</TableHead>
+                        <TableHead className="w-36 text-center">Result</TableHead>
+                        <TableHead className="w-36 text-center">Time Complexity</TableHead>
+                        <TableHead className="w-36 text-center">Space Complexity</TableHead>
+                        <TableHead className="text-center">Mistakes</TableHead>
+                        <TableHead className="w-28 text-center">Solve Time</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {attempts.map((attempt) => (
+                        <TableRow
+                          key={attempt.id}
+                          className="cursor-pointer transition-colors hover:bg-accent/20"
+                          onClick={() => setSelectedAttempt(attempt)}
+                        >
+                          <TableCell className="text-center font-medium">#{attempt.attemptNumber}</TableCell>
+                          <TableCell className="text-center">
+                            <Badge
+                              variant="outline"
+                              className={getOutcomeBadgeClass(attempt.outcome)}
+                            >
+                              {OUTCOME_LABELS[attempt.outcome] ?? attempt.outcome}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-center text-sm text-muted-foreground">
+                            {attempt.timeComplexity ?? "—"}
+                          </TableCell>
+                          <TableCell className="text-center text-sm text-muted-foreground">
+                            {attempt.spaceComplexity ?? "—"}
+                          </TableCell>
+                          <TableCell className="max-w-md text-center text-sm text-muted-foreground">
+                            {formatAttemptMistakes(attempt)}
+                          </TableCell>
+                          <TableCell className="text-center text-sm text-muted-foreground">
+                            {formatDuration(attempt.durationMinutes) ?? "—"}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               </div>
             )}
-          </div>
+          </SurfaceSection>
         </div>
 
-        <aside className="xl:sticky xl:top-6 xl:self-start">
-          <div className="overflow-hidden rounded-2xl border bg-background/95 shadow-sm">
-            <div className="border-b px-4 py-3">
+        <aside className="space-y-6 xl:sticky xl:top-6 xl:self-start">
+          <div className="overflow-hidden rounded-[28px] border border-border/70 bg-card/80 shadow-[0_20px_60px_-40px_rgba(15,23,42,0.35)]">
+            <div className="border-b border-border/70 px-4 py-4">
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
                 Problem Metadata
               </p>
@@ -961,6 +1091,34 @@ export default function ProblemDetailPage({
                 </button>
               )}
             </MetaRow>
+          </div>
+
+          <div className="overflow-hidden rounded-[28px] border border-border/70 bg-card/80 shadow-[0_20px_60px_-40px_rgba(15,23,42,0.35)]">
+            <div className="border-b border-border/70 px-4 py-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+                Study Snapshot
+              </p>
+            </div>
+            <div className="grid gap-3 p-4">
+              <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Latest Attempt</p>
+                <p className="mt-2 text-lg font-semibold text-foreground">
+                  {latestAttempt ? format(new Date(latestAttempt.createdDate), "MMM d, yyyy") : "None yet"}
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {latestAttempt ? `${OUTCOME_LABELS[latestAttempt.outcome] ?? latestAttempt.outcome} in ${formatDuration(latestAttempt.durationMinutes) ?? "—"}` : "Open a first attempt to start building history."}
+                </p>
+              </div>
+              <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Related Context</p>
+                <p className="mt-2 text-lg font-semibold text-foreground">
+                  {problem.relatedProblems.length} related
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {problem.topics.length} topics and {problem.patterns.length} patterns attached.
+                </p>
+              </div>
+            </div>
           </div>
         </aside>
       </div>
