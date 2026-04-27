@@ -278,7 +278,7 @@ export default function ReviewPage() {
           </Card>
         </section>
 
-        <section className="grid gap-6 xl:grid-cols-[1.4fr_0.95fr]">
+        <section className="grid gap-6 xl:grid-cols-[1.55fr_1fr]">
           <Card className="rounded-[30px] border-border/70">
             <CardHeader className="gap-3 border-b border-border/70 pb-4">
               <div className="flex flex-wrap items-start justify-between gap-4">
@@ -390,7 +390,7 @@ function ReviewPageSkeleton() {
         <Skeleton className="h-[350px] w-full rounded-[30px]" />
         <Skeleton className="h-[350px] w-full rounded-[30px]" />
       </div>
-      <div className="grid gap-6 xl:grid-cols-[1.4fr_0.95fr]">
+      <div className="grid gap-6 xl:grid-cols-[1.55fr_1fr]">
         <Skeleton className="h-[680px] w-full rounded-[30px]" />
         <div className="space-y-6">
           <Skeleton className="h-[260px] w-full rounded-[30px]" />
