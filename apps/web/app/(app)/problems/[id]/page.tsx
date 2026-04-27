@@ -387,7 +387,7 @@ function AttemptDetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex h-[92vh] max-w-[min(96vw,1400px)] flex-col gap-0 overflow-hidden p-0">
+      <DialogContent className="flex h-[92vh] w-[min(96vw,1400px)] max-w-none flex-col gap-0 overflow-hidden p-0 sm:max-w-none">
         <DialogHeader className="shrink-0 border-b border-border/70 px-6 py-5">
           <DialogTitle>Attempt #{attempt.attemptNumber}</DialogTitle>
           <DialogDescription>
