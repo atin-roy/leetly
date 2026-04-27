@@ -61,18 +61,18 @@ export function ListCard({
 
   return (
     <article className="group relative overflow-hidden rounded-[28px] border border-border/70 bg-card/80 shadow-[0_20px_60px_-40px_rgba(15,23,42,0.35)] transition-all hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-[0_28px_80px_-42px_color-mix(in_oklab,var(--foreground)_16%,transparent)]">
-      <div
-        className="absolute inset-x-0 top-0 h-28"
-        style={{
-          background: [
-            "linear-gradient(90deg, color-mix(in srgb, var(--primary) 10%, transparent), transparent 55%)",
-            "radial-gradient(circle at 88% 14%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 28%)",
-          ].join(", "),
-        }}
-      />
-      <div className="relative border-b border-border/60 px-5 pb-4 pt-5">
+      <div className="relative overflow-hidden border-b border-border/60 px-5 pb-4 pt-5">
+        <div
+          className="absolute inset-0"
+          style={{
+            background: [
+              "linear-gradient(90deg, color-mix(in srgb, var(--primary) 10%, transparent), transparent 55%)",
+              "radial-gradient(circle at 88% 14%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 28%)",
+            ].join(", "),
+          }}
+        />
         <div className="flex items-start justify-between gap-3">
-          <div className="space-y-3">
+          <div className="relative space-y-3">
             <div className="flex items-center gap-2">
               <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-primary/15 bg-background/90 text-primary shadow-sm">
                 <Layers3 className="h-4 w-4" />
@@ -96,7 +96,7 @@ export function ListCard({
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="relative flex items-center gap-2">
             {!list.isDefault && (
               <Button
                 variant="ghost"
