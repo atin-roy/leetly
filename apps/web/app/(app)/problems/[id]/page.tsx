@@ -661,7 +661,7 @@ export default function ProblemDetailPage({
         </Link>
       </Button>
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_360px] xl:items-start">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_420px] xl:items-start">
         <div className="space-y-6">
           <div
             className="overflow-hidden rounded-[30px] border border-border/70 shadow-[0_30px_90px_color-mix(in_oklab,var(--foreground)_12%,transparent)]"
@@ -861,6 +861,7 @@ export default function ProblemDetailPage({
                         <TableHead className="w-36 text-center">Result</TableHead>
                         <TableHead className="w-36 text-center">Time Complexity</TableHead>
                         <TableHead className="w-36 text-center">Space Complexity</TableHead>
+                        <TableHead className="min-w-64 text-left">Approach</TableHead>
                         <TableHead className="text-center">Mistakes</TableHead>
                         <TableHead className="w-28 text-center">Solve Time</TableHead>
                       </TableRow>
@@ -886,6 +887,9 @@ export default function ProblemDetailPage({
                           </TableCell>
                           <TableCell className="text-center text-sm text-muted-foreground">
                             {attempt.spaceComplexity ?? "—"}
+                          </TableCell>
+                          <TableCell className="max-w-md text-left text-sm text-muted-foreground">
+                            <span className="line-clamp-2 block">{attempt.approach ?? "—"}</span>
                           </TableCell>
                           <TableCell className="max-w-md text-center text-sm text-muted-foreground">
                             {formatAttemptMistakes(attempt)}
