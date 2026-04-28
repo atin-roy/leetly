@@ -21,12 +21,14 @@ import {
   Target,
 } from "lucide-react"
 import { ActivityBar } from "@/components/stats/activity-calendar"
+import { ConsistencyHeatmap } from "@/components/stats/consistency-heatmap"
 import { MistakesChart } from "@/components/stats/mistakes-chart"
 import { PatternBreakdown } from "@/components/stats/pattern-breakdown"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useProblems } from "@/hooks/use-problems"
 import { useReviewStats } from "@/hooks/use-reviews"
 import { useDailyStats, useUserStats } from "@/hooks/use-stats"
@@ -101,8 +103,14 @@ export default function DashboardPage() {
   const upcoming = reviewStats?.upcoming7Days ?? 0
   const reviewEnrolled = reviewStats?.totalEnrolled ?? 0
   const activeDays = (dailyStats ?? []).filter((day) => day.solved > 0).length
-  const totalDays = dailyStats?.length ?? 0
-  const consistencyRate = totalDays > 0 ? Math.round((activeDays / totalDays) * 100) : 0
+  const firstSolvedStat = (dailyStats ?? []).find((day) => day.solved > 0)
+  const trackedDays = firstSolvedStat
+    ? Math.max(
+        differenceInCalendarDays(startOfToday(), parseISO(firstSolvedStat.date)) + 1,
+        1
+      )
+    : 0
+  const consistencyRate = trackedDays > 0 ? Math.round((activeDays / trackedDays) * 100) : 0
   const solvedLast7Days = (dailyStats ?? [])
     .filter((day) => {
       const date = parseISO(day.date)
@@ -339,7 +347,30 @@ export default function DashboardPage() {
                 caption="Tracked across the last 7 days"
               />
             </div>
-            <ActivityBar />
+            <Tabs defaultValue="consistency" className="gap-4">
+              <div className="flex justify-end">
+                <TabsList className="h-10 rounded-full border border-border/70 bg-background/35 p-1">
+                  <TabsTrigger
+                    value="consistency"
+                    className="rounded-full px-4 text-xs tracking-[0.16em] uppercase data-[state=active]:bg-background"
+                  >
+                    Consistency
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="volume"
+                    className="rounded-full px-4 text-xs tracking-[0.16em] uppercase data-[state=active]:bg-background"
+                  >
+                    Volume
+                  </TabsTrigger>
+                </TabsList>
+              </div>
+              <TabsContent value="consistency" className="mt-0">
+                <ConsistencyHeatmap />
+              </TabsContent>
+              <TabsContent value="volume" className="mt-0">
+                <ActivityBar />
+              </TabsContent>
+            </Tabs>
           </CardContent>
         </Card>
 
