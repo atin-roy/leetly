@@ -1,12 +1,14 @@
 "use client"
 
+import { useEffect, useRef, useState } from "react"
 import { addDays, differenceInCalendarDays, format, parseISO, startOfWeek } from "date-fns"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { useDailyStats } from "@/hooks/use-stats"
 import { cn } from "@/lib/utils"
 
-const CELL_SIZE = 12
+const MIN_CELL_SIZE = 16
+const MAX_CELL_SIZE = 48
 const CELL_GAP = 4
 const LABEL_COLUMN_W = 26
 const WEEKDAY_ROWS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const
@@ -20,7 +22,29 @@ function getCellTone(count: number) {
 }
 
 export function ConsistencyHeatmap() {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [containerWidth, setContainerWidth] = useState<number | null>(null)
   const { data: dailyStats, isLoading } = useDailyStats()
+
+  useEffect(() => {
+    const node = containerRef.current
+    if (!node) {
+      return
+    }
+
+    const updateWidth = () => {
+      setContainerWidth(node.clientWidth)
+    }
+
+    updateWidth()
+
+    const observer = new ResizeObserver(updateWidth)
+    observer.observe(node)
+
+    return () => {
+      observer.disconnect()
+    }
+  }, [])
 
   if (isLoading) {
     return <Skeleton className="h-[220px] w-full rounded-2xl" />
@@ -63,16 +87,30 @@ export function ConsistencyHeatmap() {
   const weekCount = dates.length > 0 ? Math.max(...dates.map((day) => day.weekIndex)) + 1 : 1
   const monthMarkers = Array.from({ length: weekCount }, (_, weekIndex) => {
     const marker = dates.find((day) => day.weekIndex === weekIndex && day.dayOfMonth <= 7)
-    return marker?.monthLabel ?? ""
-  })
+    if (!marker) {
+      return ""
+    }
 
-  const chartWidth = weekCount * CELL_SIZE + Math.max(weekCount - 1, 0) * CELL_GAP
+    const previousMarker = dates.find(
+      (day) => day.weekIndex === weekIndex - 1 && day.dayOfMonth <= 7
+    )
+    return previousMarker?.monthLabel === marker.monthLabel ? "" : marker.monthLabel
+  })
+  const availableWidth = Math.max((containerWidth ?? 0) - LABEL_COLUMN_W - 12, MIN_CELL_SIZE)
+  const computedCellSize =
+    containerWidth === null
+      ? 24
+      : Math.floor(
+          (availableWidth - Math.max(weekCount - 1, 0) * CELL_GAP) / Math.max(weekCount, 1)
+        )
+  const cellSize = Math.max(MIN_CELL_SIZE, Math.min(MAX_CELL_SIZE, computedCellSize))
+  const chartWidth = weekCount * cellSize + Math.max(weekCount - 1, 0) * CELL_GAP
 
   return (
     <div className="space-y-4">
-      <div className="rounded-[24px] border border-border/60 bg-background/18 p-4 sm:p-5">
+      <div ref={containerRef} className="rounded-[24px] border border-border/60 bg-background/18 p-4 sm:p-5">
         <div className="overflow-x-auto">
-          <div className="mx-auto w-fit min-w-fit">
+          <div className="w-fit min-w-fit">
             <div className="flex gap-3">
               <div className="shrink-0" style={{ width: LABEL_COLUMN_W }}>
                 <div className="h-5" />
@@ -80,7 +118,7 @@ export function ConsistencyHeatmap() {
                   className="grid"
                   style={{
                     gap: `${CELL_GAP}px`,
-                    gridTemplateRows: `repeat(7, ${CELL_SIZE}px)`,
+                    gridTemplateRows: `repeat(7, ${cellSize}px)`,
                   }}
                 >
                   {WEEKDAY_ROWS.map((label, index) => (
@@ -99,7 +137,7 @@ export function ConsistencyHeatmap() {
                   className="grid h-5 items-end text-[10px] leading-none text-muted-foreground"
                   style={{
                     columnGap: `${CELL_GAP}px`,
-                    gridTemplateColumns: `repeat(${weekCount}, ${CELL_SIZE}px)`,
+                    gridTemplateColumns: `repeat(${weekCount}, ${cellSize}px)`,
                     width: chartWidth,
                   }}
                 >
@@ -113,8 +151,8 @@ export function ConsistencyHeatmap() {
                   style={{
                     columnGap: `${CELL_GAP}px`,
                     rowGap: `${CELL_GAP}px`,
-                    gridTemplateColumns: `repeat(${weekCount}, ${CELL_SIZE}px)`,
-                    gridTemplateRows: `repeat(7, ${CELL_SIZE}px)`,
+                    gridTemplateColumns: `repeat(${weekCount}, ${cellSize}px)`,
+                    gridTemplateRows: `repeat(7, ${cellSize}px)`,
                     width: chartWidth,
                   }}
                 >
@@ -127,7 +165,7 @@ export function ConsistencyHeatmap() {
                     )
 
                     if (!day) {
-                      return <div key={`empty-${index}`} className="h-3 w-3" />
+                      return <div key={`empty-${index}`} style={{ height: cellSize, width: cellSize }} />
                     }
 
                     return (
@@ -138,7 +176,7 @@ export function ConsistencyHeatmap() {
                               "rounded-[4px] border transition-transform hover:scale-110 hover:border-primary/70",
                               getCellTone(day.count)
                             )}
-                            style={{ height: CELL_SIZE, width: CELL_SIZE }}
+                            style={{ height: cellSize, width: cellSize }}
                           />
                         </TooltipTrigger>
                         <TooltipContent side="top" className="text-xs">
@@ -164,7 +202,7 @@ export function ConsistencyHeatmap() {
               <div
                 key={count}
                 className={cn("rounded-[4px] border", getCellTone(count))}
-                style={{ height: CELL_SIZE, width: CELL_SIZE }}
+                style={{ height: cellSize, width: cellSize }}
               />
             ))}
           </div>
