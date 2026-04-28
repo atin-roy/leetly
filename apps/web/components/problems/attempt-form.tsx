@@ -35,6 +35,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Textarea } from "@/components/ui/textarea"
 import { useLogAttempt, useMistakeOptions, useUpdateAttempt } from "@/hooks/use-attempts"
 import { useSettings } from "@/hooks/use-settings"
 import type { AttemptDto, Language, MistakeType } from "@/lib/types"
@@ -74,10 +75,13 @@ const OUTCOMES = [
   { value: "NOT_COMPLETED", label: "Not Completed" },
 ] as const
 
-const TIME_COMPLEXITY_OPTIONS = [
+const COMPLEXITY_OPTIONS = [
   "O(1)",
   "O(log n)",
   "O(log² n)",
+  "O(log³ n)",
+  "O(log⁴ n)",
+  "O(log k)",
   "O(√n)",
   "O(∛n)",
   "O(α(n))",
@@ -94,7 +98,10 @@ const TIME_COMPLEXITY_OPTIONS = [
   "O(E)",
   "O(V + E)",
   "O(E log V)",
+  "O(V log V)",
+  "O(V log E)",
   "O(V²)",
+  "O(V³)",
   "O(n log n)",
   "O(n log k)",
   "O(k log n)",
@@ -102,33 +109,21 @@ const TIME_COMPLEXITY_OPTIONS = [
   "O(n²)",
   "O(n² log n)",
   "O(n³)",
+  "O(n⁴)",
+  "O(n⁵)",
   "O(mn)",
   "O(mn log n)",
+  "O(m + n log n)",
+  "O(m log n)",
   "O(2ⁿ)",
   "O(3ⁿ)",
   "O(kⁿ)",
   "O(n!)",
 ] as const
 
-const SPACE_COMPLEXITY_OPTIONS = [
-  "O(1)",
-  "O(log n)",
-  "O(log² n)",
-  "O(√n)",
-  "O(k)",
-  "O(d)",
-  "O(h)",
-  "O(w)",
-  "O(n)",
-  "O(m)",
-  "O(n + m)",
-  "O(V)",
-  "O(E)",
-  "O(V + E)",
-  "O(n log n)",
-  "O(n²)",
-  "O(mn)",
-] as const
+const TIME_COMPLEXITY_OPTIONS = COMPLEXITY_OPTIONS
+
+const SPACE_COMPLEXITY_OPTIONS = COMPLEXITY_OPTIONS
 
 const MISTAKE_LABELS: Record<MistakeType, string> = {
   WRONG_PATTERN: "Wrong Pattern",
@@ -854,11 +849,12 @@ export function AttemptForm({ open, onOpenChange, problemId, attempt }: Props) {
                             Paste only the most useful excerpt, not the entire submission.
                           </FormDescription>
                           <FormControl>
-                            <Input
+                            <Textarea
                               {...field}
                               value={field.value ?? ""}
                               placeholder="if (freq.get(char) > 1) { left++; }"
-                              className="h-11 bg-background font-mono text-sm"
+                              rows={1}
+                              className="min-h-11 resize-y bg-background font-mono text-sm leading-6 whitespace-pre"
                               autoCapitalize="off"
                               autoCorrect="off"
                               spellCheck={false}
