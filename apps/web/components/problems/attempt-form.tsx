@@ -35,6 +35,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { Textarea } from "@/components/ui/textarea"
 import { useLogAttempt, useMistakeOptions, useUpdateAttempt } from "@/hooks/use-attempts"
 import { useSettings } from "@/hooks/use-settings"
@@ -124,6 +125,35 @@ const COMPLEXITY_OPTIONS = [
 const TIME_COMPLEXITY_OPTIONS = COMPLEXITY_OPTIONS
 
 const SPACE_COMPLEXITY_OPTIONS = COMPLEXITY_OPTIONS
+
+const COMPLEXITY_SEARCH_ALIASES: Record<string, string[]> = {
+  "O(log² n)": ["O(log^2 n)", "log^2 n"],
+  "O(log³ n)": ["O(log^3 n)", "log^3 n"],
+  "O(log⁴ n)": ["O(log^4 n)", "log^4 n"],
+  "O(V²)": ["O(V^2)", "V^2"],
+  "O(V³)": ["O(V^3)", "V^3"],
+  "O(n²)": ["O(n^2)", "n^2"],
+  "O(n² log n)": ["O(n^2 log n)", "n^2 log n"],
+  "O(n³)": ["O(n^3)", "n^3"],
+  "O(n⁴)": ["O(n^4)", "n^4"],
+  "O(n⁵)": ["O(n^5)", "n^5"],
+  "O(2ⁿ)": ["O(2^n)", "2^n"],
+  "O(3ⁿ)": ["O(3^n)", "3^n"],
+  "O(kⁿ)": ["O(k^n)", "k^n"],
+}
+
+const PRIORITY_COMPLEXITY_OPTIONS = new Set([
+  "O(1)",
+  "O(log n)",
+  "O(n)",
+  "O(n log n)",
+  "O(n²)",
+  "O(n³)",
+  "O(mn)",
+  "O(V + E)",
+  "O(E log V)",
+  "O(2ⁿ)",
+]) as Set<string>
 
 const MISTAKE_LABELS: Record<MistakeType, string> = {
   WRONG_PATTERN: "Wrong Pattern",
@@ -282,6 +312,10 @@ function normalizeText(value?: string) {
   return trimmed ? trimmed : undefined
 }
 
+function getComplexitySearchText(option: string) {
+  return [option, ...(COMPLEXITY_SEARCH_ALIASES[option] ?? [])].join(" ").toLowerCase()
+}
+
 function getTimerStatus(startedAt?: string, endedAt?: string) {
   if (startedAt && !endedAt) return "Live"
   if (startedAt && endedAt) return "Captured"
@@ -304,6 +338,16 @@ function ComplexityPicker({
   onSelect: (value: string) => void
 }) {
   const [open, setOpen] = useState(false)
+  const [query, setQuery] = useState("")
+
+  const prioritizedOptions = [
+    ...options.filter((option) => PRIORITY_COMPLEXITY_OPTIONS.has(option)),
+    ...options.filter((option) => !PRIORITY_COMPLEXITY_OPTIONS.has(option)),
+  ]
+
+  const filteredOptions = prioritizedOptions.filter((option) =>
+    getComplexitySearchText(option).includes(query.trim().toLowerCase()),
+  )
 
   return (
     <div className="grid gap-2">
@@ -312,7 +356,15 @@ function ComplexityPicker({
         <FormDescription>{description}</FormDescription>
       </div>
 
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover
+        open={open}
+        onOpenChange={(nextOpen) => {
+          setOpen(nextOpen)
+          if (!nextOpen) {
+            setQuery("")
+          }
+        }}
+      >
         <PopoverTrigger asChild>
           <button
             type="button"
@@ -331,29 +383,46 @@ function ComplexityPicker({
           <div className="mb-3 space-y-1">
             <p className="text-sm font-semibold">{label}</p>
             <p className="text-sm text-muted-foreground">
-              Pick the closest shorthand instead of typing a long expression list.
+              Search with `n^2`, `n^3`, `v^2`, or pick the closest shorthand.
             </p>
           </div>
-          <div className="grid max-h-72 grid-cols-2 gap-2 overflow-y-auto pr-1 sm:grid-cols-3">
-            {options.map((option) => {
-              const active = value === option
-              return (
-                <Button
-                  key={option}
-                  type="button"
-                  variant={active ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => {
-                    onSelect(option)
-                    setOpen(false)
-                  }}
-                  className="h-10 justify-center rounded-xl px-3 font-mono text-xs"
-                >
-                  {option}
-                </Button>
-              )
-            })}
-          </div>
+          <Input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Search complexity, e.g. O(n^2)"
+            className="mb-3 h-10 bg-background font-mono text-sm"
+            autoCapitalize="off"
+            autoCorrect="off"
+            spellCheck={false}
+          />
+          <ScrollArea className="h-72 pr-3">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {filteredOptions.map((option) => {
+                const active = value === option
+                return (
+                  <Button
+                    key={option}
+                    type="button"
+                    variant={active ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => {
+                      onSelect(option)
+                      setOpen(false)
+                      setQuery("")
+                    }}
+                    className="h-10 justify-center rounded-xl px-3 font-mono text-xs"
+                  >
+                    {option}
+                  </Button>
+                )
+              })}
+              {filteredOptions.length === 0 ? (
+                <p className="col-span-full py-4 text-center text-sm text-muted-foreground">
+                  No complexity matches that search.
+                </p>
+              ) : null}
+            </div>
+          </ScrollArea>
         </PopoverContent>
       </Popover>
     </div>
