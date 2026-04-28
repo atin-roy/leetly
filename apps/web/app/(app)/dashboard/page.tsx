@@ -364,10 +364,10 @@ export default function DashboardPage() {
                   </TabsTrigger>
                 </TabsList>
               </div>
-              <TabsContent value="consistency" className="mt-0">
+              <TabsContent value="consistency" className="mt-0 min-h-[300px]">
                 <ConsistencyHeatmap />
               </TabsContent>
-              <TabsContent value="volume" className="mt-0">
+              <TabsContent value="volume" className="mt-0 min-h-[300px]">
                 <ActivityBar />
               </TabsContent>
             </Tabs>

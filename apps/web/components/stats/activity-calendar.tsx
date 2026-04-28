@@ -11,7 +11,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import { useDailyStats } from "@/hooks/use-stats"
 
-const CHART_H = 132
+const CHART_H = 152
 const MAX_BAR_GAP = 3
 
 export function ActivityBar() {
@@ -40,14 +40,14 @@ export function ActivityBar() {
   }, [])
 
   if (isLoading) {
-    return <Skeleton className="h-[140px] w-full" />
+    return <Skeleton className="h-[180px] w-full rounded-2xl" />
   }
 
   const firstSolvedStat = dailyStats?.find((stat) => stat.solved > 0)
 
   if (!firstSolvedStat) {
     return (
-      <div className="flex h-[140px] items-center text-sm text-muted-foreground">
+      <div className="flex h-[180px] items-center text-sm text-muted-foreground">
         No solved activity yet.
       </div>
     )
@@ -86,7 +86,10 @@ export function ActivityBar() {
         )
 
   return (
-    <div ref={containerRef} className="w-full overflow-hidden">
+    <div
+      ref={containerRef}
+      className="flex h-[180px] w-full flex-col justify-between overflow-hidden"
+    >
       <div className="w-full">
         {/* Bars */}
         <div

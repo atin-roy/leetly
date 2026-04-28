@@ -47,14 +47,14 @@ export function ConsistencyHeatmap() {
   }, [])
 
   if (isLoading) {
-    return <Skeleton className="h-[220px] w-full rounded-2xl" />
+    return <Skeleton className="h-[240px] w-full rounded-2xl" />
   }
 
   const firstSolvedStat = dailyStats?.find((stat) => stat.solved > 0)
 
   if (!firstSolvedStat) {
     return (
-      <div className="flex h-[220px] items-center text-sm text-muted-foreground">
+      <div className="flex h-[240px] items-center text-sm text-muted-foreground">
         No solved activity yet.
       </div>
     )
@@ -108,7 +108,10 @@ export function ConsistencyHeatmap() {
 
   return (
     <div className="space-y-4">
-      <div ref={containerRef} className="rounded-[24px] border border-border/60 bg-background/18 p-4 sm:p-5">
+      <div
+        ref={containerRef}
+        className="min-h-[260px] rounded-[24px] border border-border/60 bg-background/18 p-4 sm:p-5"
+      >
         <div className="overflow-x-auto">
           <div className="w-fit min-w-fit">
             <div className="flex gap-3">
@@ -149,6 +152,7 @@ export function ConsistencyHeatmap() {
                 <div
                   className="grid"
                   style={{
+                    gridAutoFlow: "column",
                     columnGap: `${CELL_GAP}px`,
                     rowGap: `${CELL_GAP}px`,
                     gridTemplateColumns: `repeat(${weekCount}, ${cellSize}px)`,
