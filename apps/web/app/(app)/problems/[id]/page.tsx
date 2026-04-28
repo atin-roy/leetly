@@ -858,10 +858,10 @@ export default function ProblemDetailPage({
                     <TableHeader>
                       <TableRow className="bg-background/65">
                         <TableHead className="w-20 text-center">#</TableHead>
+                        <TableHead className="min-w-64 text-left">Approach</TableHead>
                         <TableHead className="w-36 text-center">Result</TableHead>
                         <TableHead className="w-36 text-center">Time Complexity</TableHead>
                         <TableHead className="w-36 text-center">Space Complexity</TableHead>
-                        <TableHead className="min-w-64 text-left">Approach</TableHead>
                         <TableHead className="text-center">Mistakes</TableHead>
                         <TableHead className="w-28 text-center">Solve Time</TableHead>
                       </TableRow>
@@ -874,6 +874,9 @@ export default function ProblemDetailPage({
                           onClick={() => setSelectedAttempt(attempt)}
                         >
                           <TableCell className="text-center font-medium">#{attempt.attemptNumber}</TableCell>
+                          <TableCell className="max-w-md text-left text-sm text-muted-foreground">
+                            <span className="line-clamp-2 block">{attempt.approach ?? "—"}</span>
+                          </TableCell>
                           <TableCell className="text-center">
                             <Badge
                               variant="outline"
@@ -887,9 +890,6 @@ export default function ProblemDetailPage({
                           </TableCell>
                           <TableCell className="text-center text-sm text-muted-foreground">
                             {attempt.spaceComplexity ?? "—"}
-                          </TableCell>
-                          <TableCell className="max-w-md text-left text-sm text-muted-foreground">
-                            <span className="line-clamp-2 block">{attempt.approach ?? "—"}</span>
                           </TableCell>
                           <TableCell className="max-w-md text-center text-sm text-muted-foreground">
                             {formatAttemptMistakes(attempt)}
