@@ -38,11 +38,50 @@ jobs:
               - 'pnpm-workspace.yaml'
 
   # ─────────────────────────────────────────────────────────────────────────────
+  # Verify: tests and lint must pass before any image is published
+  # ─────────────────────────────────────────────────────────────────────────────
+  verify-api:
+    name: Test API
+    needs: changes
+    if: needs.changes.outputs.api == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+      - name: Run tests
+        working-directory: ./apps/api
+        run: ./mvnw --batch-mode test
+
+  verify-web:
+    name: Lint & build Web
+    needs: changes
+    if: needs.changes.outputs.web == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.30.2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter web lint
+      - run: pnpm --filter web build
+        env:
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+
+  # ─────────────────────────────────────────────────────────────────────────────
   # Build & push the Spring Boot API image (only if apps/api changed)
   # ─────────────────────────────────────────────────────────────────────────────
   api:
     name: Build & push API
-    needs: changes
+    needs: [changes, verify-api]
     if: needs.changes.outputs.api == 'true'
     runs-on: ubuntu-latest
     permissions:
@@ -87,7 +126,7 @@ jobs:
   # ─────────────────────────────────────────────────────────────────────────────
   web:
     name: Build & push Web
-    needs: changes
+    needs: [changes, verify-web]
     if: needs.changes.outputs.web == 'true'
     runs-on: ubuntu-latest
     permissions:
@@ -137,7 +176,7 @@ jobs:
   # ─────────────────────────────────────────────────────────────────────────────
   deploy:
     name: Deploy to VPS
-    needs: [changes, api, web]
+    needs: [changes, verify-api, verify-web, api, web]
     runs-on: [self-hosted, Linux, X64]
     permissions:
       contents: read

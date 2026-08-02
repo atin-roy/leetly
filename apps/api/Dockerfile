@@ -8,6 +8,8 @@ COPY .mvn/ .mvn/
 RUN chmod +x mvnw && ./mvnw dependency:go-offline -B
 
 COPY src ./src
+# Tests are not run here: the CI `verify-api` job runs them and image
+# publication depends on it, so skipping avoids running the suite twice.
 RUN ./mvnw package -Dmaven.test.skip=true -B
 
 # ── Stage 2: minimal runtime ──────────────────────────────────────────────────
