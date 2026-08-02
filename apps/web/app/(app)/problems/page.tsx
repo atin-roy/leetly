@@ -18,7 +18,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { ProblemFilters } from "@/components/problems/problem-filters"
 import { ProblemTable } from "@/components/problems/problem-table"
 import { AddProblemDialog } from "@/components/problems/add-problem-dialog"
-import { useCreateProblem, useDeleteProblem, useProblems } from "@/hooks/use-problems"
+import { useCreateProblem, useDeleteProblem, useProblemRefs, useProblems } from "@/hooks/use-problems"
 import { useNotes } from "@/hooks/use-notes"
 import { useEnrollReview, useRemoveReview } from "@/hooks/use-reviews"
 import { getNewNoteHref, getNoteHref } from "@/lib/note-display"
@@ -59,6 +59,7 @@ export default function ProblemsPage() {
   const router = useRouter()
   const [filters, setFilters] = useState<Filters>(() => readStoredFilters(PROBLEMS_FILTERS_STORAGE_KEY))
   const { data: pagedResponse, error, isError, isLoading } = useProblems(filters)
+  const existingProblems = useProblemRefs()
   const createProblemMutation = useCreateProblem()
   const deleteProblemMutation = useDeleteProblem()
   const enrollReviewMutation = useEnrollReview()
@@ -130,7 +131,6 @@ export default function ProblemsPage() {
     }
   }
 
-  const existingProblems = new Map(problems.map((p) => [p.leetcodeId, p.id]))
   const solvedCount = useMemo(
     () => problems.filter((problem) => problem.status === "SOLVED" || problem.status === "MASTERED").length,
     [problems],
@@ -174,7 +174,7 @@ export default function ProblemsPage() {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold tracking-tight">Problems</h1>
-          <AddProblemDialog onAdd={handleAdd} existingProblems={new Map()} />
+          <AddProblemDialog onAdd={handleAdd} existingProblems={existingProblems} />
         </div>
 
         <ProblemFilters

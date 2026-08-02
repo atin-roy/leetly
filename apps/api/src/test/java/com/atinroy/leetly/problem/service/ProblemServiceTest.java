@@ -18,6 +18,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import com.atinroy.leetly.problem.dto.CreateProblemRequest;
@@ -79,6 +80,28 @@ class ProblemServiceTest {
         ArgumentCaptor<ProblemList> listCaptor = ArgumentCaptor.forClass(ProblemList.class);
         verify(problemListRepository).save(listCaptor.capture());
         assertThat(listCaptor.getValue().getProblems()).contains(created);
+    }
+
+    @Test
+    void create_returnsExistingProblemForSameUserAndLeetcodeId() {
+        User user = new User();
+        user.setId(1L);
+
+        Problem existing = new Problem();
+        existing.setId(7L);
+        existing.setUser(user);
+        existing.setLeetcodeId(523L);
+
+        when(problemRepository.findByUserAndLeetcodeId(user, 523L)).thenReturn(Optional.of(existing));
+
+        Problem created = problemService.create(
+                new CreateProblemRequest(523L, "Continuous Subarray Sum", "https://leetcode.com/problems/continuous-subarray-sum/", Difficulty.MEDIUM, null),
+                user
+        );
+
+        assertThat(created).isSameAs(existing);
+        verify(problemRepository, never()).save(any(Problem.class));
+        verify(problemListRepository, never()).findByUserAndIsDefaultTrue(any(User.class));
     }
 
     @Test

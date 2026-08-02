@@ -26,7 +26,6 @@ import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ListCard } from "@/components/lists/list-card"
 import { useCreateList, useProblemLists } from "@/hooks/use-lists"
-import { useProblems } from "@/hooks/use-problems"
 import { getListStats } from "@/lib/stats"
 import { cn } from "@/lib/utils"
 
@@ -34,7 +33,6 @@ const schema = z.object({ name: z.string().min(1, "Name is required") })
 
 export default function ListsPage() {
   const { data: lists, isLoading } = useProblemLists()
-  const { data: problems } = useProblems({ size: 200 })
   const createMutation = useCreateList()
   const [open, setOpen] = useState(false)
 
@@ -66,7 +64,14 @@ export default function ListsPage() {
   const overview = useMemo(() => {
     const listCount = sortedLists.length
     const totalProblems = sortedLists.reduce((sum, list) => sum + list.problems.length, 0)
-    const aggregate = getListStats(problems?.content)
+
+    // Derived from the lists already loaded. This previously fetched the first
+    // 200 problems separately, which was both an extra request and a silently
+    // truncated aggregate once a user passed 200 problems.
+    const distinctProblems = new Map(
+      sortedLists.flatMap((list) => list.problems).map((problem) => [problem.id, problem]),
+    )
+    const aggregate = getListStats([...distinctProblems.values()])
 
     return {
       listCount,
@@ -76,7 +81,7 @@ export default function ListsPage() {
       mastered: aggregate.mastered,
       completionRate: aggregate.completionRate,
     }
-  }, [problems?.content, sortedLists])
+  }, [sortedLists])
 
   const heroStats = [
     {
@@ -278,7 +283,7 @@ export default function ListsPage() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {sortedLists.map((list) => (
-            <ListCard key={list.id} list={list} problems={problems?.content ?? []} />
+            <ListCard key={list.id} list={list} />
           ))}
         </div>
       )}

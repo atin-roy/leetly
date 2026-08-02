@@ -10,16 +10,10 @@ import { useDeleteList } from "@/hooks/use-lists"
 import { getListDisplayName, getListHref } from "@/lib/list-display"
 import { getListStats } from "@/lib/stats"
 import { cn } from "@/lib/utils"
-import type { ProblemListDto, ProblemSummaryDto } from "@/lib/types"
+import type { ProblemListDto } from "@/lib/types"
 import { AddProblemToListDialog } from "./add-problem-to-list-dialog"
 
-export function ListCard({
-  list,
-  problems,
-}: {
-  list: ProblemListDto
-  problems: ProblemSummaryDto[]
-}) {
+export function ListCard({ list }: { list: ProblemListDto }) {
   const deleteMutation = useDeleteList()
   const displayListName = getListDisplayName(list)
   const stats = getListStats(list.problems)
@@ -182,7 +176,6 @@ export function ListCard({
             listId={list.id}
             listName={displayListName}
             listProblemIds={list.problems.map((problem) => problem.id)}
-            problems={problems}
             buttonVariant="outline"
             buttonClassName="rounded-full border-border/70 bg-background/70"
           />

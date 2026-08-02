@@ -20,6 +20,7 @@ import type {
   ProblemDetailDto,
   ProblemFilters,
   ProblemListDto,
+  ProblemRefDto,
   ProblemSummaryDto,
   QuickReviewRequest,
   ReviewCardDto,
@@ -37,10 +38,13 @@ import type {
   UserStatsDto,
 } from "./types"
 
+// The browser talks to the API directly. Routing it through the Next.js server
+// meant every request was copied through a single Node process on the way to
+// Spring; the API is already exposed with CORS configured for this origin.
 const BASE =
   typeof window === "undefined"
     ? (process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080")
-    : ""
+    : (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080")
 
 export async function apiFetch<T>(
   path: string,
@@ -80,6 +84,12 @@ export function getProblems(
   if (filters?.sort) params.set("sort", filters.sort)
   const qs = params.toString()
   return apiFetch(`/api/problems${qs ? `?${qs}` : ""}`, token)
+}
+
+export function getProblemRefs(
+  token: string | undefined,
+): Promise<ProblemRefDto[]> {
+  return apiFetch("/api/problems/refs", token)
 }
 
 export function createProblem(

@@ -15,8 +15,12 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
 import com.atinroy.leetly.problem.dto.CreateProblemRequest;
 import com.atinroy.leetly.problem.dto.ProblemDetailDto;
+import com.atinroy.leetly.problem.dto.ProblemRefDto;
 import com.atinroy.leetly.problem.dto.ProblemSummaryDto;
 import com.atinroy.leetly.problem.dto.RemoveTopicsRequest;
 import com.atinroy.leetly.problem.dto.UpdateProblemAiReviewRequest;
@@ -43,14 +47,25 @@ public class ProblemController {
             @RequestParam(required = false) Long topicId,
             @RequestParam(required = false) Long patternId,
             @RequestParam(required = false) String search) {
-        User user = userService.getOrCreate(jwt.getSubject());
+        User user = userService.requireBySubject(jwt.getSubject());
         return PagedResponse.of(problemService.findAll(user, pageable, difficulty, status, topicId, patternId, search));
+    }
+
+    /**
+     * Identity pairs for every problem the user owns. The client uses this to
+     * flag already-added problems; fetching full rows for that was pulling the
+     * user's entire library on page load.
+     */
+    @GetMapping("/refs")
+    public List<ProblemRefDto> findRefs(@AuthenticationPrincipal Jwt jwt) {
+        User user = userService.requireBySubject(jwt.getSubject());
+        return problemService.findRefs(user);
     }
 
     @GetMapping("/{id}")
     @Transactional(readOnly = true)
     public ProblemDetailDto findById(@AuthenticationPrincipal Jwt jwt, @PathVariable long id) {
-        User user = userService.getOrCreate(jwt.getSubject());
+        User user = userService.requireBySubject(jwt.getSubject());
         var problem = problemService.findDetailById(id, user);
         var dto = problemMapper.toDetailDto(problem);
         return reviewCardRepository.findByProblemAndUser(problem, user)
@@ -63,26 +78,26 @@ public class ProblemController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ProblemSummaryDto create(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody CreateProblemRequest request) {
-        User user = userService.getOrCreate(jwt.getSubject());
+        User user = userService.requireBySubject(jwt.getSubject());
         return problemMapper.toSummaryDto(problemService.create(request, user));
     }
 
     @PutMapping("/{id}")
     public ProblemSummaryDto update(@AuthenticationPrincipal Jwt jwt, @PathVariable long id, @Valid @RequestBody CreateProblemRequest request) {
-        User user = userService.getOrCreate(jwt.getSubject());
+        User user = userService.requireBySubject(jwt.getSubject());
         return problemMapper.toSummaryDto(problemService.update(id, request, user));
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@AuthenticationPrincipal Jwt jwt, @PathVariable long id) {
-        User user = userService.getOrCreate(jwt.getSubject());
+        User user = userService.requireBySubject(jwt.getSubject());
         problemService.delete(id, user);
     }
 
     @PatchMapping("/{id}/status")
     public ProblemSummaryDto updateStatus(@AuthenticationPrincipal Jwt jwt, @PathVariable long id, @Valid @RequestBody UpdateStatusRequest request) {
-        User user = userService.getOrCreate(jwt.getSubject());
+        User user = userService.requireBySubject(jwt.getSubject());
         return problemMapper.toSummaryDto(problemService.updateStatus(id, request.status(), user));
     }
 
@@ -91,42 +106,42 @@ public class ProblemController {
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable long id,
             @RequestBody UpdateProblemAiReviewRequest request) {
-        User user = userService.getOrCreate(jwt.getSubject());
+        User user = userService.requireBySubject(jwt.getSubject());
         return problemMapper.toDetailDto(problemService.updateAiReview(id, request.aiReview(), user));
     }
 
     @PostMapping("/{id}/topics/{topicId}")
     @Transactional
     public ProblemDetailDto addTopic(@AuthenticationPrincipal Jwt jwt, @PathVariable long id, @PathVariable long topicId) {
-        User user = userService.getOrCreate(jwt.getSubject());
+        User user = userService.requireBySubject(jwt.getSubject());
         return problemMapper.toDetailDto(problemService.addTopic(id, topicId, user));
     }
 
     @DeleteMapping("/{id}/topics")
     @Transactional
     public ProblemDetailDto removeTopics(@AuthenticationPrincipal Jwt jwt, @PathVariable long id, @Valid @RequestBody RemoveTopicsRequest request) {
-        User user = userService.getOrCreate(jwt.getSubject());
+        User user = userService.requireBySubject(jwt.getSubject());
         return problemMapper.toDetailDto(problemService.removeTopics(id, request.topicIds(), user));
     }
 
     @PostMapping("/{id}/patterns/{patternId}")
     @Transactional
     public ProblemDetailDto addPattern(@AuthenticationPrincipal Jwt jwt, @PathVariable long id, @PathVariable long patternId) {
-        User user = userService.getOrCreate(jwt.getSubject());
+        User user = userService.requireBySubject(jwt.getSubject());
         return problemMapper.toDetailDto(problemService.addPattern(id, patternId, user));
     }
 
     @DeleteMapping("/{id}/patterns/{patternId}")
     @Transactional
     public ProblemDetailDto removePattern(@AuthenticationPrincipal Jwt jwt, @PathVariable long id, @PathVariable long patternId) {
-        User user = userService.getOrCreate(jwt.getSubject());
+        User user = userService.requireBySubject(jwt.getSubject());
         return problemMapper.toDetailDto(problemService.removePattern(id, patternId, user));
     }
 
     @PostMapping("/{id}/related/{relatedId}")
     @Transactional
     public ProblemDetailDto addRelatedProblem(@AuthenticationPrincipal Jwt jwt, @PathVariable long id, @PathVariable long relatedId) {
-        User user = userService.getOrCreate(jwt.getSubject());
+        User user = userService.requireBySubject(jwt.getSubject());
         return problemMapper.toDetailDto(problemService.addRelatedProblem(id, relatedId, user));
     }
 }

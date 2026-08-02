@@ -2,7 +2,7 @@
 
 import { useMemo } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { useSession } from "next-auth/react"
+import { useAuth } from "@/components/auth-provider"
 import {
   addProblemPattern,
   addProblemTopic,
@@ -13,6 +13,7 @@ import {
   deleteProblem,
   getPatterns,
   getProblem,
+  getProblemRefs,
   getProblems,
   getTopics,
   removeProblemPattern,
@@ -75,13 +76,14 @@ function updateProblemInList(
 }
 
 export function useProblems(filters?: ProblemFilters) {
-  const { data: session } = useSession()
+  const { session } = useAuth()
   const normalized = useMemo(() => normalizeFilters(filters), [filters])
 
   return useQuery({
+    // The access token is deliberately NOT part of the key. It rotates on
+    // refresh, which would change every key and throw away the whole cache.
     queryKey: [
       "problems",
-      session?.accessToken,
       normalized.difficulty ?? null,
       normalized.status ?? null,
       normalized.topicId ?? null,
@@ -97,8 +99,24 @@ export function useProblems(filters?: ProblemFilters) {
   })
 }
 
+/** Map of leetcodeId → problemId for everything the user already owns. */
+export function useProblemRefs() {
+  const { session } = useAuth()
+  const query = useQuery({
+    queryKey: ["problems", "refs"],
+    queryFn: () => getProblemRefs(session?.accessToken),
+    enabled: !!session?.accessToken,
+    staleTime: 5 * 60 * 1000,
+  })
+
+  return useMemo(
+    () => new Map((query.data ?? []).map((ref) => [ref.leetcodeId, ref.id])),
+    [query.data],
+  )
+}
+
 export function useProblem(id: number) {
-  const { data: session } = useSession()
+  const { session } = useAuth()
   return useQuery({
     queryKey: ["problems", id],
     queryFn: () => getProblem(session?.accessToken, id),
@@ -107,7 +125,7 @@ export function useProblem(id: number) {
 }
 
 export function useTopics() {
-  const { data: session } = useSession()
+  const { session } = useAuth()
   return useQuery({
     queryKey: ["topics"],
     queryFn: () => getTopics(session?.accessToken),
@@ -117,7 +135,7 @@ export function useTopics() {
 }
 
 export function usePatterns() {
-  const { data: session } = useSession()
+  const { session } = useAuth()
   return useQuery({
     queryKey: ["patterns"],
     queryFn: () => getPatterns(session?.accessToken),
@@ -127,7 +145,7 @@ export function usePatterns() {
 }
 
 export function useCreateProblem() {
-  const { data: session } = useSession()
+  const { session } = useAuth()
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (body: CreateProblemRequest) =>
@@ -140,7 +158,7 @@ export function useCreateProblem() {
 }
 
 export function useDeleteProblem() {
-  const { data: session } = useSession()
+  const { session } = useAuth()
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (problemId: number) => deleteProblem(session?.accessToken, problemId),
@@ -155,7 +173,7 @@ export function useDeleteProblem() {
 }
 
 export function useCreateTopic() {
-  const { data: session } = useSession()
+  const { session } = useAuth()
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (body: { name: string; description?: string }) =>
@@ -165,7 +183,7 @@ export function useCreateTopic() {
 }
 
 export function useCreatePattern() {
-  const { data: session } = useSession()
+  const { session } = useAuth()
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (body: { name: string; description?: string; topicId?: number | null; namedAlgorithm?: boolean }) =>
@@ -183,7 +201,7 @@ export function useInvalidateProblem() {
 }
 
 export function useUpdateProblemStatus(problemId: number) {
-  const { data: session } = useSession()
+  const { session } = useAuth()
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (status: string) =>
@@ -221,7 +239,7 @@ export function useUpdateProblemStatus(problemId: number) {
 }
 
 export function useUpdateProblemAiReview(problemId: number) {
-  const { data: session } = useSession()
+  const { session } = useAuth()
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (aiReview: string | null) =>
@@ -237,7 +255,7 @@ export function useUpdateProblemAiReview(problemId: number) {
 }
 
 export function useAddTopic(problemId: number) {
-  const { data: session } = useSession()
+  const { session } = useAuth()
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (topicId: number) =>
@@ -250,7 +268,7 @@ export function useAddTopic(problemId: number) {
 }
 
 export function useRemoveTopics(problemId: number) {
-  const { data: session } = useSession()
+  const { session } = useAuth()
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (topicIds: number[]) =>
@@ -263,7 +281,7 @@ export function useRemoveTopics(problemId: number) {
 }
 
 export function useAddPattern(problemId: number) {
-  const { data: session } = useSession()
+  const { session } = useAuth()
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (patternId: number) =>
@@ -276,7 +294,7 @@ export function useAddPattern(problemId: number) {
 }
 
 export function useRemovePattern(problemId: number) {
-  const { data: session } = useSession()
+  const { session } = useAuth()
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (patternId: number) =>
@@ -289,7 +307,7 @@ export function useRemovePattern(problemId: number) {
 }
 
 export function useAddRelatedProblem(problemId: number) {
-  const { data: session } = useSession()
+  const { session } = useAuth()
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (relatedId: number) =>

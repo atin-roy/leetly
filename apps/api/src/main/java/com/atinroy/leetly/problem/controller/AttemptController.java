@@ -27,7 +27,7 @@ public class AttemptController {
     @GetMapping
     public List<AttemptDto> findByProblem(@PathVariable long problemId,
                                           @AuthenticationPrincipal Jwt jwt) {
-        User user = userService.getOrCreate(jwt.getSubject());
+        User user = userService.requireBySubject(jwt.getSubject());
         return attemptService.findByProblem(problemId, user).stream().map(attemptMapper::toDto).toList();
     }
 
@@ -35,7 +35,7 @@ public class AttemptController {
     public AttemptDto findById(@PathVariable long problemId,
                                @PathVariable long id,
                                @AuthenticationPrincipal Jwt jwt) {
-        User user = userService.getOrCreate(jwt.getSubject());
+        User user = userService.requireBySubject(jwt.getSubject());
         return attemptMapper.toDto(attemptService.findByIdAndProblem(id, problemId, user));
     }
 
@@ -44,7 +44,7 @@ public class AttemptController {
     public AttemptDto logAttempt(@PathVariable long problemId,
                                  @Valid @RequestBody LogAttemptRequest request,
                                  @AuthenticationPrincipal Jwt jwt) {
-        User user = userService.getOrCreate(jwt.getSubject());
+        User user = userService.requireBySubject(jwt.getSubject());
         return attemptMapper.toDto(attemptService.logAttempt(problemId, user, request));
     }
 
@@ -53,7 +53,7 @@ public class AttemptController {
                              @PathVariable long id,
                              @Valid @RequestBody LogAttemptRequest request,
                              @AuthenticationPrincipal Jwt jwt) {
-        User user = userService.getOrCreate(jwt.getSubject());
+        User user = userService.requireBySubject(jwt.getSubject());
         return attemptMapper.toDto(attemptService.update(id, problemId, user, request));
     }
 
@@ -61,7 +61,7 @@ public class AttemptController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable long problemId, @PathVariable long id,
                        @AuthenticationPrincipal Jwt jwt) {
-        User user = userService.getOrCreate(jwt.getSubject());
+        User user = userService.requireBySubject(jwt.getSubject());
         attemptService.delete(id, problemId, user);
     }
 }

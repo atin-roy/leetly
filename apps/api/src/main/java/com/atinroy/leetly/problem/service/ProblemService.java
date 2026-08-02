@@ -1,6 +1,7 @@
 package com.atinroy.leetly.problem.service;
 
 import com.atinroy.leetly.common.exception.ResourceNotFoundException;
+import com.atinroy.leetly.problem.dto.ProblemRefDto;
 import com.atinroy.leetly.problem.dto.ProblemSummaryDto;
 import com.atinroy.leetly.problem.repository.AttemptRepository;
 import com.atinroy.leetly.review.model.ReviewCard;
@@ -38,6 +39,11 @@ public class ProblemService {
     private final PatternService patternService;
     private final AttemptRepository attemptRepository;
     private final ReviewCardRepository reviewCardRepository;
+
+    @Transactional(readOnly = true)
+    public List<ProblemRefDto> findRefs(User user) {
+        return problemRepository.findRefsByUser(user);
+    }
 
     @Transactional(readOnly = true)
     public Page<ProblemSummaryDto> findAll(User user, Pageable pageable, String difficulty, String status, Long topicId, Long patternId, String search) {
@@ -93,6 +99,11 @@ public class ProblemService {
     }
 
     public Problem create(CreateProblemRequest request, User user) {
+        return problemRepository.findByUserAndLeetcodeId(user, request.leetcodeId())
+                .orElseGet(() -> createNewProblem(request, user));
+    }
+
+    private Problem createNewProblem(CreateProblemRequest request, User user) {
         Problem problem = new Problem();
         problem.setUser(user);
         problem.setLeetcodeId(request.leetcodeId());

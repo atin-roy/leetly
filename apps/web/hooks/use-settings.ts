@@ -1,7 +1,7 @@
 "use client"
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { useSession } from "next-auth/react"
+import { useAuth } from "@/components/auth-provider"
 import {
   getThemes,
   getUserSettings,
@@ -13,16 +13,16 @@ import {
 import type { Language } from "@/lib/types"
 
 export function useSettings() {
-  const { data: session } = useSession()
+  const { session } = useAuth()
   return useQuery({
-    queryKey: ["settings", session?.accessToken ?? null],
+    queryKey: ["settings"],
     queryFn: () => getUserSettings(session?.accessToken),
     enabled: !!session?.accessToken,
   })
 }
 
 export function useUpdateLanguage() {
-  const { data: session } = useSession()
+  const { session } = useAuth()
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (language: Language) =>
@@ -32,7 +32,7 @@ export function useUpdateLanguage() {
 }
 
 export function useUpdateDailyGoal() {
-  const { data: session } = useSession()
+  const { session } = useAuth()
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (dailyGoal: number) =>
@@ -42,7 +42,7 @@ export function useUpdateDailyGoal() {
 }
 
 export function useUpdateTimezone() {
-  const { data: session } = useSession()
+  const { session } = useAuth()
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (timezone: string) =>
@@ -52,7 +52,7 @@ export function useUpdateTimezone() {
 }
 
 export function useUpdateTheme() {
-  const { data: session } = useSession()
+  const { session } = useAuth()
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (themeId: number | null) =>
@@ -62,7 +62,7 @@ export function useUpdateTheme() {
 }
 
 export function useThemes() {
-  const { data: session } = useSession()
+  const { session } = useAuth()
   return useQuery({
     queryKey: ["themes"],
     queryFn: () => getThemes(session?.accessToken),

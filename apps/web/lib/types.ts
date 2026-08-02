@@ -113,6 +113,11 @@ export interface ProblemSummaryDto {
   reviewCard: ReviewCardSummary | null
 }
 
+export interface ProblemRefDto {
+  leetcodeId: number
+  id: number
+}
+
 export interface ProblemDetailDto {
   id: number
   leetcodeId: number

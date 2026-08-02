@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import com.atinroy.leetly.problem.dto.ProblemRefDto;
 import com.atinroy.leetly.problem.model.Problem;
 
 @Repository
@@ -18,8 +19,16 @@ public interface ProblemRepository extends JpaRepository<Problem, Long>, JpaSpec
 
     Optional<Problem> findByIdAndUser(Long id, User user);
 
+    Optional<Problem> findByUserAndLeetcodeId(User user, long leetcodeId);
+
     @Query("SELECT DISTINCT p FROM Problem p WHERE p.user = :user")
     List<Problem> findAllByUser(@Param("user") User user);
+
+    @Query("""
+            SELECT new com.atinroy.leetly.problem.dto.ProblemRefDto(p.leetcodeId, p.id)
+            FROM Problem p WHERE p.user = :user
+            """)
+    List<ProblemRefDto> findRefsByUser(@Param("user") User user);
 
     /**
      * Acquires a pessimistic write lock on the problem row before the caller

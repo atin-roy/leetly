@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useState } from "react"
 import { Loader2, Plus } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
@@ -16,14 +16,12 @@ import { Textarea } from "@/components/ui/textarea"
 import { fetchLeetCodeProblem, parseProblemInput } from "@/lib/leetcode"
 import { getListDisplayNameFromName } from "@/lib/list-display"
 import { useAddProblemToList } from "@/hooks/use-lists"
-import { useCreateProblem } from "@/hooks/use-problems"
-import type { ProblemSummaryDto } from "@/lib/types"
+import { useCreateProblem, useProblemRefs } from "@/hooks/use-problems"
 
 interface AddProblemToListDialogProps {
   listId: number
   listName: string
   listProblemIds: number[]
-  problems: ProblemSummaryDto[]
   buttonVariant?: "default" | "outline" | "secondary" | "ghost"
   buttonClassName?: string
 }
@@ -32,7 +30,6 @@ export function AddProblemToListDialog({
   listId,
   listName,
   listProblemIds,
-  problems,
   buttonVariant = "default",
   buttonClassName,
 }: AddProblemToListDialogProps) {
@@ -43,10 +40,9 @@ export function AddProblemToListDialog({
   const [problemInputs, setProblemInputs] = useState("")
   const [isImportingBulk, setIsImportingBulk] = useState(false)
 
-  const existingProblems = useMemo(
-    () => new Map(problems.map((problem) => [problem.leetcodeId, problem.id])),
-    [problems]
-  )
+  // Only the leetcodeId → id mapping is needed here, so this reads the cheap
+  // refs endpoint rather than having the parent page fetch every problem row.
+  const existingProblems = useProblemRefs()
 
   function resetNewProblemForm() {
     setProblemInputs("")

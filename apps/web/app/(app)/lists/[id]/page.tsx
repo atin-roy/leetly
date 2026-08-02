@@ -13,7 +13,6 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { AddProblemToListDialog } from "@/components/lists/add-problem-to-list-dialog"
 import { ProblemTable } from "@/components/problems/problem-table"
 import { useProblemList, useProblemListProblems, useRemoveProblemFromList } from "@/hooks/use-lists"
-import { useProblems } from "@/hooks/use-problems"
 import { useNotes } from "@/hooks/use-notes"
 import { useEnrollReview, useRemoveReview } from "@/hooks/use-reviews"
 import { getListDisplayName } from "@/lib/list-display"
@@ -66,7 +65,6 @@ export default function ListDetailPage({
   const enrollReviewMutation = useEnrollReview()
   const removeReviewMutation = useRemoveReview()
   const { data: notesData } = useNotes({ size: 200 })
-  const { data: allProblems } = useProblems({ size: 200 })
 
   const noteIdsByProblemId = useMemo(() => {
     const ids = new Map<number, number>()
@@ -163,7 +161,6 @@ export default function ListDetailPage({
             listId={list.id}
             listName={displayListName}
             listProblemIds={list.problems.map((problem) => problem.id)}
-            problems={allProblems?.content ?? []}
           />
         </div>
       </div>
