@@ -1,211 +1,119 @@
-import Link from "next/link"
-import {
-    BookOpen,
-    ArrowLeft,
-    Github,
-    TrendingUp,
-    BarChart3,
-    Brain,
-    FileText,
-    List,
-    Target,
-} from "lucide-react"
-import { Button } from "@/components/ui/button"
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card"
 import type { Metadata } from "next"
+import {
+  BarChart3,
+  Brain,
+  FileText,
+  List,
+  Target,
+  TrendingUp,
+} from "lucide-react"
+import { MarketingShell } from "@/components/marketing/page-shell"
+import styles from "@/app/marketing.module.css"
 
 export const metadata: Metadata = {
-    title: "About — Leetly",
-    description:
-        "Leetly is a free, open-source LeetCode progress tracker for competitive programmers.",
+  title: "About — Leetly",
+  description:
+    "Leetly is a free, open-source tracker for turning interview-problem practice into a repeatable learning system.",
 }
 
 const highlights = [
-    {
-        icon: TrendingUp,
-        title: "Attempt Tracking",
-        description:
-            "Log every attempt with outcome, language, time, and mistake categories.",
-    },
-    {
-        icon: BarChart3,
-        title: "Analytics",
-        description:
-            "Visualize streaks, solve rates by difficulty, and progress over time.",
-    },
-    {
-        icon: Brain,
-        title: "Pattern Recognition",
-        description:
-            "Tag problems by algorithmic pattern and identify your weak spots.",
-    },
-    {
-        icon: FileText,
-        title: "Notes",
-        description:
-            "Write structured notes per problem to capture learnings and strategies.",
-    },
-    {
-        icon: List,
-        title: "Custom Lists",
-        description:
-            "Curate problem sets for interviews, companies, or topic drilling.",
-    },
-    {
-        icon: Target,
-        title: "Mastery Tracking",
-        description:
-            "Problems progress from Unseen → Attempted → Solved → Mastered.",
-    },
+  {
+    icon: TrendingUp,
+    title: "Attempt tracking",
+    description:
+      "Outcome, language, time taken, and what went wrong — recorded for every attempt, not just the one that passed.",
+  },
+  {
+    icon: Brain,
+    title: "Spaced repetition",
+    description:
+      "Solved problems get a review schedule based on the FSRS algorithm, so revision is timed rather than guessed.",
+  },
+  {
+    icon: BarChart3,
+    title: "Analytics",
+    description:
+      "Streaks, solve rates by difficulty, and an activity heatmap covering the last year of practice.",
+  },
+  {
+    icon: Target,
+    title: "Mistake patterns",
+    description:
+      "Categorised failures — off-by-one, wrong pattern, missed edge case — aggregated so the recurring ones surface.",
+  },
+  {
+    icon: List,
+    title: "Problem lists",
+    description:
+      "Group problems by topic, company, or study goal, and see how much of each list is genuinely finished.",
+  },
+  {
+    icon: FileText,
+    title: "Notes",
+    description:
+      "Markdown notes with syntax highlighting, attached to the problem they belong to.",
+  },
 ]
 
 export default function AboutPage() {
-    return (
-        <div className="aesthetic-background min-h-screen text-foreground">
-            {/* Header */}
-            <nav className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-                <div className="mx-auto flex h-14 max-w-4xl items-center justify-between px-6">
-                    <Link
-                        href="/"
-                        className="flex items-center gap-2.5 font-bold text-xl tracking-tight"
-                    >
-                        <BookOpen className="h-6 w-6" />
-                        Leetly
-                    </Link>
-                    <Button variant="ghost" size="sm" asChild>
-                        <Link href="/">
-                            <ArrowLeft className="mr-1.5 h-4 w-4" />
-                            Back
-                        </Link>
-                    </Button>
-                </div>
-            </nav>
+  return (
+    <MarketingShell
+      eyebrow="About"
+      title="A record of how you learned it, not just that you did"
+      lede="Leetly is a study tracker for interview preparation. It exists because a solved-problem count says almost nothing about whether you could solve it again next week."
+    >
+      <h2>Why it exists</h2>
+      <p>
+        Most trackers answer one question: how many problems have you done. That
+        number goes up whether or not you understood anything, and it keeps
+        going up long after the understanding has faded.
+      </p>
+      <p>
+        The useful questions are harder. Which problems did you struggle with?
+        What kind of mistake do you keep making? Which of the things you solved
+        two months ago could you still solve today? Leetly records enough detail
+        to answer those.
+      </p>
 
-            <div className="mx-auto max-w-4xl px-6 py-16">
-                {/* Intro */}
-                <section className="mb-16 text-center">
-                    <div className="mb-6 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
-                        <BookOpen className="h-8 w-8 text-primary" />
-                    </div>
-                    <h1 className="mb-4 text-4xl font-bold tracking-tight">
-                        About Leetly
-                    </h1>
-                    <p className="mx-auto max-w-2xl text-lg leading-relaxed text-muted-foreground">
-                        Leetly is a <strong>free, open-source</strong> web application built
-                        for competitive programmers who want to track their LeetCode journey
-                        with intention. Log attempts, spot patterns, and level up with
-                        analytics — no subscriptions, no ads, no tracking.
-                    </p>
-                </section>
+      <h2>What it does</h2>
+      <div className={styles.grid}>
+        {highlights.map((item) => (
+          <article key={item.title} className={styles.card}>
+            <span className={styles.cardIcon}>
+              <item.icon size={16} aria-hidden="true" />
+            </span>
+            <h3 className={styles.cardTitle}>{item.title}</h3>
+            <p className={styles.cardBody}>{item.description}</p>
+          </article>
+        ))}
+      </div>
 
-                {/* Features */}
-                <section className="mb-16">
-                    <h2 className="mb-8 text-center text-2xl font-bold tracking-tight">
-                        What You Can Do
-                    </h2>
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                        {highlights.map((item) => {
-                            const Icon = item.icon
-                            return (
-                                <Card
-                                    key={item.title}
-                                    className="border-border/60 bg-background/60"
-                                >
-                                    <CardHeader className="pb-2">
-                                        <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-md bg-primary/10">
-                                            <Icon className="h-5 w-5 text-primary" />
-                                        </div>
-                                        <CardTitle className="text-base">{item.title}</CardTitle>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <CardDescription className="text-sm leading-relaxed">
-                                            {item.description}
-                                        </CardDescription>
-                                    </CardContent>
-                                </Card>
-                            )
-                        })}
-                    </div>
-                </section>
+      <h2>How it is built</h2>
+      <p>
+        A Spring Boot API backed by PostgreSQL with schema managed by Flyway,
+        and a Next.js frontend using the App Router. Authentication is
+        token-based: short-lived access tokens held in memory, with rotating
+        refresh tokens. Both applications are containerised and deployed to a
+        VPS behind Caddy.
+      </p>
+      <p>
+        Every resource is scoped to its owner at the query level rather than
+        checked after loading, so there is no unscoped query available to call
+        by mistake.
+      </p>
 
-                {/* Open-source */}
-                <section className="mb-16 text-center">
-                    <div className="mb-5 inline-flex h-14 w-14 items-center justify-center rounded-xl bg-muted">
-                        <Github className="h-7 w-7" />
-                    </div>
-                    <h2 className="mb-3 text-2xl font-bold tracking-tight">
-                        Open Source, Forever Free
-                    </h2>
-                    <p className="mx-auto mb-6 max-w-xl leading-relaxed text-muted-foreground">
-                        Leetly is MIT licensed. Self-host it, extend it, or contribute back
-                        to the community. No vendor lock-in, no paywalls.
-                    </p>
-                    <Button variant="outline" asChild>
-                        <Link
-                            href="https://github.com/atin-roy/leetly"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >
-                            <Github className="mr-2 h-4 w-4" />
-                            View on GitHub
-                        </Link>
-                    </Button>
-                </section>
-
-                {/* Legal links */}
-                <section className="rounded-lg border border-border/60 bg-muted/40 p-6 text-center">
-                    <h2 className="mb-3 text-lg font-semibold">Legal</h2>
-                    <div className="flex items-center justify-center gap-6 text-sm">
-                        <Link
-                            href="/privacy"
-                            className="text-primary underline underline-offset-4 hover:text-primary/80"
-                        >
-                            Privacy Policy
-                        </Link>
-                        <Link
-                            href="/terms"
-                            className="text-primary underline underline-offset-4 hover:text-primary/80"
-                        >
-                            Terms of Service
-                        </Link>
-                    </div>
-                </section>
-            </div>
-
-            {/* Footer */}
-            <footer className="border-t border-border/50 py-8">
-                <div className="mx-auto flex max-w-4xl items-center justify-between px-6 text-sm text-muted-foreground">
-                    <span>© {new Date().getFullYear()} Leetly</span>
-                    <div className="flex items-center gap-4">
-                        <Link
-                            href="/privacy"
-                            className="transition-colors hover:text-foreground"
-                        >
-                            Privacy
-                        </Link>
-                        <Link
-                            href="/terms"
-                            className="transition-colors hover:text-foreground"
-                        >
-                            Terms
-                        </Link>
-                        <Link
-                            href="https://github.com/atin-roy/leetly"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="transition-colors hover:text-foreground"
-                        >
-                            GitHub
-                        </Link>
-                    </div>
-                </div>
-            </footer>
-        </div>
-    )
+      <h2>Who made it</h2>
+      <p>
+        Built by Atin Roy. The source is on{" "}
+        <a
+          href="https://github.com/atin-roy/leetly"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          GitHub
+        </a>
+        .
+      </p>
+    </MarketingShell>
+  )
 }
