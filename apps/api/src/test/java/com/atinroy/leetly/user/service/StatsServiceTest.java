@@ -18,8 +18,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 
@@ -50,6 +52,16 @@ class StatsServiceTest {
     @Mock
     DailyStatRepository dailyStatRepository;
 
+    /**
+     * Thursday. Anchoring mid-week keeps "this week" assertions meaningful:
+     * on a Monday the preceding days fall into the previous calendar week and
+     * these expectations would silently change with the day of the run.
+     */
+    static final LocalDate TODAY = LocalDate.of(2026, 8, 6);
+    static final Clock CLOCK = Clock.fixed(
+            TODAY.atTime(12, 0).atZone(ZoneId.systemDefault()).toInstant(),
+            ZoneId.systemDefault());
+
     StatsService statsService;
 
     @BeforeEach
@@ -59,7 +71,8 @@ class StatsServiceTest {
                 problemRepository,
                 attemptRepository,
                 dailyStatRepository,
-                new ObjectMapper());
+                new ObjectMapper(),
+                CLOCK);
         lenient().when(dailyStatRepository.findByUserAndDate(any(), any())).thenReturn(Optional.empty());
         lenient().when(problemRepository.findAllByUser(any())).thenReturn(List.of());
         lenient().when(attemptRepository.findByUserOrderByCreatedDateAsc(any())).thenReturn(List.of());
@@ -186,7 +199,7 @@ class StatsServiceTest {
         UserStats stats = new UserStats();
         when(userStatsRepository.findByUser(user)).thenReturn(Optional.of(stats));
 
-        LocalDate today = LocalDate.now();
+        LocalDate today = TODAY;
         Problem solved = problem(1L, ProblemStatus.SOLVED, Difficulty.EASY, today.minusDays(1));
         Problem solvedWithHelp = problem(2L, ProblemStatus.SOLVED_WITH_HELP, Difficulty.MEDIUM, today);
         Problem mastered = problem(3L, ProblemStatus.MASTERED, Difficulty.HARD, today.minusDays(2));
@@ -250,7 +263,7 @@ class StatsServiceTest {
         UserStats stats = new UserStats();
         when(userStatsRepository.findByUser(user)).thenReturn(Optional.of(stats));
 
-        LocalDate today = LocalDate.now();
+        LocalDate today = TODAY;
         Problem solved = problem(1L, ProblemStatus.SOLVED, Difficulty.MEDIUM, today.minusDays(10));
 
         Attempt accepted = attempt(Outcome.ACCEPTED, Difficulty.MEDIUM, 1);

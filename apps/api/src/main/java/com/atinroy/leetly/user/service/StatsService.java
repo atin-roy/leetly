@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.Duration;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -46,6 +47,7 @@ public class StatsService {
     private final AttemptRepository attemptRepository;
     private final DailyStatRepository dailyStatRepository;
     private final ObjectMapper objectMapper;
+    private final Clock clock;
 
     public UserStats getByUser(User user) {
         UserStats stats = userStatsRepository.findByUser(user)
@@ -128,7 +130,7 @@ public class StatsService {
         userStatsRepository.save(stats);
 
         upsertDailyStat(user, attempt.getDurationMinutes(), isFirstSolve,
-                attempt.getCreatedDate() != null ? attempt.getCreatedDate().toLocalDate() : LocalDate.now(),
+                attempt.getCreatedDate() != null ? attempt.getCreatedDate().toLocalDate() : LocalDate.now(clock),
                 1);
     }
 
@@ -157,7 +159,7 @@ public class StatsService {
         userStatsRepository.save(stats);
 
         adjustDailyStat(user, attempt.getDurationMinutes(), wasOnlyAccepted,
-                attempt.getCreatedDate() != null ? attempt.getCreatedDate().toLocalDate() : LocalDate.now(),
+                attempt.getCreatedDate() != null ? attempt.getCreatedDate().toLocalDate() : LocalDate.now(clock),
                 -1);
     }
 
@@ -193,7 +195,7 @@ public class StatsService {
         userStatsRepository.save(stats);
 
         LocalDate attemptDate = oldAttempt.getCreatedDate() != null
-                ? oldAttempt.getCreatedDate().toLocalDate() : LocalDate.now();
+                ? oldAttempt.getCreatedDate().toLocalDate() : LocalDate.now(clock);
         adjustDailyStatTime(user, attemptDate, newDuration - oldDuration);
         if (oldAccepted && !newAccepted) {
             adjustDailyStat(user, 0, true, attemptDate, -1);
@@ -314,8 +316,8 @@ public class StatsService {
             return;
         }
 
-        LocalDate startOfWeek = LocalDate.now().with(DayOfWeek.MONDAY);
-        LocalDate startOfMonth = LocalDate.now().withDayOfMonth(1);
+        LocalDate startOfWeek = LocalDate.now(clock).with(DayOfWeek.MONDAY);
+        LocalDate startOfMonth = LocalDate.now(clock).withDayOfMonth(1);
         Set<LocalDate> uniqueDates = new HashSet<>(solveDates);
 
         stats.setSolvedThisWeek((int) solveDates.stream().filter(date -> !date.isBefore(startOfWeek)).count());
@@ -350,7 +352,7 @@ public class StatsService {
             return 0;
         }
 
-        LocalDate cursor = LocalDate.now();
+        LocalDate cursor = LocalDate.now(clock);
         if (!solveDates.contains(cursor)) {
             cursor = cursor.minusDays(1);
             if (!solveDates.contains(cursor)) {
@@ -432,7 +434,7 @@ public class StatsService {
     }
 
     private void updateStreak(UserStats stats) {
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(clock);
         LocalDate lastSolved = stats.getLastSolvedDate();
 
         if (lastSolved == null || lastSolved.isBefore(today.minusDays(1))) {
