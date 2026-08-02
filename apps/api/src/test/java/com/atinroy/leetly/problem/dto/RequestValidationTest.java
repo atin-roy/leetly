@@ -1,6 +1,7 @@
 package com.atinroy.leetly.problem.dto;
 
-import com.atinroy.leetly.config.KeycloakJwtAuthenticationConverter;
+import com.atinroy.leetly.config.LeetlyJwtAuthenticationConverter;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import com.atinroy.leetly.config.SecurityConfig;
 import com.atinroy.leetly.user.service.UserService;
 import org.junit.jupiter.api.Test;
@@ -31,7 +32,10 @@ class RequestValidationTest {
     MockMvc mvc;
 
     @MockitoBean
-    KeycloakJwtAuthenticationConverter keycloakJwtAuthenticationConverter;
+    LeetlyJwtAuthenticationConverter jwtAuthenticationConverter;
+
+    @MockitoBean
+    JwtDecoder jwtDecoder;
 
     @MockitoBean
     ProblemService problemService;

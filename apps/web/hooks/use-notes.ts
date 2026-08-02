@@ -1,7 +1,7 @@
 "use client"
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { useSession } from "next-auth/react"
+import { useAuth } from "@/components/auth-provider"
 import { createNote, deleteNote, getNote, getNotes, updateNote } from "@/lib/api"
 import type {
   CreateNoteRequest,
@@ -10,7 +10,7 @@ import type {
 } from "@/lib/types"
 
 export function useNotes(filters?: NoteFilters) {
-  const { data: session } = useSession()
+  const { session } = useAuth()
   return useQuery({
     queryKey: ["notes", filters],
     queryFn: () => getNotes(session?.accessToken, filters),
@@ -19,7 +19,7 @@ export function useNotes(filters?: NoteFilters) {
 }
 
 export function useNote(id: number) {
-  const { data: session } = useSession()
+  const { session } = useAuth()
   return useQuery({
     queryKey: ["notes", id],
     queryFn: () => getNote(session?.accessToken, id),
@@ -28,7 +28,7 @@ export function useNote(id: number) {
 }
 
 export function useCreateNote() {
-  const { data: session } = useSession()
+  const { session } = useAuth()
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (body: CreateNoteRequest) =>
@@ -41,7 +41,7 @@ export function useCreateNote() {
 }
 
 export function useUpdateNote() {
-  const { data: session } = useSession()
+  const { session } = useAuth()
   const qc = useQueryClient()
   return useMutation({
     mutationFn: ({ id, body }: { id: number; body: UpdateNoteRequest }) =>
@@ -54,7 +54,7 @@ export function useUpdateNote() {
 }
 
 export function useDeleteNote() {
-  const { data: session } = useSession()
+  const { session } = useAuth()
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (id: number) => deleteNote(session?.accessToken, id),

@@ -29,7 +29,7 @@ public class ReviewController {
     @ResponseStatus(HttpStatus.CREATED)
     public ReviewCardDto enroll(@Valid @RequestBody EnrollReviewRequest request,
                                 @AuthenticationPrincipal Jwt jwt) {
-        User user = userService.getOrCreate(jwt.getSubject());
+        User user = userService.requireBySubject(jwt.getSubject());
         return reviewMapper.toDto(reviewService.enroll(request.problemId(), user));
     }
 
@@ -37,20 +37,20 @@ public class ReviewController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void remove(@PathVariable long id,
                        @AuthenticationPrincipal Jwt jwt) {
-        User user = userService.getOrCreate(jwt.getSubject());
+        User user = userService.requireBySubject(jwt.getSubject());
         reviewService.remove(id, user);
     }
 
     @GetMapping("/due")
     public Page<ReviewCardDto> findDue(Pageable pageable,
                                        @AuthenticationPrincipal Jwt jwt) {
-        User user = userService.getOrCreate(jwt.getSubject());
+        User user = userService.requireBySubject(jwt.getSubject());
         return reviewService.findDueCards(user, pageable).map(reviewMapper::toDto);
     }
 
     @GetMapping("/stats")
     public ReviewStatsDto stats(@AuthenticationPrincipal Jwt jwt) {
-        User user = userService.getOrCreate(jwt.getSubject());
+        User user = userService.requireBySubject(jwt.getSubject());
         return new ReviewStatsDto(
             reviewService.countDue(user),
             reviewService.countUpcoming7Days(user),
@@ -62,14 +62,14 @@ public class ReviewController {
     public ReviewCardDto quickReview(@PathVariable long id,
                                      @Valid @RequestBody QuickReviewRequest request,
                                      @AuthenticationPrincipal Jwt jwt) {
-        User user = userService.getOrCreate(jwt.getSubject());
+        User user = userService.requireBySubject(jwt.getSubject());
         return reviewMapper.toDto(reviewService.quickReview(id, request.rating(), user));
     }
 
     @GetMapping("/{id}/history")
     public List<ReviewLogDto> history(@PathVariable long id,
                                       @AuthenticationPrincipal Jwt jwt) {
-        User user = userService.getOrCreate(jwt.getSubject());
+        User user = userService.requireBySubject(jwt.getSubject());
         return reviewService.findHistory(id, user).stream().map(reviewMapper::toLogDto).toList();
     }
 }

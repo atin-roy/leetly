@@ -33,14 +33,14 @@ public class ProblemListController {
     @GetMapping
     @Transactional(readOnly = true)
     public List<ProblemListDto> findAll(@AuthenticationPrincipal Jwt jwt) {
-        User user = userService.getOrCreate(jwt.getSubject());
+        User user = userService.requireBySubject(jwt.getSubject());
         return problemListService.findByUser(user).stream().map(problemListMapper::toDto).toList();
     }
 
     @GetMapping("/{id}")
     @Transactional(readOnly = true)
     public ProblemListDto findById(@AuthenticationPrincipal Jwt jwt, @PathVariable long id) {
-        User user = userService.getOrCreate(jwt.getSubject());
+        User user = userService.requireBySubject(jwt.getSubject());
         return problemListMapper.toDto(problemListService.findByIdAndUser(id, user));
     }
 
@@ -56,7 +56,7 @@ public class ProblemListController {
             @RequestParam(required = false) Long patternId,
             @RequestParam(required = false) String search
     ) {
-        User user = userService.getOrCreate(jwt.getSubject());
+        User user = userService.requireBySubject(jwt.getSubject());
         return PagedResponse.of(problemListService.findProblems(id, user, pageable, difficulty, status, topicId, patternId, search));
     }
 
@@ -65,14 +65,14 @@ public class ProblemListController {
     @Transactional
     public ProblemListDto create(@AuthenticationPrincipal Jwt jwt,
                                  @Valid @RequestBody CreateProblemListRequest request) {
-        User user = userService.getOrCreate(jwt.getSubject());
+        User user = userService.requireBySubject(jwt.getSubject());
         return problemListMapper.toDto(problemListService.create(user, request.name()));
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@AuthenticationPrincipal Jwt jwt, @PathVariable long id) {
-        User user = userService.getOrCreate(jwt.getSubject());
+        User user = userService.requireBySubject(jwt.getSubject());
         problemListService.delete(id, user);
     }
 
@@ -81,7 +81,7 @@ public class ProblemListController {
     public ProblemListDto addProblem(@AuthenticationPrincipal Jwt jwt,
                                      @PathVariable long id,
                                      @PathVariable long problemId) {
-        User user = userService.getOrCreate(jwt.getSubject());
+        User user = userService.requireBySubject(jwt.getSubject());
         return problemListMapper.toDto(problemListService.addProblem(id, problemId, user));
     }
 
@@ -90,7 +90,7 @@ public class ProblemListController {
     public ProblemListDto removeProblem(@AuthenticationPrincipal Jwt jwt,
                                         @PathVariable long id,
                                         @PathVariable long problemId) {
-        User user = userService.getOrCreate(jwt.getSubject());
+        User user = userService.requireBySubject(jwt.getSubject());
         return problemListMapper.toDto(problemListService.removeProblem(id, problemId, user));
     }
 }

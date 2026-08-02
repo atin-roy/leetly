@@ -1,7 +1,7 @@
 "use client"
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { useSession } from "next-auth/react"
+import { useAuth } from "@/components/auth-provider"
 import {
   enrollReview,
   getReviewCardsDue,
@@ -13,7 +13,7 @@ import {
 import type { Rating } from "@/lib/types"
 
 export function useReviewCardsDue(page = 0, size = 20) {
-  const { data: session } = useSession()
+  const { session } = useAuth()
   return useQuery({
     queryKey: ["review-cards", "due", page, size],
     queryFn: () => getReviewCardsDue(session?.accessToken, page, size),
@@ -22,7 +22,7 @@ export function useReviewCardsDue(page = 0, size = 20) {
 }
 
 export function useReviewStats() {
-  const { data: session } = useSession()
+  const { session } = useAuth()
   return useQuery({
     queryKey: ["review-cards", "stats"],
     queryFn: () => getReviewStats(session?.accessToken),
@@ -31,7 +31,7 @@ export function useReviewStats() {
 }
 
 export function useReviewHistory(cardId: number) {
-  const { data: session } = useSession()
+  const { session } = useAuth()
   return useQuery({
     queryKey: ["review-cards", cardId, "history"],
     queryFn: () => getReviewHistory(session?.accessToken, cardId),
@@ -40,7 +40,7 @@ export function useReviewHistory(cardId: number) {
 }
 
 export function useEnrollReview() {
-  const { data: session } = useSession()
+  const { session } = useAuth()
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (problemId: number) =>
@@ -53,7 +53,7 @@ export function useEnrollReview() {
 }
 
 export function useRemoveReview() {
-  const { data: session } = useSession()
+  const { session } = useAuth()
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (cardId: number) =>
@@ -66,7 +66,7 @@ export function useRemoveReview() {
 }
 
 export function useQuickReview() {
-  const { data: session } = useSession()
+  const { session } = useAuth()
   const qc = useQueryClient()
   return useMutation({
     mutationFn: ({ cardId, rating }: { cardId: number; rating: Rating }) =>

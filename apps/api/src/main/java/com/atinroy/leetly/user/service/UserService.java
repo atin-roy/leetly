@@ -28,9 +28,9 @@ public class UserService {
     private final UserProfileRepository userProfileRepository;
 
     @Transactional(readOnly = true)
-    public User findByKeycloakId(String keycloakId) {
-        return userRepository.findByKeycloakId(keycloakId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + keycloakId));
+    public User findBySubjectId(String subjectId) {
+        return userRepository.findBySubjectId(subjectId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + subjectId));
     }
 
     @Transactional(readOnly = true)
@@ -39,21 +39,29 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + id));
     }
 
-    public User getOrCreate(String keycloakId) {
-        return userRepository.findByKeycloakId(keycloakId)
-                .orElseGet(() -> createUser(keycloakId));
+    /**
+     * Resolves the user a token belongs to. Accounts are created only by
+     * registration, so a subject with no row is an authentication failure
+     * rather than a reason to provision a new account.
+     */
+    @Transactional(readOnly = true)
+    public User requireBySubject(String subjectId) {
+        return userRepository.findBySubjectId(subjectId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + subjectId));
     }
 
-    public User getOrCreate(Jwt jwt) {
-        User user = userRepository.findByKeycloakId(jwt.getSubject())
-                .orElseGet(() -> createUser(jwt.getSubject()));
-        syncIdentity(user, jwt);
-        return user;
+    @Transactional(readOnly = true)
+    public User requireBySubject(Jwt jwt) {
+        return requireBySubject(jwt.getSubject());
     }
 
-    private User createUser(String keycloakId) {
+    /** Creates a user together with the rows every account is expected to have. */
+    public User provision(String subjectId, String email, String username, String passwordHash) {
         User user = new User();
-        user.setKeycloakId(keycloakId);
+        user.setSubjectId(subjectId);
+        user.setEmail(email);
+        user.setUsername(username);
+        user.setPasswordHash(passwordHash);
         user = userRepository.save(user);
 
         UserSettings settings = new UserSettings();
@@ -75,34 +83,5 @@ public class UserService {
         userProfileRepository.save(profile);
 
         return user;
-    }
-
-    private void syncIdentity(User user, Jwt jwt) {
-        boolean changed = false;
-
-        String username = blankToNull(jwt.getClaimAsString("preferred_username"));
-        if (!equalsOrNull(user.getUsername(), username)) {
-            user.setUsername(username);
-            changed = true;
-        }
-
-        String email = blankToNull(jwt.getClaimAsString("email"));
-        if (!equalsOrNull(user.getEmail(), email)) {
-            user.setEmail(email);
-            changed = true;
-        }
-
-        if (changed) {
-            userRepository.save(user);
-        }
-    }
-
-    private boolean equalsOrNull(String left, String right) {
-        if (left == null) return right == null;
-        return left.equals(right);
-    }
-
-    private String blankToNull(String value) {
-        return value == null || value.isBlank() ? null : value.trim();
     }
 }

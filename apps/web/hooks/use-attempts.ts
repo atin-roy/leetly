@@ -1,7 +1,7 @@
 "use client"
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { useSession } from "next-auth/react"
+import { useAuth } from "@/components/auth-provider"
 import {
   deleteAttempt,
   getAttempts,
@@ -12,7 +12,7 @@ import {
 import type { LogAttemptRequest, UpdateAttemptRequest } from "@/lib/types"
 
 export function useAttempts(problemId: number) {
-  const { data: session } = useSession()
+  const { session } = useAuth()
   return useQuery({
     queryKey: ["attempts", problemId],
     queryFn: () => getAttempts(session?.accessToken, problemId),
@@ -21,7 +21,7 @@ export function useAttempts(problemId: number) {
 }
 
 export function useMistakeOptions() {
-  const { data: session } = useSession()
+  const { session } = useAuth()
   return useQuery({
     queryKey: ["mistakes"],
     queryFn: () => getMistakes(session?.accessToken),
@@ -31,7 +31,7 @@ export function useMistakeOptions() {
 }
 
 export function useLogAttempt(problemId: number) {
-  const { data: session } = useSession()
+  const { session } = useAuth()
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (body: LogAttemptRequest) =>
@@ -46,7 +46,7 @@ export function useLogAttempt(problemId: number) {
 }
 
 export function useUpdateAttempt(problemId: number) {
-  const { data: session } = useSession()
+  const { session } = useAuth()
   const qc = useQueryClient()
   return useMutation({
     mutationFn: ({
@@ -66,7 +66,7 @@ export function useUpdateAttempt(problemId: number) {
 }
 
 export function useDeleteAttempt(problemId: number) {
-  const { data: session } = useSession()
+  const { session } = useAuth()
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (attemptId: number) =>

@@ -1,7 +1,7 @@
 "use client"
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { useSession } from "next-auth/react"
+import { useAuth } from "@/components/auth-provider"
 import {
   addProblemToList,
   createProblemList,
@@ -14,7 +14,7 @@ import {
 import type { CreateListRequest, PagedResponse, ProblemFilters, ProblemSummaryDto } from "@/lib/types"
 
 export function useProblemLists() {
-  const { data: session } = useSession()
+  const { session } = useAuth()
   return useQuery({
     queryKey: ["lists"],
     queryFn: () => getProblemLists(session?.accessToken),
@@ -23,7 +23,7 @@ export function useProblemLists() {
 }
 
 export function useProblemList(id: number) {
-  const { data: session } = useSession()
+  const { session } = useAuth()
   return useQuery({
     queryKey: ["lists", id],
     queryFn: () => getProblemList(session?.accessToken, id),
@@ -45,7 +45,7 @@ function normalizeFilters(filters?: ProblemFilters): ProblemFilters {
 }
 
 export function useProblemListProblems(id: number, filters?: ProblemFilters) {
-  const { data: session } = useSession()
+  const { session } = useAuth()
   const normalized = normalizeFilters(filters)
 
   return useQuery({
@@ -69,7 +69,7 @@ export function useProblemListProblems(id: number, filters?: ProblemFilters) {
 }
 
 export function useCreateList() {
-  const { data: session } = useSession()
+  const { session } = useAuth()
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (body: CreateListRequest) =>
@@ -79,7 +79,7 @@ export function useCreateList() {
 }
 
 export function useDeleteList() {
-  const { data: session } = useSession()
+  const { session } = useAuth()
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (id: number) => deleteProblemList(session?.accessToken, id),
@@ -88,7 +88,7 @@ export function useDeleteList() {
 }
 
 export function useAddProblemToList() {
-  const { data: session } = useSession()
+  const { session } = useAuth()
   const qc = useQueryClient()
   return useMutation({
     mutationFn: ({
@@ -106,7 +106,7 @@ export function useAddProblemToList() {
 }
 
 export function useRemoveProblemFromList() {
-  const { data: session } = useSession()
+  const { session } = useAuth()
   const qc = useQueryClient()
   return useMutation({
     mutationFn: ({

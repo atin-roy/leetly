@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { Check, Copy } from "lucide-react"
-import { useSession } from "next-auth/react"
+import { useAuth } from "@/components/auth-provider"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { getNotes, getProblem, getProblemLists } from "@/lib/api"
@@ -41,7 +41,7 @@ export function CopyProblemButton({
   label = "Copy details",
   title = "Copy full problem details",
 }: Props) {
-  const { data: session } = useSession()
+  const { session } = useAuth()
   const [isCopying, setIsCopying] = useState(false)
   const [copied, setCopied] = useState(false)
 

@@ -28,7 +28,7 @@ public class StatsController {
 
     @GetMapping
     public UserStatsDto getStats(@AuthenticationPrincipal Jwt jwt) {
-        User user = userService.getOrCreate(jwt.getSubject());
+        User user = userService.requireBySubject(jwt.getSubject());
         return userStatsMapper.toDto(statsService.getByUser(user));
     }
 
@@ -38,7 +38,7 @@ public class StatsController {
                                              @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
                                              @RequestParam(required = false)
                                              @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
-        User user = userService.getOrCreate(jwt.getSubject());
+        User user = userService.requireBySubject(jwt.getSubject());
         LocalDate endDate = to != null ? to : LocalDate.now();
         LocalDate startDate = from != null
                 ? from

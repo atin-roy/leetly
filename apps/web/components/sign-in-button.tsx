@@ -1,9 +1,8 @@
-"use client"
-
-import { signInWithKeycloak } from "@/lib/sign-in-action"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 
 interface SignInButtonProps {
+    href?: string
     variant?: "default" | "ghost" | "outline" | "secondary" | "destructive" | "link"
     size?: "default" | "sm" | "lg" | "icon"
     className?: string
@@ -11,16 +10,15 @@ interface SignInButtonProps {
 }
 
 export function SignInButton({
+    href = "/sign-in",
     variant = "default",
     size = "default",
     className,
     children,
 }: SignInButtonProps) {
     return (
-        <form action={() => signInWithKeycloak()}>
-            <Button type="submit" variant={variant} size={size} className={className}>
-                {children}
-            </Button>
-        </form>
+        <Button asChild variant={variant} size={size} className={className}>
+            <Link href={href}>{children}</Link>
+        </Button>
     )
 }

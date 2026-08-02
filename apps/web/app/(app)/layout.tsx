@@ -1,6 +1,7 @@
-import { auth } from "@/lib/auth"
+import { AppProviders } from "@/components/app-providers"
 import { AppSidebar } from "@/components/layout/app-sidebar"
 import { SidebarProvider } from "@/components/layout/sidebar-context"
+import { resolveSession } from "@/lib/session"
 import { redirect } from "next/navigation"
 
 export default async function AppLayout({
@@ -8,17 +9,19 @@ export default async function AppLayout({
 }: {
   children: React.ReactNode
 }) {
-  const session = await auth()
-  if (!session || session.error === "RefreshTokenError") redirect("/sign-in")
+  const session = await resolveSession()
+  if (!session) redirect("/sign-in")
 
   return (
-    <SidebarProvider>
-      <div className="flex h-svh flex-col overflow-hidden md:flex-row">
-        <AppSidebar />
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-          <main className="aesthetic-background min-h-0 flex-1 overflow-y-auto p-4 sm:p-5 md:p-6">{children}</main>
+    <AppProviders session={session}>
+      <SidebarProvider>
+        <div className="flex h-svh flex-col overflow-hidden md:flex-row">
+          <AppSidebar />
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+            <main className="aesthetic-background min-h-0 flex-1 overflow-y-auto p-4 sm:p-5 md:p-6">{children}</main>
+          </div>
         </div>
-      </div>
-    </SidebarProvider>
+      </SidebarProvider>
+    </AppProviders>
   )
 }

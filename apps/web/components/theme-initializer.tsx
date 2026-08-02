@@ -1,13 +1,13 @@
 "use client"
 
 import { useEffect } from "react"
-import { useSession } from "next-auth/react"
+import { useAuth } from "@/components/auth-provider"
 import { getUserSettings } from "@/lib/api"
 import { THEMES, THEME_STORAGE_KEY, type ThemeId } from "@/lib/themes"
 
 /** Reads saved theme from localStorage and applies it before first paint. */
 export function ThemeInitializer() {
-  const { data: session } = useSession()
+  const { session } = useAuth()
 
   useEffect(() => {
     const userKey = session?.user?.email?.toLowerCase() ?? null

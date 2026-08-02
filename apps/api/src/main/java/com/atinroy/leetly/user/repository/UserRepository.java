@@ -14,7 +14,9 @@ import java.util.Optional;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
 
-    Optional<User> findByKeycloakId(String keycloakId);
+    Optional<User> findBySubjectId(String subjectId);
+
+    Optional<User> findByEmailIgnoreCase(String email);
 
     @EntityGraph(attributePaths = {"profile"})
     Optional<User> findWithProfileById(Long id);
@@ -31,7 +33,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
               )
             order by
               case when p.displayName is null or p.displayName = '' then 1 else 0 end,
-              lower(coalesce(p.displayName, u.username, u.keycloakId)) asc
+              lower(coalesce(p.displayName, u.username, u.subjectId)) asc
             """)
     Page<User> searchForDirectory(@Param("viewerId") Long viewerId, @Param("search") String search, Pageable pageable);
 }

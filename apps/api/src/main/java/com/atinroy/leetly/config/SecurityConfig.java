@@ -20,13 +20,13 @@ import java.util.List;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private final KeycloakJwtAuthenticationConverter keycloakJwtConverter;
+    private final LeetlyJwtAuthenticationConverter jwtConverter;
     private final List<String> allowedOriginPatterns;
 
     public SecurityConfig(
-            KeycloakJwtAuthenticationConverter keycloakJwtConverter,
+            LeetlyJwtAuthenticationConverter jwtConverter,
             @Value("${app.cors.allowed-origins:http://localhost:3000,https://leetly.atinroy.com}") String allowedOrigins) {
-        this.keycloakJwtConverter = keycloakJwtConverter;
+        this.jwtConverter = jwtConverter;
         this.allowedOriginPatterns = Arrays.stream(allowedOrigins.split(","))
                 .map(String::trim)
                 .filter(origin -> !origin.isEmpty())
@@ -42,6 +42,12 @@ public class SecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers(
+                                "/api/auth/register",
+                                "/api/auth/login",
+                                "/api/auth/refresh",
+                                "/api/auth/logout"
+                        ).permitAll()
                         .requestMatchers(
                                 HttpMethod.POST,
                                 "/api/topics/**",
@@ -74,7 +80,7 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 ->
-                        oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(keycloakJwtConverter)));
+                        oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtConverter)));
         return http.build();
     }
 

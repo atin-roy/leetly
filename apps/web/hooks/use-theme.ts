@@ -1,12 +1,12 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { useSession } from "next-auth/react"
+import { useAuth } from "@/components/auth-provider"
 import { updateUserTheme } from "@/lib/api"
 import { THEMES, THEME_STORAGE_KEY, type ThemeId } from "@/lib/themes"
 
 export function useTheme() {
-  const { data: session } = useSession()
+  const { session } = useAuth()
   const userKey = useMemo(() => session?.user?.email?.toLowerCase() ?? null, [session])
 
   const [themeId, setThemeIdState] = useState<ThemeId>(() => {

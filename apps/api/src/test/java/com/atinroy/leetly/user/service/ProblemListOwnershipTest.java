@@ -1,7 +1,8 @@
 package com.atinroy.leetly.user.service;
 
 import com.atinroy.leetly.common.exception.ResourceNotFoundException;
-import com.atinroy.leetly.config.KeycloakJwtAuthenticationConverter;
+import com.atinroy.leetly.config.LeetlyJwtAuthenticationConverter;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import com.atinroy.leetly.config.SecurityConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +36,10 @@ class ProblemListOwnershipTest {
 
     // Required by SecurityConfig constructor; bypassed by jwt() post-processor
     @MockitoBean
-    KeycloakJwtAuthenticationConverter keycloakJwtAuthenticationConverter;
+    LeetlyJwtAuthenticationConverter jwtAuthenticationConverter;
+
+    @MockitoBean
+    JwtDecoder jwtDecoder;
 
     @MockitoBean
     UserService userService;
@@ -52,7 +56,7 @@ class ProblemListOwnershipTest {
     @Test
     void getById_returns404WhenListBelongsToAnotherUser() throws Exception {
         User alice = userWithId(1L);
-        when(userService.getOrCreate("alice")).thenReturn(alice);
+        when(userService.requireBySubject("alice")).thenReturn(alice);
         when(problemListService.findByIdAndUser(99L, alice))
                 .thenThrow(new ResourceNotFoundException("ProblemList not found: 99"));
 
@@ -64,7 +68,7 @@ class ProblemListOwnershipTest {
     @Test
     void delete_returns404WhenListBelongsToAnotherUser() throws Exception {
         User alice = userWithId(1L);
-        when(userService.getOrCreate("alice")).thenReturn(alice);
+        when(userService.requireBySubject("alice")).thenReturn(alice);
         doThrow(new ResourceNotFoundException("ProblemList not found: 42"))
                 .when(problemListService).delete(42L, alice);
 

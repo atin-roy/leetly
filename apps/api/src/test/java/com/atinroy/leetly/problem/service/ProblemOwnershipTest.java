@@ -1,7 +1,8 @@
 package com.atinroy.leetly.problem.service;
 
 import com.atinroy.leetly.common.exception.ResourceNotFoundException;
-import com.atinroy.leetly.config.KeycloakJwtAuthenticationConverter;
+import com.atinroy.leetly.config.LeetlyJwtAuthenticationConverter;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import com.atinroy.leetly.config.SecurityConfig;
 import com.atinroy.leetly.user.model.User;
 import com.atinroy.leetly.user.service.UserService;
@@ -33,7 +34,10 @@ class ProblemOwnershipTest {
     MockMvc mvc;
 
     @MockitoBean
-    KeycloakJwtAuthenticationConverter keycloakJwtAuthenticationConverter;
+    LeetlyJwtAuthenticationConverter jwtAuthenticationConverter;
+
+    @MockitoBean
+    JwtDecoder jwtDecoder;
 
     @MockitoBean
     UserService userService;
@@ -50,7 +54,7 @@ class ProblemOwnershipTest {
     @Test
     void getById_returns404WhenProblemBelongsToAnotherUser() throws Exception {
         User alice = userWithId(1L);
-        when(userService.getOrCreate("alice")).thenReturn(alice);
+        when(userService.requireBySubject("alice")).thenReturn(alice);
         when(problemService.findDetailById(99L, alice))
                 .thenThrow(new ResourceNotFoundException("Problem not found: 99"));
 

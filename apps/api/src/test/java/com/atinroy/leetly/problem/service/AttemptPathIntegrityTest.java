@@ -1,7 +1,8 @@
 package com.atinroy.leetly.problem.service;
 
 import com.atinroy.leetly.common.exception.ResourceNotFoundException;
-import com.atinroy.leetly.config.KeycloakJwtAuthenticationConverter;
+import com.atinroy.leetly.config.LeetlyJwtAuthenticationConverter;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import com.atinroy.leetly.config.SecurityConfig;
 import com.atinroy.leetly.user.model.User;
 import com.atinroy.leetly.user.service.UserService;
@@ -34,7 +35,10 @@ class AttemptPathIntegrityTest {
     MockMvc mvc;
 
     @MockitoBean
-    KeycloakJwtAuthenticationConverter keycloakJwtAuthenticationConverter;
+    LeetlyJwtAuthenticationConverter jwtAuthenticationConverter;
+
+    @MockitoBean
+    JwtDecoder jwtDecoder;
 
     @MockitoBean
     AttemptService attemptService;
@@ -48,7 +52,7 @@ class AttemptPathIntegrityTest {
     @Test
     void getById_returns404WhenAttemptBelongsToDifferentProblem() throws Exception {
         User user = userWithId(1L);
-        when(userService.getOrCreate("user")).thenReturn(user);
+        when(userService.requireBySubject("user")).thenReturn(user);
 
         // Attempt 5 belongs to problem 2, not problem 1
         when(attemptService.findByIdAndProblem(5L, 1L, user))
@@ -68,7 +72,7 @@ class AttemptPathIntegrityTest {
     @Test
     void getById_returns200WhenAttemptMatchesProblem() throws Exception {
         User user = userWithId(1L);
-        when(userService.getOrCreate("user")).thenReturn(user);
+        when(userService.requireBySubject("user")).thenReturn(user);
 
         Attempt attempt = new Attempt();
         AttemptDto dto = new AttemptDto(

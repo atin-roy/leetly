@@ -1,7 +1,7 @@
 "use client"
 
 import { type ChangeEvent, type ReactNode, useEffect, useState } from "react"
-import { useSession, signOut } from "next-auth/react"
+import { useAuth } from "@/components/auth-provider"
 import { useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -487,13 +487,13 @@ function ProfileSection({
   form: ReturnType<typeof useForm<ProfileFormValues>>
   isLoading: boolean
 }) {
-  const { data: session } = useSession()
+  const { session } = useAuth()
   if (!session) return null
 
-  const name = session.user?.name ?? ""
+  const name = session.user?.username ?? ""
   const email = session.user?.email ?? ""
   const uploadedAvatar = form.watch("avatarDataUrl")
-  const image = uploadedAvatar || session.user?.image || undefined
+  const image = uploadedAvatar || undefined
   const visibleCount = visibilityFields.filter(({ name: fieldName }) => form.watch(fieldName)).length
 
   async function handleAvatarChange(event: ChangeEvent<HTMLInputElement>) {
@@ -1061,7 +1061,7 @@ function AppearanceSection({
 }
 
 export default function AccountPage() {
-  const { data: session } = useSession()
+  const { session, signOut } = useAuth()
   const { data: profile, isLoading: isProfileLoading } = useProfile()
   const { data: settings, isPending: isSettingsLoading, refetch } = useSettings()
   const { mutateAsync: updateProfile, isPending: isProfileSaving } = useUpdateProfile()
@@ -1301,7 +1301,7 @@ export default function AccountPage() {
           <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
             Signing out returns you to the home page. Saved profile and settings changes remain attached to your account.
           </p>
-          <Button variant="destructive" onClick={() => signOut({ callbackUrl: "/" })}>
+          <Button variant="destructive" onClick={() => void signOut()}>
             <LogOut className="h-4 w-4" />
             Sign Out
           </Button>

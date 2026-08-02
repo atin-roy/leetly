@@ -1,12 +1,12 @@
 "use client"
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { useSession } from "next-auth/react"
+import { useAuth } from "@/components/auth-provider"
 import { getUserProfile, updateUserProfile } from "@/lib/api"
 import type { UpdateProfileRequest } from "@/lib/types"
 
 export function useProfile() {
-  const { data: session } = useSession()
+  const { session } = useAuth()
   return useQuery({
     queryKey: ["profile"],
     queryFn: () => getUserProfile(session?.accessToken),
@@ -15,7 +15,7 @@ export function useProfile() {
 }
 
 export function useUpdateProfile() {
-  const { data: session } = useSession()
+  const { session } = useAuth()
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (body: UpdateProfileRequest) =>

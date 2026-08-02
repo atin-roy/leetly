@@ -1,11 +1,11 @@
 "use client"
 
 import { useQuery } from "@tanstack/react-query"
-import { useSession } from "next-auth/react"
+import { useAuth } from "@/components/auth-provider"
 import { getDailyStats, getUserStats } from "@/lib/api"
 
 export function useUserStats() {
-  const { data: session } = useSession()
+  const { session } = useAuth()
   return useQuery({
     queryKey: ["stats", "user"],
     queryFn: () => getUserStats(session?.accessToken),
@@ -14,7 +14,7 @@ export function useUserStats() {
 }
 
 export function useDailyStats(days?: number) {
-  const { data: session } = useSession()
+  const { session } = useAuth()
   return useQuery({
     queryKey: ["stats", "daily", days ?? "all"],
     queryFn: () => getDailyStats(session?.accessToken, days),

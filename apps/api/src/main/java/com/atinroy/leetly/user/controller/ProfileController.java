@@ -23,14 +23,14 @@ public class ProfileController {
 
     @GetMapping
     public UserProfileDto get(@AuthenticationPrincipal Jwt jwt) {
-        User user = userService.getOrCreate(jwt.getSubject());
+        User user = userService.requireBySubject(jwt.getSubject());
         return userProfileMapper.toDto(userProfileService.getByUser(user));
     }
 
     @PutMapping
     public UserProfileDto update(@AuthenticationPrincipal Jwt jwt,
                                  @Valid @RequestBody UpdateProfileRequest request) {
-        User user = userService.getOrCreate(jwt.getSubject());
+        User user = userService.requireBySubject(jwt.getSubject());
         return userProfileMapper.toDto(userProfileService.update(user, request));
     }
 }

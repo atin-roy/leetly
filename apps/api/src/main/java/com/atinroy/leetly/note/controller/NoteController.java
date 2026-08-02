@@ -36,7 +36,7 @@ public class NoteController {
             @RequestParam(required = false) Long problemId,
             @RequestParam(required = false) NoteTag tag,
             @PageableDefault(size = 20, sort = "dateTime", direction = Sort.Direction.DESC) Pageable pageable) {
-        User user = userService.getOrCreate(jwt.getSubject());
+        User user = userService.requireBySubject(jwt.getSubject());
         if (problemId != null) {
             List<NoteDto> notes = noteService.findByProblem(problemId, user).stream().map(noteMapper::toDto).toList();
             return new PagedResponse<>(notes, 0, notes.size(), notes.size(), 1);
@@ -50,27 +50,27 @@ public class NoteController {
 
     @GetMapping("/{id}")
     public NoteDto findById(@AuthenticationPrincipal Jwt jwt, @PathVariable long id) {
-        User user = userService.getOrCreate(jwt.getSubject());
+        User user = userService.requireBySubject(jwt.getSubject());
         return noteMapper.toDto(noteService.findById(id, user));
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public NoteDto create(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody CreateNoteRequest request) {
-        User user = userService.getOrCreate(jwt.getSubject());
+        User user = userService.requireBySubject(jwt.getSubject());
         return noteMapper.toDto(noteService.create(user, request.problemId(), request.tag(), request.title(), request.content()));
     }
 
     @PatchMapping("/{id}")
     public NoteDto update(@AuthenticationPrincipal Jwt jwt, @PathVariable long id, @Valid @RequestBody UpdateNoteRequest request) {
-        User user = userService.getOrCreate(jwt.getSubject());
+        User user = userService.requireBySubject(jwt.getSubject());
         return noteMapper.toDto(noteService.update(id, user, request.tag(), request.title(), request.content()));
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@AuthenticationPrincipal Jwt jwt, @PathVariable long id) {
-        User user = userService.getOrCreate(jwt.getSubject());
+        User user = userService.requireBySubject(jwt.getSubject());
         noteService.delete(id, user);
     }
 }

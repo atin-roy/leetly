@@ -30,20 +30,20 @@ public class PublicUserController {
             @RequestParam(required = false) String search,
             @PageableDefault(size = 24) Pageable pageable
     ) {
-        User viewer = userService.getOrCreate(jwt);
+        User viewer = userService.requireBySubject(jwt);
         return PagedResponse.of(friendshipService.discoverUsers(viewer, search, pageable));
     }
 
     @GetMapping("/{id}/profile")
     public PublicUserProfileDto getProfile(@AuthenticationPrincipal Jwt jwt, @PathVariable long id) {
-        User viewer = userService.getOrCreate(jwt);
+        User viewer = userService.requireBySubject(jwt);
         return publicProfileService.getProfile(viewer, id);
     }
 
     @PostMapping("/{id}/friend-requests")
     @ResponseStatus(HttpStatus.CREATED)
     public SocialUserDto sendFriendRequest(@AuthenticationPrincipal Jwt jwt, @PathVariable long id) {
-        User viewer = userService.getOrCreate(jwt);
+        User viewer = userService.requireBySubject(jwt);
         friendshipService.sendRequest(viewer, id);
         User subject = userService.findById(id);
         FriendshipService.FriendshipView view = friendshipService.getFriendshipView(viewer, subject);

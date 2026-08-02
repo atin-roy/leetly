@@ -13,12 +13,16 @@ import java.util.List;
 @Entity
 @Table(name = "users",
         indexes = {
-                @Index(name = "idx_user_keycloak_id", columnList = "keycloakId", unique = true)
+                @Index(name = "idx_user_subject_id", columnList = "subjectId", unique = true)
         })
 public class User extends BaseEntity {
 
+    /** Token subject. Carried over from the Keycloak user id at migration. */
     @Column(nullable = false, unique = true)
-    private String keycloakId;
+    private String subjectId;
+
+    @Column(length = 255)
+    private String passwordHash;
 
     @Column(length = 100)
     private String username;

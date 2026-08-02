@@ -20,35 +20,35 @@ public class FriendshipController {
 
     @GetMapping
     public FriendOverviewDto getOverview(@AuthenticationPrincipal Jwt jwt) {
-        User viewer = userService.getOrCreate(jwt);
+        User viewer = userService.requireBySubject(jwt);
         return friendshipService.getOverview(viewer);
     }
 
     @PostMapping("/requests/{id}/accept")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void accept(@AuthenticationPrincipal Jwt jwt, @PathVariable long id) {
-        User viewer = userService.getOrCreate(jwt);
+        User viewer = userService.requireBySubject(jwt);
         friendshipService.acceptRequest(viewer, id);
     }
 
     @PostMapping("/requests/{id}/decline")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void decline(@AuthenticationPrincipal Jwt jwt, @PathVariable long id) {
-        User viewer = userService.getOrCreate(jwt);
+        User viewer = userService.requireBySubject(jwt);
         friendshipService.declineRequest(viewer, id);
     }
 
     @DeleteMapping("/requests/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void cancel(@AuthenticationPrincipal Jwt jwt, @PathVariable long id) {
-        User viewer = userService.getOrCreate(jwt);
+        User viewer = userService.requireBySubject(jwt);
         friendshipService.cancelOutgoingRequest(viewer, id);
     }
 
     @DeleteMapping("/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void unfriend(@AuthenticationPrincipal Jwt jwt, @PathVariable long userId) {
-        User viewer = userService.getOrCreate(jwt);
+        User viewer = userService.requireBySubject(jwt);
         friendshipService.unfriend(viewer, userId);
     }
 }
