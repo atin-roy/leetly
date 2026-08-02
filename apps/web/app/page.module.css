@@ -1,0 +1,392 @@
+.page {
+  min-height: 100svh;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-body);
+}
+
+/* ── Navigation ──────────────────────────────────────────────────────────── */
+
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  border-bottom: var(--rule);
+  background: color-mix(in oklch, var(--background) 88%, transparent);
+  backdrop-filter: blur(12px);
+}
+
+.navInner {
+  margin-inline: auto;
+  display: flex;
+  max-width: var(--page-max);
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding: var(--space-sm) var(--space-md);
+}
+
+.wordmark {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.15em;
+  font-family: var(--font-display);
+  font-size: var(--step-1);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: var(--foreground);
+  text-decoration: none;
+}
+
+/* The trailing mark reads as a cursor sitting in a notebook margin. */
+.wordmarkMark {
+  width: 0.42em;
+  height: 0.42em;
+  border-radius: 1px;
+  background: var(--primary);
+}
+
+.navActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.navLink {
+  display: none;
+  font-size: var(--step--1);
+  color: var(--muted-foreground);
+  text-decoration: none;
+  padding: var(--space-2xs) var(--space-xs);
+  border-radius: 0.375rem;
+}
+
+.navLink:hover {
+  color: var(--foreground);
+}
+
+@media (min-width: 40rem) {
+  .navLink {
+    display: inline-flex;
+  }
+}
+
+/* ── Hero ────────────────────────────────────────────────────────────────── */
+
+.hero {
+  margin-inline: auto;
+  max-width: var(--page-max);
+  padding: var(--space-2xl) var(--space-md) var(--space-xl);
+}
+
+@media (min-width: 60rem) {
+  .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+    gap: var(--space-2xl);
+    align-items: center;
+    padding-block: var(--space-3xl) var(--space-2xl);
+  }
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-family: var(--font-data);
+  font-size: var(--step--1);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+.eyebrowRule {
+  display: block;
+  width: 2rem;
+  height: 1px;
+  background: var(--primary);
+}
+
+.title {
+  margin-block: var(--space-md) 0;
+  font-family: var(--font-display);
+  font-size: var(--step-4);
+  font-weight: 600;
+  line-height: 1.04;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+.titleAccent {
+  color: var(--primary);
+}
+
+.lede {
+  margin-block: var(--space-md) 0;
+  max-width: 46ch;
+  font-size: var(--step-1);
+  line-height: 1.55;
+  color: var(--muted-foreground);
+  text-wrap: pretty;
+}
+
+.ctaRow {
+  margin-top: var(--space-lg);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.note {
+  margin-top: var(--space-md);
+  font-size: var(--step--1);
+  color: var(--muted-foreground);
+}
+
+/* ── Signature: the worked-problem card ──────────────────────────────────── */
+
+/*
+ * The one bold element on the page. It shows a single problem the way the app
+ * records it — a call number, ruled attempt rows, and the outcome of each try —
+ * so the hero demonstrates the product rather than describing it.
+ */
+.ledger {
+  margin-top: var(--space-xl);
+  border: var(--rule);
+  border-radius: 0.75rem;
+  background: var(--card);
+  box-shadow: var(--shadow-raised);
+  overflow: hidden;
+}
+
+@media (min-width: 60rem) {
+  .ledger {
+    margin-top: 0;
+  }
+}
+
+.ledgerHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  border-bottom: var(--rule);
+}
+
+.callNumber {
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--step--1);
+  color: var(--primary);
+}
+
+.ledgerTitle {
+  font-family: var(--font-display);
+  font-size: var(--step-1);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.difficulty {
+  font-family: var(--font-data);
+  font-size: var(--step--1);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted-foreground);
+}
+
+/* Ruled rows: the hairline appears only where work is actually recorded. */
+.attemptRow {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  border-bottom: var(--rule);
+  font-size: var(--step-0);
+}
+
+.attemptRow:last-child {
+  border-bottom: 0;
+}
+
+.attemptIndex {
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--step--1);
+  color: var(--muted-foreground);
+}
+
+.attemptNote {
+  color: var(--muted-foreground);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.outcome {
+  font-family: var(--font-data);
+  font-size: var(--step--1);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.outcomeFail {
+  color: var(--destructive);
+}
+
+.outcomePass {
+  color: var(--primary);
+}
+
+.ledgerFoot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  border-top: var(--rule);
+  background: color-mix(in oklch, var(--muted) 45%, transparent);
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.statValue {
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--step-1);
+  font-weight: 600;
+}
+
+.statLabel {
+  font-size: var(--step--1);
+  color: var(--muted-foreground);
+}
+
+/* ── Features ────────────────────────────────────────────────────────────── */
+
+.section {
+  margin-inline: auto;
+  max-width: var(--page-max);
+  padding: var(--space-xl) var(--space-md);
+}
+
+.sectionTitle {
+  font-family: var(--font-display);
+  font-size: var(--step-3);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  margin: 0;
+  text-wrap: balance;
+}
+
+.sectionLede {
+  margin-block: var(--space-xs) var(--space-lg);
+  max-width: var(--measure);
+  color: var(--muted-foreground);
+  font-size: var(--step-0);
+}
+
+.featureGrid {
+  display: grid;
+  gap: var(--space-md);
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 40rem) {
+  .featureGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 64rem) {
+  .featureGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.feature {
+  border: var(--rule);
+  border-radius: 0.75rem;
+  background: var(--card);
+  padding: var(--space-lg);
+}
+
+.featureIcon {
+  display: inline-flex;
+  width: 2.25rem;
+  height: 2.25rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  background: color-mix(in oklch, var(--primary) 12%, transparent);
+  color: var(--primary);
+}
+
+.featureTitle {
+  margin-block: var(--space-sm) var(--space-2xs);
+  font-family: var(--font-display);
+  font-size: var(--step-1);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.featureBody {
+  margin: 0;
+  color: var(--muted-foreground);
+  font-size: var(--step-0);
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+/* ── Closing ─────────────────────────────────────────────────────────────── */
+
+.closing {
+  margin-inline: auto;
+  max-width: var(--page-max);
+  padding: var(--space-xl) var(--space-md) var(--space-2xl);
+  text-align: center;
+}
+
+.footer {
+  border-top: var(--rule);
+}
+
+.footerInner {
+  margin-inline: auto;
+  display: flex;
+  max-width: var(--page-max);
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: var(--space-lg) var(--space-md);
+  font-size: var(--step--1);
+  color: var(--muted-foreground);
+}
+
+.footerLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+}
+
+.footerLink {
+  color: inherit;
+  text-decoration: none;
+}
+
+.footerLink:hover {
+  color: var(--foreground);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+:where(.page a:focus-visible, .page button:focus-visible) {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  border-radius: 0.25rem;
+}

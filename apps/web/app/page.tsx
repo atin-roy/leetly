@@ -1,239 +1,216 @@
-import { auth } from "@/lib/auth"
 import Link from "next/link"
-import Image from "next/image"
 import { redirect } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { SignInButton } from "@/components/sign-in-button"
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import {
-  BookOpen,
   BarChart3,
   Brain,
   FileText,
-  List,
   Github,
-  ArrowRight,
-  TrendingUp,
+  List,
   Target,
-  UserPlus,
+  TrendingUp,
 } from "lucide-react"
+import { readRefreshCookie } from "@/lib/session"
+import { Button } from "@/components/ui/button"
+import styles from "./page.module.css"
 
-// Update this when the repo is public
 const GITHUB_URL = "https://github.com/atin-roy/leetly"
 
 const features = [
   {
     icon: TrendingUp,
-    title: "Attempt Tracking",
+    title: "Every attempt, recorded",
     description:
-      "Log every attempt with outcome, language, time taken, and mistake categories. Never lose context on a problem again.",
-  },
-  {
-    icon: BarChart3,
-    title: "Analytics Dashboard",
-    description:
-      "Visualize your daily streaks, solve rates by difficulty, and progress over time with an activity heatmap.",
+      "Log the outcome, the language, the time it took, and what went wrong. Come back in three weeks and the context is still there.",
   },
   {
     icon: Brain,
-    title: "Pattern Recognition",
+    title: "Reviews that arrive on time",
     description:
-      "Tag problems by algorithmic patterns — dynamic programming, graphs, sliding window — and pinpoint exactly where you struggle.",
+      "Solved problems enter a spaced-repetition schedule. Leetly decides what is worth revisiting today so you do not have to guess.",
   },
   {
-    icon: FileText,
-    title: "Problem Notes",
+    icon: BarChart3,
+    title: "Progress you can read",
     description:
-      "Write structured notes per problem. Organize them by tag: learning, review, interview prep, or strategy.",
-  },
-  {
-    icon: List,
-    title: "Custom Lists",
-    description:
-      "Curate your own problem sets for interviews, company-specific prep, or focused topic drilling.",
+      "Daily streaks, solve rates by difficulty, and an activity heatmap — enough to see whether the last month actually moved.",
   },
   {
     icon: Target,
-    title: "Progress Mastery",
+    title: "Mistakes, categorised",
     description:
-      "Problems move from Unseen → Attempted → Solved → Mastered. Always know where you actually stand.",
+      "Tag why an attempt failed: off-by-one, wrong pattern, missed edge case. The pattern in your errors becomes visible.",
+  },
+  {
+    icon: List,
+    title: "Lists for real prep",
+    description:
+      "Group problems by topic, by company, or by whatever you are drilling this week. Track how much of each list is genuinely done.",
+  },
+  {
+    icon: FileText,
+    title: "Notes beside the work",
+    description:
+      "Markdown notes with syntax highlighting, attached to the problem they belong to instead of scattered across other apps.",
   },
 ]
 
+const attempts = [
+  { index: "01", note: "Brute force, two nested loops", outcome: "Time limit" },
+  { index: "02", note: "Sorted first — lost the original indices", outcome: "Wrong answer" },
+  { index: "03", note: "Hash map of complements", outcome: "Accepted" },
+]
+
 export default async function Home() {
-  const session = await auth()
-  if (session && session.error !== "RefreshTokenError") redirect("/dashboard")
+  if (await readRefreshCookie()) redirect("/dashboard")
 
   return (
-    <div className="aesthetic-background min-h-screen overflow-hidden text-foreground">
-      {/* Navigation */}
-      <nav className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
-          <div className="flex items-center gap-2.5 font-bold text-xl tracking-tight">
-            <BookOpen className="h-6 w-6" />
+    <div className={styles.page}>
+      <nav className={styles.nav}>
+        <div className={styles.navInner}>
+          <Link href="/" className={styles.wordmark}>
             Leetly
-          </div>
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" asChild>
-              <Link href={GITHUB_URL} target="_blank" rel="noopener noreferrer">
-                <Github className="mr-1.5 h-4 w-4" />
-                GitHub
-              </Link>
-            </Button>
-            {session ? (
-              <Button size="sm" asChild>
-                <Link href="/dashboard">Go to Dashboard</Link>
-              </Button>
-            ) : (
-              <>
-                <SignInButton variant="ghost" size="sm">
-                  Sign In
-                </SignInButton>
-                <SignInButton size="sm">
-                  <UserPlus className="mr-1.5 h-4 w-4" />
-                  Sign Up
-                </SignInButton>
-              </>
-            )}
-          </div>
-        </div>
-      </nav>
-
-      {/* Hero */}
-      <section className="relative isolate min-h-[calc(100svh-7rem)] px-6 py-20 text-center">
-        <Image
-          src="https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&fit=crop&w=2200&q=80"
-          alt=""
-          fill
-          priority
-          sizes="100vw"
-          className="absolute inset-0 -z-20 h-full w-full object-cover"
-        />
-        <div className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,color-mix(in_oklab,var(--background)_72%,transparent),var(--background)_94%),linear-gradient(90deg,color-mix(in_oklab,var(--primary)_26%,transparent),color-mix(in_oklab,var(--chart-2)_20%,transparent))]" />
-        <div className="mx-auto flex max-w-6xl flex-col items-center">
-          <Badge variant="secondary" className="mb-6 text-xs">
-            Free &amp; Open Source
-          </Badge>
-          <h1 className="mb-5 max-w-4xl text-5xl font-black leading-tight tracking-tight sm:text-7xl">
-            Turn practice into a system.
-          </h1>
-          <p className="mx-auto mb-10 max-w-2xl text-lg leading-relaxed text-muted-foreground sm:text-xl">
-            Log attempts, spot patterns, and build a sharper LeetCode routine
-            without subscriptions, ads, or tracking.
-          </p>
-          <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <SignInButton size="lg">
-              Get started free <ArrowRight className="ml-2 h-4 w-4" />
-            </SignInButton>
-            <Button variant="outline" size="lg" asChild>
-              <Link href={GITHUB_URL} target="_blank" rel="noopener noreferrer">
-                <Github className="mr-2 h-4 w-4" />
-                View on GitHub
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      {/* Features */}
-      <section className="border-y border-border/50 bg-background/55 py-20 backdrop-blur-sm">
-        <div className="mx-auto max-w-6xl px-6">
-          <div className="mb-14 text-center">
-            <h2 className="mb-3 text-3xl font-black tracking-tight">
-              Everything you need to improve
-            </h2>
-            <p className="mx-auto max-w-xl text-muted-foreground">
-              Built from the ground up to help you understand your weaknesses
-              and turn them into strengths.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {features.map((feature) => {
-              const Icon = feature.icon
-              return (
-                <Card
-                  key={feature.title}
-                  className="border-border/60 bg-card/75 transition-transform hover:-translate-y-1"
-                >
-                  <CardHeader className="pb-3">
-                    <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-md bg-primary/10">
-                      <Icon className="h-5 w-5 text-primary" />
-                    </div>
-                    <CardTitle className="text-base">{feature.title}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <CardDescription className="text-sm leading-relaxed">
-                      {feature.description}
-                    </CardDescription>
-                  </CardContent>
-                </Card>
-              )
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* Open source */}
-      <section className="mx-auto max-w-6xl px-6 py-24 text-center">
-        <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-xl bg-muted">
-          <Github className="h-7 w-7" />
-        </div>
-        <h2 className="mb-4 text-3xl font-black tracking-tight">
-          Fully open source, forever free
-        </h2>
-        <p className="mx-auto mb-8 max-w-xl leading-relaxed text-muted-foreground">
-          Leetly is MIT licensed. Self-host it on your own infrastructure,
-          extend it with custom features, or contribute back to the community.
-          No vendor lock-in, no paywalls.
-        </p>
-        <Button variant="outline" asChild>
-          <Link href={GITHUB_URL} target="_blank" rel="noopener noreferrer">
-            <Github className="mr-2 h-4 w-4" />
-            Star on GitHub
+            <span className={styles.wordmarkMark} aria-hidden="true" />
           </Link>
-        </Button>
-      </section>
-
-      {/* Footer */}
-      <footer className="border-t border-border/50 py-8">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-6 text-sm text-muted-foreground sm:flex-row">
-          <div className="flex items-center gap-2">
-            <BookOpen className="h-4 w-4" />
-            <span>Leetly — free &amp; open source</span>
-          </div>
-          <div className="flex items-center gap-4">
-            <Link
-              href="/about"
-              className="transition-colors hover:text-foreground"
-            >
+          <div className={styles.navActions}>
+            <Link href="/about" className={styles.navLink}>
               About
-            </Link>
-            <Link
-              href="/privacy"
-              className="transition-colors hover:text-foreground"
-            >
-              Privacy Policy
-            </Link>
-            <Link
-              href="/terms"
-              className="transition-colors hover:text-foreground"
-            >
-              Terms of Service
             </Link>
             <Link
               href={GITHUB_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="transition-colors hover:text-foreground"
+              className={styles.navLink}
             >
+              <Github size={14} aria-hidden="true" style={{ marginRight: "0.35rem" }} />
               GitHub
+            </Link>
+            <Button asChild variant="ghost" size="sm">
+              <Link href="/sign-in">Sign in</Link>
+            </Button>
+            <Button asChild size="sm">
+              <Link href="/sign-up">Get started</Link>
+            </Button>
+          </div>
+        </div>
+      </nav>
+
+      <header className={styles.hero}>
+        <div>
+          <p className={styles.eyebrow}>
+            <span className={styles.eyebrowRule} aria-hidden="true" />
+            Deliberate practice
+          </p>
+          <h1 className={styles.title}>
+            Solving it once is not
+            <br />
+            <span className={styles.titleAccent}>learning it.</span>
+          </h1>
+          <p className={styles.lede}>
+            Leetly keeps the record of how you actually solved a problem — every
+            attempt, every wrong turn, and when to come back to it.
+          </p>
+          <div className={styles.ctaRow}>
+            <Button asChild size="lg">
+              <Link href="/sign-up">Start tracking</Link>
+            </Button>
+            <Button asChild variant="outline" size="lg">
+              <Link href="/about">See how it works</Link>
+            </Button>
+          </div>
+          <p className={styles.note}>Free, and your data stays yours.</p>
+        </div>
+
+        {/* Signature element: one problem, shown the way the app records it. */}
+        <figure className={styles.ledger}>
+          <figcaption className={styles.ledgerHead}>
+            <div>
+              <span className={styles.callNumber}>#0001</span>
+              <div className={styles.ledgerTitle}>Two Sum</div>
+            </div>
+            <span className={styles.difficulty}>Easy</span>
+          </figcaption>
+
+          {attempts.map((attempt) => (
+            <div key={attempt.index} className={styles.attemptRow}>
+              <span className={styles.attemptIndex}>{attempt.index}</span>
+              <span className={styles.attemptNote}>{attempt.note}</span>
+              <span
+                className={`${styles.outcome} ${
+                  attempt.outcome === "Accepted" ? styles.outcomePass : styles.outcomeFail
+                }`}
+              >
+                {attempt.outcome}
+              </span>
+            </div>
+          ))}
+
+          <div className={styles.ledgerFoot}>
+            <div className={styles.stat}>
+              <span className={styles.statValue}>3</span>
+              <span className={styles.statLabel}>Attempts</span>
+            </div>
+            <div className={styles.stat}>
+              <span className={styles.statValue}>47m</span>
+              <span className={styles.statLabel}>Time spent</span>
+            </div>
+            <div className={styles.stat}>
+              <span className={styles.statValue}>6d</span>
+              <span className={styles.statLabel}>Next review</span>
+            </div>
+          </div>
+        </figure>
+      </header>
+
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>What it keeps track of</h2>
+        <p className={styles.sectionLede}>
+          Six things a problem list cannot tell you, and the reason a solved
+          count is a poor measure of readiness.
+        </p>
+
+        <div className={styles.featureGrid}>
+          {features.map((feature) => (
+            <article key={feature.title} className={styles.feature}>
+              <span className={styles.featureIcon}>
+                <feature.icon size={18} aria-hidden="true" />
+              </span>
+              <h3 className={styles.featureTitle}>{feature.title}</h3>
+              <p className={styles.featureBody}>{feature.description}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className={styles.closing}>
+        <h2 className={styles.sectionTitle}>Start with the next problem you solve</h2>
+        <p className={styles.sectionLede} style={{ marginInline: "auto" }}>
+          Log one attempt and the record builds itself from there.
+        </p>
+        <Button asChild size="lg">
+          <Link href="/sign-up">Create your account</Link>
+        </Button>
+      </section>
+
+      <footer className={styles.footer}>
+        <div className={styles.footerInner}>
+          <span>© {new Date().getFullYear()} Leetly</span>
+          <div className={styles.footerLinks}>
+            <Link href="/about" className={styles.footerLink}>
+              About
+            </Link>
+            <Link href="/privacy" className={styles.footerLink}>
+              Privacy
+            </Link>
+            <Link href="/terms" className={styles.footerLink}>
+              Terms
+            </Link>
+            <Link
+              href={GITHUB_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.footerLink}
+            >
+              Source
             </Link>
           </div>
         </div>
