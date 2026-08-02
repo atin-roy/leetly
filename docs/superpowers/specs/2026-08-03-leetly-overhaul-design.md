@@ -160,6 +160,47 @@ study-centric visual identity is applied across the app shell, the marketing
 pages (`app/page.tsx`, `about`, `privacy`, `terms`), and all feature pages, with
 phone and tablet breakpoints treated as first-class.
 
+## Flyway was not running in production
+
+Found during the Phase 2 deploy, when the API crash-looped on
+`Schema validation: missing table [refresh_tokens]`.
+
+**Root cause.** Spring Boot 4 split auto-configuration into per-technology
+modules. `flyway-core` provides the library but not the Spring integration,
+which now lives in `org.springframework.boot:spring-boot-flyway`. That module
+was absent, so Flyway was never wired up. Because the library was still on the
+classpath nothing failed at startup, and migrations simply stopped being
+applied at some point during the Boot 4 upgrade.
+
+Evidence: `flyway_schema_history` held three rows (baseline V6, then V7 and
+V12) while the objects created by V8–V11 and V13–V15 all existed, and no Flyway
+log line appeared at startup. V16 was the first migration whose absence broke
+schema validation, which is the only reason it surfaced.
+
+**Fix.** Added the `spring-boot-flyway` dependency, plus `FlywayWiringTest`,
+which asserts a `Flyway` bean is auto-configured. The test was verified to fail
+with the dependency removed and pass with it restored.
+
+**History reconciliation.** The deployed schema is at V16 — confirmed by
+Hibernate `ddl-auto: validate` passing, which checks every entity against every
+table. The incomplete history table was renamed to
+`flyway_schema_history_pre_v16_backup` rather than dropped, and
+`SPRING_FLYWAY_BASELINE_VERSION` moved from 4 to 16 so Flyway adopts the
+existing schema at that point. V17 onward apply normally.
+
+## The deploy reported success on a crash-looping API
+
+`docker compose up -d` returns as soon as the container is created, so the CI
+deploy job was green while the API failed to start. Three checks now close
+that gap:
+
+1. `/actuator/health` is permitted in `SecurityConfig` (UP/DOWN only, details
+   remain disabled) so it can be probed at all.
+2. The deploy job polls health for up to 150 s, and on failure prints the last
+   60 container log lines and fails.
+3. A container-level `healthcheck` in the compose file so `docker ps` reports
+   real state.
+
 ## Phase 4 — Functionality and resume readiness
 
 The failing `StatsServiceTest.getByUser_recalculatesStatsFromProblemsAndAttempts`,
