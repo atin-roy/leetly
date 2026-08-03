@@ -16,8 +16,17 @@ RUN ./mvnw package -Dmaven.test.skip=true -B
 FROM eclipse-temurin:25-jre
 WORKDIR /app
 
+# curl is here purely so the container healthcheck can probe /actuator/health;
+# the base image ships neither curl nor wget.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
+
 RUN addgroup --system spring && adduser --system --ingroup spring spring
 USER spring
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=5 \
+    CMD curl -fsS http://localhost:8080/actuator/health | grep -q '"status":"UP"' || exit 1
 
 COPY --from=builder /app/target/leetly-*.jar app.jar
 

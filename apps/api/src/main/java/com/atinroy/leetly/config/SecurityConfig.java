@@ -72,6 +72,9 @@ public class SecurityConfig {
                                 "/api/patterns/**",
                                 "/api/themes/**"
                         ).denyAll()
+                        // Liveness for the deploy check. Exposes only UP/DOWN;
+                        // details stay off by default.
+                        .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
                         .requestMatchers(
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
