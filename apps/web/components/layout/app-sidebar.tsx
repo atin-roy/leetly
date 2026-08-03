@@ -15,6 +15,7 @@ import {
   Search,
   StickyNote,
   UserCircle2,
+  Users,
 } from "lucide-react"
 import {
   Sheet,
@@ -33,6 +34,7 @@ const navItems = [
   { href: "/review", label: "Review", icon: RotateCcw },
   { href: "/lists", label: "My Lists", icon: List },
   { href: "/notes", label: "Notes", icon: StickyNote },
+  { href: "/people", label: "People", icon: Users },
   { href: "/account", label: "Account", icon: UserCircle2 },
 ]
 
@@ -136,7 +138,7 @@ export function AppSidebar() {
               <Wordmark showName />
             </SheetTitle>
             <SheetDescription className={styles.sheetDescription}>
-              Move between dashboard, problems, review, notes, and account.
+              Move between dashboard, problems, review, notes, people, and account.
             </SheetDescription>
           </SheetHeader>
 

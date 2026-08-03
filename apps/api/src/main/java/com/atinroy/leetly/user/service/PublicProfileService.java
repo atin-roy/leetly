@@ -12,6 +12,7 @@ import com.atinroy.leetly.user.model.ProblemList;
 import com.atinroy.leetly.user.model.User;
 import com.atinroy.leetly.user.model.UserProfile;
 import com.atinroy.leetly.user.model.UserStats;
+import com.atinroy.leetly.user.dto.FriendshipState;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,10 +35,13 @@ public class PublicProfileService {
         UserProfile profile = subject.getProfile();
         boolean ownProfile = viewer.getId().equals(subject.getId());
         FriendshipService.FriendshipView friendshipView = friendshipService.getFriendshipView(viewer, subject);
+        // Accepting a friend request is the point of the feature: a friend sees
+        // what a stranger cannot, the same as the public toggle would grant.
+        boolean isFriend = friendshipView.state() == FriendshipState.FRIENDS;
 
-        boolean showStats = ownProfile || (profile != null && profile.isProgressPublic());
-        boolean showLists = ownProfile || (profile != null && profile.isListsPublic());
-        boolean showNotes = ownProfile || (profile != null && profile.isNotesPublic());
+        boolean showStats = ownProfile || isFriend || (profile != null && profile.isProgressPublic());
+        boolean showLists = ownProfile || isFriend || (profile != null && profile.isListsPublic());
+        boolean showNotes = ownProfile || isFriend || (profile != null && profile.isNotesPublic());
 
         PublicUserStatsDto stats = showStats ? toPublicStats(statsService.getByUser(subject)) : null;
         List<PublicProblemListDto> lists = showLists

@@ -80,6 +80,16 @@ export async function readRefreshCookie() {
 }
 
 /**
+ * Two tabs (or a fresh full-page load racing the renewal timer) can both call
+ * this for the same still-valid cookie value. Since each redemption rotates
+ * the token, the second caller would replay one the API already retired,
+ * tripping reuse detection and revoking the whole family. Sharing the
+ * in-flight promise per token value means only the first caller redeems it;
+ * the rest await that same result instead of firing their own.
+ */
+const pendingRefreshes = new Map<string, Promise<ClientSession | null>>()
+
+/**
  * Exchanges the stored refresh token for a fresh access token, rotating it.
  *
  * Route handlers only. It writes a cookie, which a Server Component render is
@@ -93,9 +103,21 @@ export async function resolveSession(): Promise<ClientSession | null> {
   const refreshToken = await readRefreshCookie()
   if (!refreshToken) return null
 
-  const result = await callAuthApi("refresh", { refreshToken })
-  if (!result.ok) return null
+  const pending = pendingRefreshes.get(refreshToken)
+  if (pending) return pending
 
-  await setRefreshCookie(result.data.refreshToken)
-  return toClientSession(result.data)
+  const promise = (async () => {
+    const result = await callAuthApi("refresh", { refreshToken })
+    if (!result.ok) return null
+
+    await setRefreshCookie(result.data.refreshToken)
+    return toClientSession(result.data)
+  })()
+
+  pendingRefreshes.set(refreshToken, promise)
+  try {
+    return await promise
+  } finally {
+    pendingRefreshes.delete(refreshToken)
+  }
 }

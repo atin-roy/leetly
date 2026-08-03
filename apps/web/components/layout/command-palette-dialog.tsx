@@ -10,6 +10,7 @@ import {
   Search,
   StickyNote,
   UserCircle2,
+  Users,
   type LucideIcon,
 } from "lucide-react"
 import {
@@ -27,6 +28,7 @@ const ROUTES: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/review", label: "Review queue", icon: RotateCcw },
   { href: "/lists", label: "My Lists", icon: List },
   { href: "/notes", label: "Notes", icon: StickyNote },
+  { href: "/people", label: "People", icon: Users },
   { href: "/account", label: "Account", icon: UserCircle2 },
 ]
 
