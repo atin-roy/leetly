@@ -157,20 +157,19 @@ export default function DashboardPage() {
       <section className="grid gap-6 xl:grid-cols-[1.6fr_1fr]">
         <Card className="overflow-hidden rounded-[28px] border-border/70 bg-[radial-gradient(circle_at_top_left,color-mix(in_oklab,var(--primary)_28%,transparent),transparent_34%),radial-gradient(circle_at_72%_30%,color-mix(in_oklab,var(--accent)_18%,transparent),transparent_22%),linear-gradient(180deg,color-mix(in_oklab,var(--card)_92%,var(--background)_8%),color-mix(in_oklab,var(--background)_84%,black_16%))] shadow-[0_24px_80px_color-mix(in_oklab,var(--foreground)_12%,transparent)]">
           <CardContent className="relative px-6 py-6 sm:px-7 sm:py-7">
-            <div className="absolute inset-0 bg-[linear-gradient(135deg,color-mix(in_oklab,var(--foreground)_5%,transparent),transparent_28%,transparent_72%,color-mix(in_oklab,var(--foreground)_3%,transparent))]" />
             <div className="relative space-y-6">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                 <div className="max-w-2xl space-y-3">
                   <Badge className="w-fit border-border/70 bg-background/55 text-[11px] tracking-[0.22em] text-primary uppercase hover:bg-background/55">
-                    Daily command center
+                    Dashboard
                   </Badge>
                   <div className="space-y-2">
                     <h1 className="text-3xl font-semibold tracking-[-0.03em] sm:text-4xl">
-                      Build momentum, not just solved counts.
+                      {totalSolved} of {totalProblems} solved.
                     </h1>
                     <p className="max-w-xl text-sm leading-6 text-muted-foreground sm:text-[15px]">
-                      See what to review next, where your backlog is accumulating, and which
-                      problem patterns deserve your next block of focused practice.
+                      What is due, what you left unfinished, and where the same
+                      mistakes keep showing up.
                     </p>
                   </div>
                 </div>
@@ -190,15 +189,15 @@ export default function DashboardPage() {
                   />
                   <MetricChip
                     icon={Clock3}
-                    label="Study Time"
+                    label="Time logged"
                     value={formatHours(stats.totalTimeMinutes)}
                     detail={`${stats.totalAttempts} attempts logged`}
                   />
                   <MetricChip
                     icon={Sparkles}
-                    label="Last Solve"
-                    value={stats.lastSolvedDate ? "Active" : "Start"}
-                    detail={lastSolvedLabel}
+                    label="Last solve"
+                    value={stats.lastSolvedDate ? lastSolvedLabel : "Never"}
+                    detail={stats.lastSolvedDate ? "Most recent solve" : "No solves logged yet"}
                   />
                 </div>
               </div>
@@ -212,17 +211,17 @@ export default function DashboardPage() {
                 <MiniStat
                   label="Mastered"
                   value={stats.totalMastered}
-                  caption={`${stats.firstAttemptSolves} first-try wins`}
+                  caption={`${stats.firstAttemptSolves} solved first try`}
                 />
                 <MiniStat
-                  label="Attempted backlog"
+                  label="Unfinished"
                   value={attemptedBacklog}
-                  caption={`${unseenCount} unseen remaining`}
+                  caption={`${unseenCount} never opened`}
                 />
                 <MiniStat
-                  label="Coverage"
+                  label="Patterns"
                   value={stats.distinctPatternsCovered}
-                  caption={`${stats.distinctTopicsCovered} topics tagged`}
+                  caption={`Across ${stats.distinctTopicsCovered} topics`}
                 />
               </div>
 
@@ -239,7 +238,7 @@ export default function DashboardPage() {
                   size="lg"
                   className="h-11 rounded-full border-border/70 bg-background/55 px-5 text-sm text-foreground hover:bg-background/80 hover:text-foreground"
                 >
-                  <Link href="/problems">Browse problems</Link>
+                  <Link href="/problems">All problems</Link>
                 </Button>
               </div>
             </div>
@@ -250,9 +249,9 @@ export default function DashboardPage() {
           <CardHeader className="gap-3 border-b border-border/70 pb-4">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <CardTitle className="text-xl tracking-tight">Review pulse</CardTitle>
+                <CardTitle className="text-xl tracking-tight">Reviews</CardTitle>
                 <CardDescription className="mt-1">
-                  Keep your queue controlled before it turns into relearning.
+                  What is due now and what is coming.
                 </CardDescription>
               </div>
               <div className={cn(
@@ -261,7 +260,7 @@ export default function DashboardPage() {
                   ? "border border-orange-400/25 bg-orange-400/[0.12] text-orange-700 dark:text-orange-200"
                   : "border border-emerald-400/25 bg-emerald-400/[0.12] text-emerald-700 dark:text-emerald-200"
               )}>
-                {dueNow > 0 ? "Needs attention" : "In control"}
+                {dueNow > 0 ? `${dueNow} due` : "Clear"}
               </div>
             </div>
           </CardHeader>
@@ -276,18 +275,17 @@ export default function DashboardPage() {
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                    Next checkpoint
+                    Coming up
                   </p>
                   <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                    Between now and{" "}
-                    <span className="font-medium text-foreground">
-                      {formatDistanceToNowStrict(nextBusyWindowEnd, { addSuffix: true })}
-                    </span>
-                    , you have{" "}
                     <span className="font-semibold text-foreground">
                       {upcoming + dueNow} reviews
                     </span>{" "}
-                    likely to surface.
+                    between now and{" "}
+                    <span className="font-medium text-foreground">
+                      {formatDistanceToNowStrict(nextBusyWindowEnd, { addSuffix: true })}
+                    </span>
+                    .
                   </p>
                 </div>
                 <Radar className="mt-1 h-5 w-5 text-primary/75" />
@@ -301,9 +299,9 @@ export default function DashboardPage() {
                 caption={`Longest ${stats.longestStreak} days`}
               />
               <InsightRow
-                label="Weekly pace"
+                label="Last 7 days"
                 value={`${solvedLast7Days} solved`}
-                caption={`${attemptedLast7Days} attempts in the last 7 days`}
+                caption={`${attemptedLast7Days} attempts`}
               />
             </div>
           </CardContent>
@@ -315,13 +313,13 @@ export default function DashboardPage() {
           <CardHeader className="gap-3 border-b border-border/70 pb-4">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <CardTitle className="text-xl tracking-tight">Consistency map</CardTitle>
+                <CardTitle className="text-xl tracking-tight">Activity</CardTitle>
                 <CardDescription className="mt-1">
-                  Daily solved activity from your first recorded solve onward.
+                  Every day since your first solve.
                 </CardDescription>
               </div>
               <div className="flex gap-2">
-                <Pill label="Active days" value={`${consistencyRate}%`} />
+                <Pill label="Days active" value={`${consistencyRate}%`} />
                 <Pill label="This month" value={`${stats.solvedThisMonth}`} />
               </div>
             </div>
@@ -332,19 +330,19 @@ export default function DashboardPage() {
                 icon={CheckCircle2}
                 label="Solved this week"
                 value={solvedLast7Days}
-                caption="Recent progress"
+                caption="Solved in the last 7 days"
               />
               <AnalyticsTile
                 icon={Brain}
-                label="Practice density"
+                label="Days active"
                 value={`${consistencyRate}%`}
-                caption={`${activeDays} active days recorded`}
+                caption={`${activeDays} days with a solve`}
               />
               <AnalyticsTile
                 icon={Layers3}
-                label="Attempt volume"
+                label="Attempts"
                 value={attemptedLast7Days}
-                caption="Tracked across the last 7 days"
+                caption="Attempts in the last 7 days"
               />
             </div>
             <Tabs defaultValue="consistency" className="gap-4">
@@ -376,9 +374,9 @@ export default function DashboardPage() {
 
         <Card className="rounded-[28px]">
           <CardHeader className="gap-3 border-b border-border/70 pb-4">
-            <CardTitle className="text-xl tracking-tight">Learning inventory</CardTitle>
+            <CardTitle className="text-xl tracking-tight">Breakdown</CardTitle>
             <CardDescription>
-              Balance solved volume against backlog, difficulty, and concept coverage.
+              Solved and unsolved, by difficulty and by pattern.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6 pt-5">
@@ -414,12 +412,12 @@ export default function DashboardPage() {
               <InventoryCard
                 label="Attempted backlog"
                 value={attemptedBacklog}
-                detail="Problems you touched but have not closed out yet."
+                detail="Started but never solved."
               />
               <InventoryCard
                 label="Unseen pool"
                 value={unseenCount}
-                detail="Fresh problems available when you want new exposure."
+                detail="Never opened."
               />
               <InventoryCard
                 label="Top mistake"
@@ -429,7 +427,7 @@ export default function DashboardPage() {
               <InventoryCard
                 label="Top pattern"
                 value={topPattern?.label ?? "None"}
-                detail={topPattern ? `${topPattern.count} solved problems tagged` : "Tag more problems to reveal pattern trends."}
+                detail={topPattern ? `${topPattern.count} solved problems tagged` : "Tag problems with a pattern to see this."}
               />
             </div>
           </CardContent>
