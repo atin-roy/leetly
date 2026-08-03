@@ -1,0 +1,82 @@
+/*
+ * Text inputs, textareas, and their labels. Shared because they must agree on
+ * height, border, and focus treatment down to the pixel — a text field and a
+ * textarea sitting in the same form should look like the same control.
+ */
+
+.control {
+  width: 100%;
+  min-width: 0;
+  padding: 0.5rem 0.75rem;
+  font: inherit;
+  font-size: var(--step-0);
+  color: var(--foreground);
+  background: var(--card);
+  border: 1px solid var(--input);
+  border-radius: var(--radius-sm);
+  outline: none;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.control::placeholder {
+  color: var(--muted-foreground);
+}
+
+.control::selection {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.control:focus-visible {
+  border-color: var(--ring);
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 25%, transparent);
+}
+
+.control:disabled {
+  pointer-events: none;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.control[aria-invalid="true"] {
+  border-color: var(--destructive);
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--destructive) 20%, transparent);
+}
+
+.input {
+  height: 2.5rem;
+}
+
+.input::file-selector-button {
+  display: inline-flex;
+  height: 1.75rem;
+  margin-right: var(--space-xs);
+  font: inherit;
+  font-size: var(--step--1);
+  font-weight: 500;
+  color: var(--foreground);
+  background: none;
+  border: none;
+}
+
+.textarea {
+  display: flex;
+  min-height: 4rem;
+  field-sizing: content;
+}
+
+.label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  font-size: var(--step--1);
+  font-weight: 500;
+  line-height: 1;
+  user-select: none;
+}
+
+.label:has(+ :disabled),
+[data-disabled="true"] .label {
+  pointer-events: none;
+  opacity: 0.5;
+}
