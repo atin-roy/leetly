@@ -13,12 +13,12 @@ import {
   deleteProblem,
   getPatterns,
   getProblem,
+  getProblemCounts,
   getProblemRefs,
   getProblems,
   getTopics,
   removeProblemPattern,
   removeProblemTopics,
-  updateProblemAiReview,
   updateProblemStatus,
 } from "@/lib/api"
 import type {
@@ -100,14 +100,33 @@ export function useProblems(filters?: ProblemFilters) {
 }
 
 /** Map of leetcodeId → problemId for everything the user already owns. */
-export function useProblemRefs() {
+export function useProblemCounts() {
   const { session } = useAuth()
-  const query = useQuery({
+  return useQuery({
+    queryKey: ["problems", "counts"],
+    queryFn: () => getProblemCounts(session?.accessToken),
+    enabled: !!session?.accessToken,
+  })
+}
+
+/*
+ * Every problem the user has, id and title only. Unpaginated on purpose: a
+ * personal library is hundreds of rows, so the client can hold the whole thing
+ * and both callers below can filter it locally instead of round-tripping.
+ */
+export function useProblemRefList() {
+  const { session } = useAuth()
+  return useQuery({
     queryKey: ["problems", "refs"],
     queryFn: () => getProblemRefs(session?.accessToken),
     enabled: !!session?.accessToken,
     staleTime: 5 * 60 * 1000,
   })
+}
+
+/** leetcodeId → internal id, for duplicate detection when adding a problem. */
+export function useProblemRefs() {
+  const query = useProblemRefList()
 
   return useMemo(
     () => new Map((query.data ?? []).map((ref) => [ref.leetcodeId, ref.id])),
@@ -234,22 +253,6 @@ export function useUpdateProblemStatus(problemId: number) {
       qc.invalidateQueries({ queryKey: ["problems"] })
       qc.invalidateQueries({ queryKey: ["lists"] })
       qc.invalidateQueries({ queryKey: ["stats"] })
-    },
-  })
-}
-
-export function useUpdateProblemAiReview(problemId: number) {
-  const { session } = useAuth()
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: (aiReview: string | null) =>
-      updateProblemAiReview(session?.accessToken, problemId, { aiReview }),
-    onSuccess: (updatedProblem) => {
-      qc.setQueryData<ProblemDetailDto | undefined>(
-        ["problems", problemId],
-        (current) => current ? { ...current, aiReview: updatedProblem.aiReview } : current,
-      )
-      qc.invalidateQueries({ queryKey: ["problems", problemId] })
     },
   })
 }

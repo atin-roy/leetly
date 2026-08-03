@@ -92,7 +92,6 @@ export interface AttemptDto {
   mistakes: MistakeType[]
   timeComplexity: string | null
   spaceComplexity: string | null
-  aiReview: string | null
   learned: string | null
   takeaways: string | null
   notes: string | null
@@ -116,6 +115,14 @@ export interface ProblemSummaryDto {
 export interface ProblemRefDto {
   leetcodeId: number
   id: number
+  title: string
+}
+
+export interface ProblemCountsDto {
+  total: number
+  byDifficulty: Record<Difficulty, number>
+  solvedByDifficulty: Record<Difficulty, number>
+  byStatus: Record<ProblemStatus, number>
 }
 
 export interface ProblemDetailDto {
@@ -126,7 +133,6 @@ export interface ProblemDetailDto {
   difficulty: Difficulty
   status: ProblemStatus
   lastAttemptedAt: string | null
-  aiReview: string | null
   topics: TopicDto[]
   patterns: PatternDto[]
   relatedProblems: ProblemSummaryDto[]
@@ -257,11 +263,6 @@ export interface CreateProblemRequest {
   title: string
   url: string
   difficulty: Difficulty
-  aiReview?: string | null
-}
-
-export interface UpdateProblemAiReviewRequest {
-  aiReview?: string | null
 }
 
 export interface UpdateNoteRequest {

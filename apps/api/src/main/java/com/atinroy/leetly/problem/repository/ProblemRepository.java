@@ -25,7 +25,7 @@ public interface ProblemRepository extends JpaRepository<Problem, Long>, JpaSpec
     List<Problem> findAllByUser(@Param("user") User user);
 
     @Query("""
-            SELECT new com.atinroy.leetly.problem.dto.ProblemRefDto(p.leetcodeId, p.id)
+            SELECT new com.atinroy.leetly.problem.dto.ProblemRefDto(p.leetcodeId, p.id, p.title)
             FROM Problem p WHERE p.user = :user
             """)
     List<ProblemRefDto> findRefsByUser(@Param("user") User user);
