@@ -1,0 +1,273 @@
+/*
+ * People. Same header + facts + grid spine as lists and problems, plus three
+ * request panels below the directory rather than a stat card for each.
+ */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  padding-bottom: var(--space-md);
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.eyebrow {
+  font-family: var(--font-data);
+  font-size: var(--step--2);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+.title {
+  margin-top: var(--space-2xs);
+  font-family: var(--font-display);
+  font-size: var(--step-3);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.lede {
+  margin-top: var(--space-2xs);
+  max-width: 44ch;
+  font-size: var(--step--1);
+  line-height: 1.55;
+  color: var(--muted-foreground);
+  text-wrap: pretty;
+}
+
+/* ── Fact strip ──────────────────────────────────────────────────────────── */
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-md) var(--space-lg);
+  padding-block: var(--space-md);
+  border-block: var(--rule);
+}
+
+.fact {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.factLabel {
+  font-family: var(--font-data);
+  font-size: var(--step--2);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+.factValue {
+  font-family: var(--font-data);
+  font-size: var(--step-2);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+/* ── Directory ───────────────────────────────────────────────────────────── */
+
+.panel {
+  border: var(--rule);
+  border-radius: var(--radius-3xl);
+  background: color-mix(in oklch, var(--card) 45%, transparent);
+}
+
+.panelHead {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: var(--rule);
+}
+
+@media (min-width: 900px) {
+  .panelHead {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+}
+
+.panelTitle {
+  font-family: var(--font-display);
+  font-size: var(--step-1);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.panelNote {
+  margin-top: var(--space-2xs);
+  font-size: var(--step--1);
+  color: var(--muted-foreground);
+}
+
+.search {
+  position: relative;
+  width: 100%;
+}
+
+@media (min-width: 900px) {
+  .search {
+    max-width: 22rem;
+  }
+}
+
+.searchIcon {
+  position: absolute;
+  top: 50%;
+  left: var(--space-sm);
+  translate: 0 -50%;
+  color: var(--muted-foreground);
+  pointer-events: none;
+}
+
+.searchInput {
+  padding-left: 2.25rem;
+}
+
+.panelBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  padding: var(--space-lg);
+}
+
+.grid {
+  display: grid;
+  gap: var(--space-md);
+}
+
+@media (min-width: 900px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1200px) {
+  .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.skeletonCard {
+  height: 14rem;
+  border-radius: var(--radius-3xl);
+}
+
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pagerNote {
+  font-size: var(--step--1);
+  color: var(--muted-foreground);
+}
+
+.pagerActions {
+  display: flex;
+  gap: var(--space-xs);
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  min-height: 12rem;
+  padding: var(--space-xl) var(--space-lg);
+  border: 1px dashed color-mix(in oklch, var(--border) 80%, transparent);
+  border-radius: var(--radius-2xl);
+  background: color-mix(in oklch, var(--background) 45%, transparent);
+  text-align: center;
+}
+
+.emptyIcon {
+  color: var(--muted-foreground);
+}
+
+.emptyTitle {
+  font-family: var(--font-display);
+  font-size: var(--step-0);
+  font-weight: 600;
+}
+
+.emptyBody {
+  font-size: var(--step--1);
+  color: var(--muted-foreground);
+}
+
+/* ── Request columns ─────────────────────────────────────────────────────── */
+
+.columns {
+  display: grid;
+  align-items: start;
+  gap: var(--space-md);
+}
+
+@media (min-width: 1200px) {
+  .columns {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.columnEmpty {
+  padding: var(--space-md);
+  border: 1px dashed color-mix(in oklch, var(--border) 80%, transparent);
+  border-radius: var(--radius-2xl);
+  background: color-mix(in oklch, var(--background) 45%, transparent);
+  font-size: var(--step--1);
+  color: var(--muted-foreground);
+}
+
+.columnSkeleton {
+  height: 10rem;
+  border-radius: var(--radius-2xl);
+}
+
+.columnList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+/* ── Footer callout ──────────────────────────────────────────────────────── */
+
+.callout {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-lg);
+}
+
+@media (min-width: 640px) {
+  .callout {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.calloutTitle {
+  font-size: var(--step--1);
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.calloutBody {
+  font-size: var(--step--1);
+  color: var(--muted-foreground);
+}

@@ -20,6 +20,9 @@
 }
 
 .main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   min-height: 0;
   flex: 1;
   overflow-y: auto;
@@ -30,4 +33,14 @@
   .main {
     padding: var(--space-lg);
   }
+}
+
+/*
+ * The background gradient stays full-bleed on .main; only the content itself
+ * is width-capped. Wide viewports don't need a table or a form stretched
+ * edge to edge just because the monitor is edge to edge.
+ */
+.main > * {
+  width: 100%;
+  max-width: 1440px;
 }

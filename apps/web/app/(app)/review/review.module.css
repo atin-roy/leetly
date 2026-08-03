@@ -122,15 +122,9 @@
 /* ── Body ────────────────────────────────────────────────────────────────── */
 
 .body {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: var(--space-lg);
-}
-
-@media (min-width: 1100px) {
-  .body {
-    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
-    align-items: start;
-  }
 }
 
 .sectionHead {
@@ -286,40 +280,6 @@
   background: currentColor;
 }
 
-/* ── Guidance ────────────────────────────────────────────────────────────── */
-
-.guide {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-md);
-  padding: var(--space-md);
-  border: var(--rule);
-  border-radius: var(--radius);
-}
-
-.guideRow {
-  display: flex;
-  gap: var(--space-xs);
-}
-
-.guideIcon {
-  flex-shrink: 0;
-  margin-top: 0.15rem;
-  color: var(--muted-foreground);
-}
-
-.guideTitle {
-  font-size: var(--step--1);
-  font-weight: 600;
-}
-
-.guideBody {
-  margin-top: 0.125rem;
-  font-size: var(--step--1);
-  line-height: 1.5;
-  color: var(--muted-foreground);
-}
-
 /* ── Empty ───────────────────────────────────────────────────────────────── */
 
 .empty {
@@ -364,20 +324,11 @@
 }
 
 .skeletonBody {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: var(--space-lg);
-}
-
-@media (min-width: 1100px) {
-  .skeletonBody {
-    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
-  }
 }
 
 .skeletonList {
   height: 32rem;
-}
-
-.skeletonAside {
-  height: 14rem;
 }

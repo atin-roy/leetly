@@ -192,12 +192,6 @@ export interface UserSettingsDto {
   themeName: string | null
 }
 
-export interface ThemeDto {
-  id: number
-  name: string
-  properties: string // JSON string
-}
-
 export interface ProblemListDto {
   id: number
   name: string

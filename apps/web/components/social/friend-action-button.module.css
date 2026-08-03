@@ -1,0 +1,26 @@
+.row {
+  display: flex;
+  gap: var(--space-xs);
+}
+
+.full {
+  width: 100%;
+}
+
+.row.full {
+  width: 100%;
+}
+
+.grow {
+  flex: 1;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

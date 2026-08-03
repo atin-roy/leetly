@@ -3,12 +3,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useAuth } from "@/components/auth-provider"
 import {
-  getThemes,
   getUserSettings,
   updateUserLanguage,
   updateUserDailyGoal,
   updateUserTimezone,
-  updateUserTheme,
 } from "@/lib/api"
 import type { Language } from "@/lib/types"
 
@@ -51,22 +49,3 @@ export function useUpdateTimezone() {
   })
 }
 
-export function useUpdateTheme() {
-  const { session } = useAuth()
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: (themeId: number | null) =>
-      updateUserTheme(session?.accessToken, themeId),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["settings"] }),
-  })
-}
-
-export function useThemes() {
-  const { session } = useAuth()
-  return useQuery({
-    queryKey: ["themes"],
-    queryFn: () => getThemes(session?.accessToken),
-    enabled: !!session?.accessToken,
-    staleTime: 10 * 60 * 1000,
-  })
-}

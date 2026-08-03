@@ -2,12 +2,11 @@
 
 import { useMemo, useState } from "react"
 import Link from "next/link"
-import { ArrowLeft, Eye, EyeOff, Pencil, StickyNote, Trash2 } from "lucide-react"
+import { ArrowLeft, Eye, EyeOff, Pencil, Trash2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Dialog,
   DialogContent,
@@ -37,7 +36,9 @@ import {
   NOTE_TAG_COLORS,
   NOTE_TAGS,
 } from "@/lib/note-display"
+import { cn } from "@/lib/utils"
 import type { NoteTag } from "@/lib/types"
+import styles from "./note-editor-page.module.css"
 
 type Mode = "view" | "edit"
 
@@ -75,26 +76,24 @@ export function NoteEditorPage({
 
   if (noteId && isNoteLoading) {
     return (
-      <div className="space-y-4">
-        <Skeleton className="h-9 w-24" />
-        <Skeleton className="h-12 w-72" />
-        <Skeleton className="h-[32rem] w-full" />
+      <div className={styles.skeletons}>
+        <Skeleton className={styles.skeletonBack} />
+        <Skeleton className={styles.skeletonTitle} />
+        <Skeleton className={styles.skeletonBody} />
       </div>
     )
   }
 
   if (noteId && !isNoteLoading && !note) {
     return (
-      <div className="space-y-4">
-        <Button variant="ghost" size="sm" asChild className="-ml-2 w-fit">
+      <div className={styles.page}>
+        <Button variant="ghost" size="sm" asChild className={styles.back}>
           <Link href={backHref}>
-            <ArrowLeft className="mr-1 h-4 w-4" />
+            <ArrowLeft size={16} />
             Back
           </Link>
         </Button>
-        <div className="flex h-56 items-center justify-center rounded-2xl border border-dashed text-sm text-muted-foreground">
-          Note not found.
-        </div>
+        <div className={styles.notFound}>Note not found.</div>
       </div>
     )
   }
@@ -200,27 +199,25 @@ function NoteEditorPageBody({
   }
 
   return (
-    <div className="space-y-6">
-      <Button variant="ghost" size="sm" asChild className="-ml-2 w-fit">
+    <div className={styles.page}>
+      <Button variant="ghost" size="sm" asChild className={styles.back}>
         <Link href={backHref}>
-          <ArrowLeft className="mr-1 h-4 w-4" />
+          <ArrowLeft size={16} />
           Back
         </Link>
       </Button>
 
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div className="min-w-0 space-y-2">
-          <div className="flex flex-wrap items-center gap-2">
+      <div className={styles.head}>
+        <div className={styles.headText}>
+          <div className={styles.meta}>
             <Badge variant="secondary" className={NOTE_TAG_COLORS[tag]}>
               {tag}
             </Badge>
             {note?.dateTime ? (
-              <span className="text-sm text-muted-foreground">
-                {formatNoteDate(note.dateTime)}
-              </span>
+              <span className={styles.metaNote}>{formatNoteDate(note.dateTime)}</span>
             ) : null}
             {problemId ? (
-              <span className="text-sm text-muted-foreground">
+              <span className={styles.metaNote}>
                 {isProblemLoading
                   ? "Loading problem…"
                   : problem
@@ -229,27 +226,21 @@ function NoteEditorPageBody({
               </span>
             ) : null}
           </div>
-          <div className="space-y-1">
-            <h1 className="truncate text-3xl font-semibold tracking-tight">{pageTitle}</h1>
-            <p className="text-sm text-muted-foreground">{pageDescription}</p>
-          </div>
+          <h1 className={styles.title}>{pageTitle}</h1>
+          <p className={styles.subtitle}>{pageDescription}</p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className={styles.headActions}>
           {note ? (
             <>
               {mode === "view" ? (
                 <Button variant="outline" onClick={() => setMode("edit")}>
-                  <Pencil className="mr-1.5 h-4 w-4" />
+                  <Pencil size={16} />
                   Edit
                 </Button>
               ) : null}
-              <Button
-                variant="outline"
-                className="text-destructive"
-                onClick={() => setDeleteOpen(true)}
-              >
-                <Trash2 className="mr-1.5 h-4 w-4" />
+              <Button variant="outline" className={styles.danger} onClick={() => setDeleteOpen(true)}>
+                <Trash2 size={16} />
                 Delete
               </Button>
             </>
@@ -276,51 +267,40 @@ function NoteEditorPageBody({
       </div>
 
       {mode === "view" ? (
-        <Card className="overflow-hidden">
-          <CardHeader className="border-b">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <StickyNote className="h-5 w-5" />
-              {title}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="px-6 py-5">
+        <section className={styles.panel}>
+          <div className={styles.viewBody}>
             <MarkdownContent content={content} />
-          </CardContent>
-        </Card>
+          </div>
+        </section>
       ) : (
-        <Card className="overflow-hidden">
-          <CardHeader className="border-b">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <CardTitle>{note ? "Edit Note" : "Create Note"}</CardTitle>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Markdown source on the left, preview on the right when you need it.
-                </p>
-              </div>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowPreview((value) => !value)}
-              >
-                {showPreview ? (
-                  <>
-                    <EyeOff className="mr-1.5 h-4 w-4" />
-                    Hide Preview
-                  </>
-                ) : (
-                  <>
-                    <Eye className="mr-1.5 h-4 w-4" />
-                    Show Preview
-                  </>
-                )}
-              </Button>
+        <section className={styles.panel}>
+          <div className={styles.editHead}>
+            <div>
+              <p className={styles.label}>{note ? "Edit note" : "Create note"}</p>
+              <p className={styles.editHeadNote}>
+                Markdown source on the left, preview on the right when you need it.
+              </p>
             </div>
-          </CardHeader>
-          <CardContent className="space-y-5 px-6 py-5">
-            <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_160px]">
-              <div className="space-y-1.5">
-                <Label htmlFor="note-title">Title</Label>
+            <Button type="button" variant="ghost" size="sm" onClick={() => setShowPreview((value) => !value)}>
+              {showPreview ? (
+                <>
+                  <EyeOff size={16} />
+                  Hide preview
+                </>
+              ) : (
+                <>
+                  <Eye size={16} />
+                  Show preview
+                </>
+              )}
+            </Button>
+          </div>
+          <div className={styles.editBody}>
+            <div className={styles.fields}>
+              <div className={styles.field}>
+                <Label htmlFor="note-title" className={styles.label}>
+                  Title
+                </Label>
                 <Input
                   id="note-title"
                   value={title}
@@ -328,8 +308,8 @@ function NoteEditorPageBody({
                   placeholder="Note title..."
                 />
               </div>
-              <div className="space-y-1.5">
-                <Label>Tag</Label>
+              <div className={styles.field}>
+                <Label className={styles.label}>Tag</Label>
                 <Select value={tag} onValueChange={(value) => setTag(value as NoteTag)}>
                   <SelectTrigger>
                     <SelectValue />
@@ -345,36 +325,34 @@ function NoteEditorPageBody({
               </div>
             </div>
 
-            <div
-              className={`grid min-h-[28rem] gap-4 ${showPreview ? "xl:grid-cols-2" : "grid-cols-1"}`}
-            >
-              <div className="space-y-1.5">
-                <Label htmlFor="note-content">Markdown</Label>
+            <div className={cn(styles.editor, showPreview && styles.split)}>
+              <div className={styles.field}>
+                <Label htmlFor="note-content" className={styles.label}>
+                  Markdown
+                </Label>
                 <Textarea
                   id="note-content"
                   value={content}
                   onChange={(event) => setContent(event.target.value)}
                   placeholder="Write your note in markdown..."
-                  className="min-h-[26rem] resize-y font-mono text-sm"
+                  className={styles.textarea}
                 />
               </div>
               {showPreview ? (
-                <div className="space-y-1.5">
-                  <Label>Preview</Label>
-                  <div className="min-h-[26rem] rounded-md border bg-muted/20 p-4">
+                <div className={styles.field}>
+                  <Label className={styles.label}>Preview</Label>
+                  <div className={styles.preview}>
                     {content.trim() ? (
                       <MarkdownContent content={content} />
                     ) : (
-                      <p className="text-sm italic text-muted-foreground">
-                        Preview will appear here...
-                      </p>
+                      <p className={styles.previewEmpty}>Preview will appear here...</p>
                     )}
                   </div>
                 </div>
               ) : null}
             </div>
 
-            <div className="flex justify-end">
+            <div className={styles.saveRow}>
               <Button
                 type="button"
                 onClick={handleSave}
@@ -383,8 +361,8 @@ function NoteEditorPageBody({
                 {note ? "Save" : "Create"}
               </Button>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </section>
       )}
 
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
@@ -398,18 +376,10 @@ function NoteEditorPageBody({
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setDeleteOpen(false)}
-              disabled={deleteNoteMutation.isPending}
-            >
+            <Button variant="outline" onClick={() => setDeleteOpen(false)} disabled={deleteNoteMutation.isPending}>
               Cancel
             </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDelete}
-              disabled={deleteNoteMutation.isPending}
-            >
+            <Button variant="destructive" onClick={handleDelete} disabled={deleteNoteMutation.isPending}>
               {deleteNoteMutation.isPending ? "Deleting..." : "Delete"}
             </Button>
           </DialogFooter>

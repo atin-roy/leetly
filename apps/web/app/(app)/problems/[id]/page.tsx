@@ -37,6 +37,7 @@ import {
 } from "@/components/ui/table"
 import { CodeBlock as HighlightedCodeBlock } from "@/components/ui/code-block"
 import { MarkdownContent } from "@/components/ui/markdown-content"
+import tones from "@/components/ui/tone.module.css"
 import { DifficultyBadge } from "@/components/problems/difficulty-badge"
 import { StatusBadge } from "@/components/problems/status-badge"
 import { AttemptForm } from "@/components/problems/attempt-form"
@@ -65,6 +66,7 @@ import {
 } from "@/hooks/use-lists"
 import { getListDisplayName, getListHref } from "@/lib/list-display"
 import { formatNoteDate, getNewNoteHref, getNoteHref } from "@/lib/note-display"
+import { cn } from "@/lib/utils"
 import type {
   AttemptDto,
   MistakeType,
@@ -75,8 +77,7 @@ import type {
   ProblemSummaryDto,
   TopicDto,
 } from "@/lib/types"
-
-
+import styles from "./problem-detail.module.css"
 
 const STATUSES: { value: ProblemStatus; label: string }[] = [
   { value: "UNSEEN", label: "Unseen" },
@@ -125,10 +126,8 @@ function formatDuration(minutes: number | null) {
   return remainingMinutes === 0 ? `${hours}h` : `${hours}h ${remainingMinutes}m`
 }
 
-function getOutcomeBadgeClass(outcome: AttemptDto["outcome"]) {
-  return outcome === "ACCEPTED"
-    ? "border-green-200 bg-green-50 text-green-700"
-    : "border-red-200 bg-red-50 text-red-700"
+function outcomeTone(outcome: AttemptDto["outcome"]) {
+  return outcome === "ACCEPTED" ? tones.green : tones.red
 }
 
 function formatAttemptMistakes(attempt: AttemptDto) {
@@ -136,87 +135,24 @@ function formatAttemptMistakes(attempt: AttemptDto) {
   return attempt.mistakes.map((mistake) => MISTAKE_LABELS[mistake] ?? mistake).join(", ")
 }
 
-function AttemptStat({
-  label,
-  value,
-}: {
-  label: string
-  value: string | null
-}) {
+function Fact({ label, value, caption }: { label: string; value: string | number; caption?: string }) {
+  return (
+    <div className={styles.fact}>
+      <span className={styles.factLabel}>{label}</span>
+      <span className={styles.factValue}>{value}</span>
+      {caption ? <span className={styles.factCaption}>{caption}</span> : null}
+    </div>
+  )
+}
+
+function AttemptStat({ label, value }: { label: string; value: string | null }) {
   if (!value) return null
 
   return (
-    <div className="rounded-md border bg-muted/30 px-3 py-2">
-      <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
-      <p className="mt-1 text-sm font-medium">{value}</p>
+    <div className={styles.attemptStat}>
+      <p className={styles.attemptStatLabel}>{label}</p>
+      <p className={styles.attemptStatValue}>{value}</p>
     </div>
-  )
-}
-
-function SurfaceSection({
-  eyebrow,
-  title,
-  description,
-  actions,
-  children,
-}: {
-  eyebrow?: string
-  title: string
-  description?: string
-  actions?: React.ReactNode
-  children: React.ReactNode
-}) {
-  return (
-    <div className="overflow-hidden rounded-[28px] border border-border/70 bg-card/80 shadow-(--shadow-panel)">
-      <div className="flex flex-col gap-3 border-b border-border/70 px-5 py-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="space-y-1">
-          {eyebrow ? (
-            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
-              {eyebrow}
-            </p>
-          ) : null}
-          <h2 className="text-lg font-semibold tracking-tight text-foreground">{title}</h2>
-          {description ? (
-            <p className="text-sm text-muted-foreground">{description}</p>
-          ) : null}
-        </div>
-        {actions ? <div className="flex items-center gap-2">{actions}</div> : null}
-      </div>
-      <div className="p-5">{children}</div>
-    </div>
-  )
-}
-
-function MetadataSection({
-  title,
-  children,
-}: {
-  title: string
-  children: React.ReactNode
-}) {
-  return (
-    <div className="rounded-2xl border border-border/70 bg-background/55 p-4">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-        {title}
-      </p>
-      <div className="mt-3 min-w-0">{children}</div>
-    </div>
-  )
-}
-
-function MetadataChip({
-  children,
-  className = "",
-}: {
-  children: React.ReactNode
-  className?: string
-}) {
-  return (
-    <span
-      className={`inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-card/80 px-2.5 py-1 text-xs font-medium text-foreground ${className}`}
-    >
-      {children}
-    </span>
   )
 }
 
@@ -232,20 +168,16 @@ function SelectorGrid({
   isPending?: boolean
 }) {
   if (options.length === 0) {
-    return (
-      <div className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">
-        No options available.
-      </div>
-    )
+    return <div className={styles.selectorEmpty}>No options available.</div>
   }
 
   return (
-    <div className="space-y-2">
-      <p className="text-xs text-muted-foreground">
+    <div>
+      <p className={styles.selectorCount}>
         {options.length} option{options.length === 1 ? "" : "s"}
       </p>
-      <ScrollArea className="h-80 rounded-md border">
-        <div className="grid grid-cols-1 gap-2 p-2 sm:grid-cols-2">
+      <ScrollArea className={styles.selectorScroll}>
+        <div className={styles.selectorGrid}>
           {options.map((option) => {
             const isSelected = selectedIds.has(option.id)
             return (
@@ -254,12 +186,10 @@ function SelectorGrid({
                 type="button"
                 disabled={isPending || isSelected}
                 onClick={() => onSelect(option.id)}
-                className="rounded-md border px-3 py-2 text-left transition-colors hover:border-foreground disabled:cursor-not-allowed disabled:opacity-50"
+                className={styles.selectorOption}
               >
-                <p className="truncate text-xs font-medium">{option.label}</p>
-                {option.subtitle ? (
-                  <p className="truncate text-[11px] text-muted-foreground">{option.subtitle}</p>
-                ) : null}
+                <p className={styles.selectorOptionLabel}>{option.label}</p>
+                {option.subtitle ? <p className={styles.selectorOptionSubtitle}>{option.subtitle}</p> : null}
               </button>
             )
           })}
@@ -269,101 +199,87 @@ function SelectorGrid({
   )
 }
 
-// ── Code Block ────────────────────────────────────────────────────────────────
-
-function AttemptCodeBlock({
-  language,
-  code,
-}: {
-  language: string
-  code: string | null
-}) {
-  const content = code?.trim() ? code : "// No code captured for this attempt."
-
+function AttemptDetails({ attempt }: { attempt: AttemptDto }) {
   return (
-    <HighlightedCodeBlock
-      chrome
-      showCopyButton
-      code={content}
-      language={language}
-      preClassName="max-h-[60vh] overflow-y-auto"
-    />
-  )
-}
-
-function AttemptDetails({
-  attempt,
-}: {
-  attempt: AttemptDto
-}) {
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <span className="text-sm font-medium">Attempt #{attempt.attemptNumber}</span>
-        <Badge
-          variant="outline"
-          className={getOutcomeBadgeClass(attempt.outcome)}
-        >
+    <div>
+      <div className={styles.attemptMeta}>
+        <span>Attempt #{attempt.attemptNumber}</span>
+        <Badge variant="outline" className={cn(tones.tone, outcomeTone(attempt.outcome))}>
           {OUTCOME_LABELS[attempt.outcome] ?? attempt.outcome}
         </Badge>
         <Badge variant="secondary">{attempt.language}</Badge>
       </div>
-      <div className="space-y-3">
-        <p className="text-xs text-muted-foreground">
-          {format(new Date(attempt.createdDate), "MMM d, yyyy 'at' h:mm a")}
-          {attempt.startedAt && ` · Started ${format(new Date(attempt.startedAt), "h:mm a")}`}
-          {attempt.endedAt && ` · Ended ${format(new Date(attempt.endedAt), "h:mm a")}`}
-        </p>
-        <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
-          <AttemptStat label="Solve Time" value={formatDuration(attempt.durationMinutes)} />
-          <AttemptStat label="Time Complexity" value={attempt.timeComplexity} />
-          <AttemptStat label="Space Complexity" value={attempt.spaceComplexity} />
-          <AttemptStat
-            label="Timer"
-            value={
-              attempt.startedAt && attempt.endedAt
-                ? `${format(new Date(attempt.startedAt), "h:mm a")} to ${format(new Date(attempt.endedAt), "h:mm a")}`
-                : attempt.startedAt
-                  ? `Started ${format(new Date(attempt.startedAt), "h:mm a")}`
-                  : attempt.endedAt
-                    ? `Ended ${format(new Date(attempt.endedAt), "h:mm a")}`
-                    : null
-            }
-          />
-        </div>
-        {attempt.mistakes.length > 0 && (
-          <div className="space-y-1.5">
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Mistakes</p>
-            <div className="flex flex-wrap gap-2">
-              {attempt.mistakes.map((mistake) => (
-                <Badge key={mistake} variant="secondary" className="font-medium">
-                  {MISTAKE_LABELS[mistake] ?? mistake}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        )}
-        {attempt.approach && (
-          <div className="space-y-1">
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Approach</p>
-            <p className="text-sm whitespace-pre-wrap">{attempt.approach}</p>
-          </div>
-        )}
-          <AttemptCodeBlock language={attempt.language} code={attempt.code} />
-        {(attempt.learned || attempt.takeaways || attempt.notes) && (
-          <div className="space-y-1.5 text-sm">
-            {attempt.learned && (
-              <p><span className="font-medium">Learned: </span>{attempt.learned}</p>
-            )}
-            {attempt.takeaways && (
-              <p><span className="font-medium">Takeaways: </span>{attempt.takeaways}</p>
-            )}
-            {attempt.notes && (
-              <p><span className="font-medium">Notes: </span>{attempt.notes}</p>
-            )}
-          </div>
-        )}
+      <p className={styles.attemptTimestamp}>
+        {format(new Date(attempt.createdDate), "MMM d, yyyy 'at' h:mm a")}
+        {attempt.startedAt && ` · Started ${format(new Date(attempt.startedAt), "h:mm a")}`}
+        {attempt.endedAt && ` · Ended ${format(new Date(attempt.endedAt), "h:mm a")}`}
+      </p>
+      <div className={styles.attemptStats}>
+        <AttemptStat label="Solve time" value={formatDuration(attempt.durationMinutes)} />
+        <AttemptStat label="Time complexity" value={attempt.timeComplexity} />
+        <AttemptStat label="Space complexity" value={attempt.spaceComplexity} />
+        <AttemptStat
+          label="Timer"
+          value={
+            attempt.startedAt && attempt.endedAt
+              ? `${format(new Date(attempt.startedAt), "h:mm a")} to ${format(new Date(attempt.endedAt), "h:mm a")}`
+              : attempt.startedAt
+                ? `Started ${format(new Date(attempt.startedAt), "h:mm a")}`
+                : attempt.endedAt
+                  ? `Ended ${format(new Date(attempt.endedAt), "h:mm a")}`
+                  : null
+          }
+        />
       </div>
+      {attempt.mistakes.length > 0 && (
+        <div className={styles.attemptBlock}>
+          <p className={styles.attemptBlockLabel}>Mistakes</p>
+          <div className={styles.attemptMistakeRow}>
+            {attempt.mistakes.map((mistake) => (
+              <Badge key={mistake} variant="secondary">
+                {MISTAKE_LABELS[mistake] ?? mistake}
+              </Badge>
+            ))}
+          </div>
+        </div>
+      )}
+      {attempt.approach && (
+        <div className={styles.attemptBlock}>
+          <p className={styles.attemptBlockLabel}>Approach</p>
+          <p className={styles.attemptApproach}>{attempt.approach}</p>
+        </div>
+      )}
+      <div className={styles.attemptCode}>
+        <HighlightedCodeBlock
+          chrome
+          showCopyButton
+          code={attempt.code?.trim() ? attempt.code : "// No code captured for this attempt."}
+          language={attempt.language}
+          preClassName={styles.attemptCodePre}
+        />
+      </div>
+      {(attempt.learned || attempt.takeaways || attempt.notes) && (
+        <div className={styles.attemptFootNotes}>
+          {attempt.learned && (
+            <p>
+              <strong>Learned: </strong>
+              {attempt.learned}
+            </p>
+          )}
+          {attempt.takeaways && (
+            <p>
+              <strong>Takeaways: </strong>
+              {attempt.takeaways}
+            </p>
+          )}
+          {attempt.notes && (
+            <p>
+              <strong>Notes: </strong>
+              {attempt.notes}
+            </p>
+          )}
+        </div>
+      )}
     </div>
   )
 }
@@ -387,27 +303,20 @@ function AttemptDetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex h-[92vh] w-[min(96vw,1400px)] max-w-none flex-col gap-0 overflow-hidden p-0 sm:max-w-none">
-        <DialogHeader className="shrink-0 border-b border-border/70 px-6 py-5">
+      <DialogContent className={styles.attemptDialog}>
+        <DialogHeader className={styles.attemptDialogHead}>
           <DialogTitle>Attempt #{attempt.attemptNumber}</DialogTitle>
-          <DialogDescription>
-            Full attempt details, notes, and submitted code.
-          </DialogDescription>
+          <DialogDescription>Full attempt details, notes, and submitted code.</DialogDescription>
         </DialogHeader>
-        <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
+        <div className={styles.attemptDialogBody}>
           <AttemptDetails attempt={attempt} />
         </div>
-        <DialogFooter className="shrink-0 border-t border-border/70 px-6 py-4">
-          <Button variant="outline" onClick={() => onEdit(attempt)} className="rounded-full">
+        <DialogFooter className={styles.attemptDialogFoot}>
+          <Button variant="outline" onClick={() => onEdit(attempt)}>
             Edit
           </Button>
-          <Button
-            variant="destructive"
-            onClick={() => onDelete(attempt)}
-            disabled={isDeleting}
-            className="rounded-full"
-          >
-            <Trash2 className="mr-1.5 h-4 w-4" />
+          <Button variant="destructive" onClick={() => onDelete(attempt)} disabled={isDeleting}>
+            <Trash2 size={16} />
             Delete
           </Button>
         </DialogFooter>
@@ -415,8 +324,6 @@ function AttemptDetailDialog({
     </Dialog>
   )
 }
-
-// ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function ProblemDetailPage({
   params,
@@ -428,19 +335,16 @@ export default function ProblemDetailPage({
   const id = Number(rawId)
   const { data: problem, isLoading } = useProblem(id)
 
-  // Attempt form
   const [attemptFormOpen, setAttemptFormOpen] = useState(false)
   const [editingAttempt, setEditingAttempt] = useState<AttemptDto | undefined>()
   const [selectedAttempt, setSelectedAttempt] = useState<AttemptDto | null>(null)
 
-  // Note
   const { data: notesData } = useNotes({ problemId: id })
   const notes = [...(notesData?.content ?? [])].sort(
     (a, b) => new Date(b.dateTime).getTime() - new Date(a.dateTime).getTime(),
   )
   const noteCount = notes.length
 
-  // Mutations
   const statusMutation = useUpdateProblemStatus(id)
   const addTopicMutation = useAddTopic(id)
   const removeTopicsMutation = useRemoveTopics(id)
@@ -449,28 +353,23 @@ export default function ProblemDetailPage({
   const addRelatedMutation = useAddRelatedProblem(id)
   const deleteAttemptMutation = useDeleteAttempt(id)
 
-  // Lists
   const { data: allLists } = useProblemLists()
   const createListMutation = useCreateList()
   const addToListMutation = useAddProblemToList()
   const removeFromListMutation = useRemoveProblemFromList()
 
-  // Review
   const enrollReview = useEnrollReview()
   const removeReview = useRemoveReview()
 
-  // Data for selects
   const { data: allTopics } = useTopics()
   const { data: allPatterns } = usePatterns()
   const { data: allProblems } = useProblems({ size: 200 })
 
-  // Metadata selector modals
   const [topicModalOpen, setTopicModalOpen] = useState(false)
   const [patternModalOpen, setPatternModalOpen] = useState(false)
   const [relatedModalOpen, setRelatedModalOpen] = useState(false)
   const [listModalOpen, setListModalOpen] = useState(false)
 
-  // Selector filters
   const [topicSearch, setTopicSearch] = useState("")
   const [patternSearch, setPatternSearch] = useState("")
   const [relatedSearch, setRelatedSearch] = useState("")
@@ -514,9 +413,7 @@ export default function ProblemDetailPage({
       subtitle: p.topicName ?? undefined,
     }))
   const topicQuery = topicSearch.trim().toLowerCase()
-  const filteredTopicOptions = topicOptions.filter((option) =>
-    option.label.toLowerCase().includes(topicQuery),
-  )
+  const filteredTopicOptions = topicOptions.filter((option) => option.label.toLowerCase().includes(topicQuery))
   const patternQuery = patternSearch.trim().toLowerCase()
   const filteredPatternOptions = patternOptions.filter((option) =>
     `${option.label} ${option.subtitle ?? ""}`.toLowerCase().includes(patternQuery),
@@ -529,9 +426,7 @@ export default function ProblemDetailPage({
       subtitle: p.difficulty,
     }))
   const relatedQuery = relatedSearch.trim().toLowerCase()
-  const filteredRelatedOptions = relatedOptions.filter((option) =>
-    option.label.toLowerCase().includes(relatedQuery),
-  )
+  const filteredRelatedOptions = relatedOptions.filter((option) => option.label.toLowerCase().includes(relatedQuery))
 
   async function handleAddTopic(topicId: number) {
     try {
@@ -565,19 +460,13 @@ export default function ProblemDetailPage({
     }
   }
 
-  // Lists: derive which lists contain this problem
   const problemListIds = new Set(
     (allLists ?? [])
       .filter((l: ProblemListDto) => l.problems.some((p) => p.id === id))
       .map((l: ProblemListDto) => l.id),
   )
-  const problemLists = (allLists ?? []).filter((l: ProblemListDto) =>
-    problemListIds.has(l.id),
-  )
-  const listOptions = (allLists ?? []).map((l: ProblemListDto) => ({
-    id: l.id,
-    label: l.name,
-  }))
+  const problemLists = (allLists ?? []).filter((l: ProblemListDto) => problemListIds.has(l.id))
+  const listOptions = (allLists ?? []).map((l: ProblemListDto) => ({ id: l.id, label: l.name }))
 
   async function handleAddToList(listId: number) {
     try {
@@ -617,20 +506,16 @@ export default function ProblemDetailPage({
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        <Skeleton className="h-8 w-64" />
-        <Skeleton className="h-4 w-32" />
-        <Skeleton className="h-96 w-full" />
+      <div className={styles.skeletons}>
+        <Skeleton className={styles.skeletonTitle} />
+        <Skeleton className={styles.skeletonMeta} />
+        <Skeleton className={styles.skeletonBody} />
       </div>
     )
   }
 
   if (!problem) {
-    return (
-      <div className="flex h-64 items-center justify-center text-muted-foreground">
-        Problem not found.
-      </div>
-    )
+    return <div className={styles.notFound}>Problem not found.</div>
   }
 
   const problemListNames = problemLists.map((list) => getListDisplayName(list))
@@ -648,482 +533,322 @@ export default function ProblemDetailPage({
       ? `Overdue by ${Math.ceil((reviewNow.getTime() - reviewDueDate.getTime()) / 86400000)}d`
       : `Due ${formatRelativeDate(reviewDueDate)}`
     : null
-  const primaryActionButtonClass = "h-10 rounded-full px-4 text-sm"
-  const metadataAddButtonClass =
-    "inline-flex items-center gap-1 rounded-full border border-dashed border-border/80 px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:border-foreground hover:text-foreground"
 
   return (
-    <div className="w-full space-y-6">
-      <Button variant="ghost" size="sm" asChild className="-ml-2 rounded-full">
+    <div className={styles.page}>
+      <Button variant="ghost" size="sm" asChild className={styles.back}>
         <Link href="/problems">
-          <ArrowLeft className="mr-1 h-4 w-4" />
+          <ArrowLeft size={16} />
           Back
         </Link>
       </Button>
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_420px] xl:items-start">
-        <div className="space-y-6">
-          <div
-            className="overflow-hidden rounded-[30px] border border-border/70 shadow-[0_30px_90px_color-mix(in_oklab,var(--foreground)_12%,transparent)]"
-            style={{
-              background: [
-                "radial-gradient(circle at 14% 18%, color-mix(in srgb, var(--primary) 16%, transparent), transparent 34%)",
-                "radial-gradient(circle at 86% 22%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 30%)",
-                "linear-gradient(145deg, color-mix(in srgb, var(--card) 90%, var(--background) 10%), color-mix(in srgb, var(--background) 92%, var(--card) 8%))",
-              ].join(", "),
-            }}
-          >
-            <div className="space-y-6 p-5 sm:p-6">
-              <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-                <div className="min-w-0 max-w-3xl space-y-3">
-                  <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
-                    Problem Workspace
-                  </div>
-                  <div className="space-y-2">
-                    <p className="font-mono text-sm text-muted-foreground">#{problem.leetcodeId}</p>
-                    <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-                      {problem.title}
-                    </h1>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <DifficultyBadge difficulty={problem.difficulty} />
-                    <StatusBadge status={problem.status} />
-                    {problem.reviewCard ? (
-                      <Badge variant="outline" className="rounded-full border-border/70 bg-background/70 px-3 py-1 text-xs text-muted-foreground">
-                        {problem.reviewCard.state}
-                        {reviewDueText ? <span className="ml-2 text-foreground">{reviewDueText}</span> : null}
-                      </Badge>
-                    ) : null}
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleCreateNote}
-                    className={primaryActionButtonClass}
-                  >
-                    <StickyNote className="mr-2 h-4 w-4" />
-                    Create Note
-                  </Button>
-                  <Button size="sm" onClick={handleLogAttempt} className={primaryActionButtonClass}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Log Attempt
-                  </Button>
-                  <CopyProblemButton
-                    problemId={id}
-                    problem={problem}
-                    notes={notesData?.content}
-                    listNames={problemListNames}
-                    variant="outline"
-                    className={`shrink-0 ${primaryActionButtonClass}`}
-                    label="Copy details"
-                    title="Copy problem details"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
-                <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">Attempts</p>
-                  <p className="mt-3 text-2xl font-semibold text-foreground">{attempts.length}</p>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {latestAttempt ? `Last on ${format(new Date(latestAttempt.createdDate), "MMM d, yyyy")}` : "No attempts logged yet"}
-                  </p>
-                </div>
-                <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">Accepted</p>
-                  <p className="mt-3 text-2xl font-semibold text-foreground">{acceptedAttempts}</p>
-                  <p className="mt-1 text-sm text-muted-foreground">Successful submissions captured here.</p>
-                </div>
-                <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">Notes</p>
-                  <p className="mt-3 text-2xl font-semibold text-foreground">{noteCount}</p>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {noteCount > 0 ? "Strategy, review, and learning context attached." : "No written notes yet."}
-                  </p>
-                </div>
-                <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">Solve Time</p>
-                  <p className="mt-3 text-2xl font-semibold text-foreground">{formatDuration(totalSolveMinutes) ?? "—"}</p>
-                  <p className="mt-1 text-sm text-muted-foreground">Combined logged duration across attempts.</p>
-                </div>
-              </div>
-            </div>
+      <div className={styles.header}>
+        <div className={styles.headerText}>
+          <p className={styles.leetcodeId}>#{problem.leetcodeId}</p>
+          <h1 className={styles.title}>{problem.title}</h1>
+          <div className={styles.badgeRow}>
+            <DifficultyBadge difficulty={problem.difficulty} />
+            <StatusBadge status={problem.status} />
+            {problem.reviewCard ? (
+              <Badge variant="outline" className={styles.reviewChip}>
+                {problem.reviewCard.state}
+                {reviewDueText ? <span className={styles.reviewChipDue}>{reviewDueText}</span> : null}
+              </Badge>
+            ) : null}
           </div>
+        </div>
 
-          <SurfaceSection
-            eyebrow="Attached Notes"
-            title={`Notes (${noteCount})`}
-            description="Keep multiple strategy, review, and interview notes attached to this problem."
-            actions={
-              <Button variant="outline" size="sm" onClick={handleCreateNote} className="rounded-full">
-                <StickyNote className="mr-1.5 h-4 w-4" />
-                Add Note
+        <div className={styles.headerActions}>
+          <Button variant="outline" size="sm" onClick={handleCreateNote}>
+            <StickyNote size={16} />
+            Create note
+          </Button>
+          <Button size="sm" onClick={handleLogAttempt}>
+            <Plus size={16} />
+            Log attempt
+          </Button>
+          <CopyProblemButton
+            problemId={id}
+            problem={problem}
+            notes={notesData?.content}
+            listNames={problemListNames}
+            variant="outline"
+            label="Copy details"
+            title="Copy problem details"
+          />
+        </div>
+      </div>
+
+      <div className={styles.facts}>
+        <Fact
+          label="Attempts"
+          value={attempts.length}
+          caption={latestAttempt ? `Last on ${format(new Date(latestAttempt.createdDate), "MMM d, yyyy")}` : "None yet"}
+        />
+        <Fact label="Accepted" value={acceptedAttempts} caption="Successful submissions" />
+        <Fact label="Notes" value={noteCount} caption={noteCount > 0 ? "Attached to this problem" : "None yet"} />
+        <Fact label="Solve time" value={formatDuration(totalSolveMinutes) ?? "—"} caption="Combined across attempts" />
+      </div>
+
+      <div className={styles.grid}>
+        <div className={styles.main}>
+          <section className={styles.panel}>
+            <div className={styles.panelHead}>
+              <div>
+                <p className={styles.panelTitle}>Notes</p>
+                <p className={styles.panelNote}>Keep strategy, review, and interview notes attached to this problem.</p>
+              </div>
+              <Button variant="outline" size="sm" onClick={handleCreateNote}>
+                <StickyNote size={16} />
+                Add note
               </Button>
-            }
-          >
-            {noteCount > 0 ? (
-              <div className="grid gap-3 md:grid-cols-2">
-                {notes.map((note) => (
-                  <button
-                    key={note.id}
-                    type="button"
-                    onClick={() => handleOpenNote(note)}
-                    className="rounded-2xl border border-border/70 bg-background/70 p-4 text-left transition-colors hover:border-border hover:bg-background"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0 space-y-1">
-                        <p className="truncate text-sm font-medium leading-snug text-foreground">{note.title}</p>
-                        <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                          {note.tag} · {formatNoteDate(note.dateTime)}
-                        </p>
+            </div>
+            <div className={styles.panelBody}>
+              {noteCount > 0 ? (
+                <div className={styles.noteGrid}>
+                  {notes.map((note) => (
+                    <button key={note.id} type="button" onClick={() => handleOpenNote(note)} className={styles.noteCard}>
+                      <div className={styles.noteCardHead}>
+                        <div>
+                          <p className={styles.noteCardTitle}>{note.title}</p>
+                          <p className={styles.noteCardMeta}>
+                            {note.tag} &middot; {formatNoteDate(note.dateTime)}
+                          </p>
+                        </div>
+                        <span className={styles.noteCardOpen}>Open</span>
                       </div>
-                      <span className="rounded-full border border-border/70 bg-card/80 px-2.5 py-1 text-xs font-medium text-muted-foreground">
-                        Open
-                      </span>
-                    </div>
-                    <div className="mt-3 line-clamp-5 text-sm text-muted-foreground">
-                      <MarkdownContent content={note.content} />
-                    </div>
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <div className="flex min-h-44 flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border/70 bg-background/40 text-sm text-muted-foreground">
-                <p>No notes attached yet.</p>
-                <Button variant="outline" size="sm" onClick={handleCreateNote} className="rounded-full">
-                  <StickyNote className="mr-1.5 h-4 w-4" />
-                  Create Note
-                </Button>
-              </div>
-            )}
-          </SurfaceSection>
+                      <div className={styles.noteCardExcerpt}>
+                        <MarkdownContent content={note.content} />
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className={styles.empty}>
+                  <p>No notes attached yet.</p>
+                  <Button variant="outline" size="sm" onClick={handleCreateNote}>
+                    <StickyNote size={16} />
+                    Create note
+                  </Button>
+                </div>
+              )}
+            </div>
+          </section>
 
-          <SurfaceSection
-            eyebrow="Attempt History"
-            title={`Attempts (${problem.attempts.length})`}
-            description="Track outcomes, mistakes, and the quality of each solve rather than just whether it passed."
-            actions={
-              <Button size="sm" onClick={handleLogAttempt} className="rounded-full">
-                <Plus className="mr-1.5 h-4 w-4" />
-                Log Attempt
+          <section className={styles.panel}>
+            <div className={styles.panelHead}>
+              <div>
+                <p className={styles.panelTitle}>Attempts</p>
+                <p className={styles.panelNote}>Track outcomes, mistakes, and the quality of each solve.</p>
+              </div>
+              <Button size="sm" onClick={handleLogAttempt}>
+                <Plus size={16} />
+                Log attempt
               </Button>
-            }
-          >
-            {problem.attempts.length === 0 ? (
-              <div className="flex min-h-44 flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border/70 bg-background/40 text-sm text-muted-foreground">
-                <p>No attempts yet.</p>
-                <Button size="sm" variant="outline" onClick={handleLogAttempt} className="rounded-full">
-                  <Plus className="mr-1.5 h-4 w-4" />
-                  Log first attempt
-                </Button>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {latestAttempt ? (
-                  <div className="grid gap-3 md:grid-cols-4">
-                    <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Latest Result</p>
-                      <div className="mt-3">
-                        <Badge variant="outline" className={getOutcomeBadgeClass(latestAttempt.outcome)}>
-                          {OUTCOME_LABELS[latestAttempt.outcome] ?? latestAttempt.outcome}
-                        </Badge>
-                      </div>
-                    </div>
-                    <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Latest Attempt</p>
-                      <p className="mt-3 text-lg font-semibold text-foreground">
-                        {format(new Date(latestAttempt.createdDate), "MMM d, yyyy")}
-                      </p>
-                    </div>
-                    <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Duration</p>
-                      <p className="mt-3 text-lg font-semibold text-foreground">
-                        {formatDuration(latestAttempt.durationMinutes) ?? "—"}
-                      </p>
-                    </div>
-                    <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Mistakes</p>
-                      <p className="mt-3 line-clamp-2 text-sm font-medium text-foreground">
-                        {formatAttemptMistakes(latestAttempt)}
-                      </p>
-                    </div>
-                  </div>
-                ) : null}
-
-                <div className="overflow-hidden rounded-2xl border border-border/70">
+            </div>
+            <div className={styles.panelBody}>
+              {attempts.length === 0 ? (
+                <div className={styles.empty}>
+                  <p>No attempts yet.</p>
+                  <Button size="sm" variant="outline" onClick={handleLogAttempt}>
+                    <Plus size={16} />
+                    Log first attempt
+                  </Button>
+                </div>
+              ) : (
+                <div className={styles.tableShell}>
                   <Table>
                     <TableHeader>
-                      <TableRow className="bg-background/65">
-                        <TableHead className="w-20 text-center">#</TableHead>
-                        <TableHead className="min-w-64 text-left">Approach</TableHead>
-                        <TableHead className="w-36 text-center">Result</TableHead>
-                        <TableHead className="w-36 text-center">Time Complexity</TableHead>
-                        <TableHead className="w-36 text-center">Space Complexity</TableHead>
-                        <TableHead className="text-center">Mistakes</TableHead>
-                        <TableHead className="w-28 text-center">Solve Time</TableHead>
+                      <TableRow className={styles.headRow}>
+                        <TableHead className={styles.headCellCenter}>#</TableHead>
+                        <TableHead className={styles.headCell}>Approach</TableHead>
+                        <TableHead className={styles.headCellCenter}>Result</TableHead>
+                        <TableHead className={styles.headCellCenter}>Time</TableHead>
+                        <TableHead className={styles.headCellCenter}>Space</TableHead>
+                        <TableHead className={styles.headCellCenter}>Mistakes</TableHead>
+                        <TableHead className={styles.headCellCenter}>Solve time</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {attempts.map((attempt) => (
-                        <TableRow
-                          key={attempt.id}
-                          className="cursor-pointer transition-colors hover:bg-accent/20"
-                          onClick={() => setSelectedAttempt(attempt)}
-                        >
-                          <TableCell className="text-center font-medium">#{attempt.attemptNumber}</TableCell>
-                          <TableCell className="max-w-md text-left text-sm text-muted-foreground">
-                            <span className="line-clamp-2 block">{attempt.approach ?? "—"}</span>
+                        <TableRow key={attempt.id} className={styles.row} onClick={() => setSelectedAttempt(attempt)}>
+                          <TableCell className={styles.cellCenter}>#{attempt.attemptNumber}</TableCell>
+                          <TableCell className={styles.cell}>
+                            <span className={styles.approach}>{attempt.approach ?? "—"}</span>
                           </TableCell>
-                          <TableCell className="text-center">
-                            <Badge
-                              variant="outline"
-                              className={getOutcomeBadgeClass(attempt.outcome)}
-                            >
+                          <TableCell className={styles.cellCenter}>
+                            <Badge variant="outline" className={cn(tones.tone, outcomeTone(attempt.outcome))}>
                               {OUTCOME_LABELS[attempt.outcome] ?? attempt.outcome}
                             </Badge>
                           </TableCell>
-                          <TableCell className="text-center text-sm text-muted-foreground">
-                            {attempt.timeComplexity ?? "—"}
-                          </TableCell>
-                          <TableCell className="text-center text-sm text-muted-foreground">
-                            {attempt.spaceComplexity ?? "—"}
-                          </TableCell>
-                          <TableCell className="max-w-md text-center text-sm text-muted-foreground">
-                            {formatAttemptMistakes(attempt)}
-                          </TableCell>
-                          <TableCell className="text-center text-sm text-muted-foreground">
-                            {formatDuration(attempt.durationMinutes) ?? "—"}
-                          </TableCell>
+                          <TableCell className={styles.cellCenter}>{attempt.timeComplexity ?? "—"}</TableCell>
+                          <TableCell className={styles.cellCenter}>{attempt.spaceComplexity ?? "—"}</TableCell>
+                          <TableCell className={styles.cellCenter}>{formatAttemptMistakes(attempt)}</TableCell>
+                          <TableCell className={styles.cellCenter}>{formatDuration(attempt.durationMinutes) ?? "—"}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
                   </Table>
                 </div>
-              </div>
-            )}
-          </SurfaceSection>
+              )}
+            </div>
+          </section>
         </div>
 
-        <aside className="space-y-6 xl:sticky xl:top-6 xl:self-start">
-          <div className="overflow-hidden rounded-[28px] border border-border/70 bg-card/80 shadow-(--shadow-panel)">
-            <div className="border-b border-border/70 px-5 py-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
-                Problem Metadata
-              </p>
-              <div className="mt-3 flex flex-wrap items-center gap-2">
-                <Select value={problem.status} onValueChange={(v) => statusMutation.mutate(v)}>
-                  <SelectTrigger
-                    size="sm"
-                    hideIcon
-                    disabled={statusMutation.isPending}
-                    className="inline-flex h-auto min-h-0 w-fit cursor-pointer items-center border-0 bg-transparent p-0 leading-none shadow-none transition-opacity hover:opacity-80 focus-visible:ring-0 data-[state=open]:opacity-80"
-                  >
-                    <SelectValue>
-                      <StatusBadge status={problem.status} />
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {STATUSES.map((s) => (
-                      <SelectItem key={s.value} value={s.value}>
-                        <StatusBadge status={s.value} />
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <DifficultyBadge difficulty={problem.difficulty} />
-                {problem.reviewCard ? (
-                  <MetadataChip className="text-muted-foreground">
-                    {problem.reviewCard.state}
-                    {reviewDueText ? <span className="text-foreground">{reviewDueText}</span> : null}
-                  </MetadataChip>
-                ) : null}
+        <aside className={styles.aside}>
+          <section className={styles.panel}>
+            <div className={styles.panelHead}>
+              <div>
+                <p className={styles.panelTitle}>Metadata</p>
               </div>
-            </div>
-            <div className="grid gap-3 p-4">
-              <MetadataSection title="Reference">
-                <a
-                  href={problem.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
-                >
-                  <ExternalLink className="h-3.5 w-3.5" />
-                  <span className="truncate">{problem.url.replace("https://", "")}</span>
-                </a>
-              </MetadataSection>
-
-              <MetadataSection title="Topics">
-                <div className="flex flex-wrap items-center gap-1.5">
-                  {problem.topics.map((t) => (
-                    <MetadataChip key={t.id} className="bg-secondary text-foreground">
-                      {t.name}
-                      <button
-                        onClick={() => removeTopicsMutation.mutate([t.id])}
-                        className="rounded-full p-0.5 text-muted-foreground transition-colors hover:bg-muted-foreground/20 hover:text-foreground"
-                      >
-                        <X className="h-2.5 w-2.5" />
-                      </button>
-                    </MetadataChip>
+              <Select value={problem.status} onValueChange={(v) => statusMutation.mutate(v)}>
+                <SelectTrigger hideIcon disabled={statusMutation.isPending} className={styles.statusTrigger}>
+                  <SelectValue>
+                    <StatusBadge status={problem.status} />
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {STATUSES.map((s) => (
+                    <SelectItem key={s.value} value={s.value}>
+                      <StatusBadge status={s.value} />
+                    </SelectItem>
                   ))}
-                  <button onClick={() => setTopicModalOpen(true)} className={metadataAddButtonClass}>
-                    <Plus className="h-2.5 w-2.5" />
+                </SelectContent>
+              </Select>
+            </div>
+            <div className={styles.metaBody}>
+              <div className={styles.metaBlock}>
+                <p className={styles.metaLabel}>Reference</p>
+                <a href={problem.url} target="_blank" rel="noopener noreferrer" className={styles.referenceLink}>
+                  <ExternalLink size={14} />
+                  <span>{problem.url.replace("https://", "")}</span>
+                </a>
+              </div>
+
+              <div className={styles.metaBlock}>
+                <p className={styles.metaLabel}>Topics</p>
+                <div className={cn(styles.chipRow, styles.metaContent)}>
+                  {problem.topics.map((t) => (
+                    <span key={t.id} className={styles.chip}>
+                      {t.name}
+                      <button onClick={() => removeTopicsMutation.mutate([t.id])} className={styles.chipRemove}>
+                        <X size={10} />
+                      </button>
+                    </span>
+                  ))}
+                  <button onClick={() => setTopicModalOpen(true)} className={styles.chipAdd}>
+                    <Plus size={10} />
                     Add
                   </button>
                 </div>
-              </MetadataSection>
+              </div>
 
-              <MetadataSection title="Patterns">
-                <div className="space-y-2">
+              <div className={styles.metaBlock}>
+                <p className={styles.metaLabel}>Patterns</p>
+                <div className={cn(styles.listRow, styles.metaContent)}>
                   {problem.patterns.map((p) => (
-                    <div
-                      key={p.id}
-                      className="group/item flex items-center justify-between gap-3 rounded-xl border border-border/60 bg-card/70 px-3 py-2"
-                    >
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-medium text-foreground">{p.name}</p>
-                        {p.topicName ? (
-                          <p className="text-xs text-muted-foreground">{p.topicName}</p>
-                        ) : null}
+                    <div key={p.id} className={styles.entryRow}>
+                      <div className={styles.entryText}>
+                        <p className={styles.entryTitle}>{p.name}</p>
+                        {p.topicName ? <p className={styles.entrySubtitle}>{p.topicName}</p> : null}
                       </div>
-                      <button
-                        onClick={() => removePatternMutation.mutate(p.id)}
-                        className="shrink-0 rounded-full p-1 text-muted-foreground opacity-0 transition-all hover:bg-muted hover:text-foreground group-hover/item:opacity-100"
-                      >
-                        <X className="h-3 w-3" />
+                      <button onClick={() => removePatternMutation.mutate(p.id)} className={styles.entryRemove}>
+                        <X size={12} />
                       </button>
                     </div>
                   ))}
-                  <button onClick={() => setPatternModalOpen(true)} className={metadataAddButtonClass}>
-                    <Plus className="h-2.5 w-2.5" />
+                  <button onClick={() => setPatternModalOpen(true)} className={styles.chipAdd}>
+                    <Plus size={10} />
                     Add
                   </button>
                 </div>
-              </MetadataSection>
+              </div>
 
-              <MetadataSection title="Related Problems">
-                <div className="space-y-2">
+              <div className={styles.metaBlock}>
+                <p className={styles.metaLabel}>Related problems</p>
+                <div className={cn(styles.listRow, styles.metaContent)}>
                   {problem.relatedProblems.map((r) => (
-                    <Link
-                      key={r.id}
-                      href={`/problems/${r.id}`}
-                      className="flex items-center justify-between gap-3 rounded-xl border border-border/60 bg-card/70 px-3 py-2 transition-colors hover:border-border hover:bg-card"
-                    >
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-medium text-foreground">
+                    <Link key={r.id} href={`/problems/${r.id}`} className={styles.entryRow}>
+                      <div className={styles.entryText}>
+                        <p className={styles.entryTitle}>
                           #{r.leetcodeId} {r.title}
                         </p>
                       </div>
                       <DifficultyBadge difficulty={r.difficulty} />
                     </Link>
                   ))}
-                  <button onClick={() => setRelatedModalOpen(true)} className={metadataAddButtonClass}>
-                    <Plus className="h-2.5 w-2.5" />
+                  <button onClick={() => setRelatedModalOpen(true)} className={styles.chipAdd}>
+                    <Plus size={10} />
                     Add
                   </button>
                 </div>
-              </MetadataSection>
+              </div>
 
-              <MetadataSection title="Lists">
-                <div className="flex flex-wrap items-center gap-1.5">
+              <div className={styles.metaBlock}>
+                <p className={styles.metaLabel}>Lists</p>
+                <div className={cn(styles.chipRow, styles.metaContent)}>
                   {problemLists.map((l) => (
-                    <MetadataChip key={l.id} className="bg-secondary text-foreground">
-                      <Link href={getListHref(l)} className="hover:underline">
-                        {getListDisplayName(l)}
-                      </Link>
-                      <button
-                        onClick={() => handleRemoveFromList(l.id)}
-                        className="rounded-full p-0.5 text-muted-foreground transition-colors hover:bg-muted-foreground/20 hover:text-foreground"
-                      >
-                        <X className="h-2.5 w-2.5" />
+                    <span key={l.id} className={styles.chip}>
+                      <Link href={getListHref(l)}>{getListDisplayName(l)}</Link>
+                      <button onClick={() => handleRemoveFromList(l.id)} className={styles.chipRemove}>
+                        <X size={10} />
                       </button>
-                    </MetadataChip>
+                    </span>
                   ))}
-                  <button onClick={() => setListModalOpen(true)} className={metadataAddButtonClass}>
-                    <Plus className="h-2.5 w-2.5" />
+                  <button onClick={() => setListModalOpen(true)} className={styles.chipAdd}>
+                    <Plus size={10} />
                     Add
                   </button>
                 </div>
-              </MetadataSection>
+              </div>
 
-              <MetadataSection title="Revision">
-                {problem.reviewCard ? (
-                  <div className="space-y-3">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <Badge variant="outline" className="text-xs">
-                          {problem.reviewCard.state}
-                        </Badge>
-                        {reviewDueText ? (
-                          <span className="text-xs text-muted-foreground">{reviewDueText}</span>
-                        ) : null}
-                        <span className="text-xs text-muted-foreground">
-                          {problem.reviewCard.reps} reviews
-                        </span>
+              <div className={styles.metaBlock}>
+                <p className={styles.metaLabel}>Revision</p>
+                <div className={styles.metaContent}>
+                  {problem.reviewCard ? (
+                    <>
+                      <div className={styles.revisionRow}>
+                        <div className={styles.revisionMeta}>
+                          <Badge variant="outline">{problem.reviewCard.state}</Badge>
+                          {reviewDueText ? <span>{reviewDueText}</span> : null}
+                          <span>{problem.reviewCard.reps} reviews</span>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          className={styles.revisionRemove}
+                          onClick={() => removeReview.mutate(problem.reviewCard!.id)}
+                          disabled={removeReview.isPending}
+                          title="Remove from review"
+                        >
+                          <X size={14} />
+                        </Button>
                       </div>
-                      <button
-                        onClick={() => removeReview.mutate(problem.reviewCard!.id)}
-                        disabled={removeReview.isPending}
-                        className="inline-flex shrink-0 rounded-full p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-destructive"
-                        title="Remove from review"
-                      >
-                        <X className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                    {isReviewDue ? <QuickReviewButtons cardId={problem.reviewCard.id} /> : null}
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => enrollReview.mutate(problem.id)}
-                    disabled={enrollReview.isPending}
-                    className={metadataAddButtonClass}
-                  >
-                    <Plus className="h-2.5 w-2.5" />
-                    Add to Review
-                  </button>
-                )}
-              </MetadataSection>
-            </div>
-          </div>
-
-          <div className="overflow-hidden rounded-[28px] border border-border/70 bg-card/80 shadow-(--shadow-panel)">
-            <div className="border-b border-border/70 px-4 py-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
-                Study Snapshot
-              </p>
-            </div>
-            <div className="grid gap-3 p-4">
-              <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Latest Attempt</p>
-                <p className="mt-2 text-lg font-semibold text-foreground">
-                  {latestAttempt ? format(new Date(latestAttempt.createdDate), "MMM d, yyyy") : "None yet"}
-                </p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {latestAttempt ? `${OUTCOME_LABELS[latestAttempt.outcome] ?? latestAttempt.outcome} in ${formatDuration(latestAttempt.durationMinutes) ?? "—"}` : "Open a first attempt to start building history."}
-                </p>
-              </div>
-              <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Related Context</p>
-                <p className="mt-2 text-lg font-semibold text-foreground">
-                  {problem.relatedProblems.length} related
-                </p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {problem.topics.length} topics and {problem.patterns.length} patterns attached.
-                </p>
+                      {isReviewDue ? (
+                        <div className={styles.reviewButtons}>
+                          <QuickReviewButtons cardId={problem.reviewCard.id} />
+                        </div>
+                      ) : null}
+                    </>
+                  ) : (
+                    <button
+                      onClick={() => enrollReview.mutate(problem.id)}
+                      disabled={enrollReview.isPending}
+                      className={styles.chipAdd}
+                    >
+                      <Plus size={10} />
+                      Add to review
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
+          </section>
         </aside>
       </div>
 
-      <AttemptForm
-        open={attemptFormOpen}
-        onOpenChange={setAttemptFormOpen}
-        problemId={id}
-        attempt={editingAttempt}
-      />
+      <AttemptForm open={attemptFormOpen} onOpenChange={setAttemptFormOpen} problemId={id} attempt={editingAttempt} />
 
       <AttemptDetailDialog
         attempt={selectedAttempt}
@@ -1141,16 +866,12 @@ export default function ProblemDetailPage({
       />
 
       <Dialog open={topicModalOpen} onOpenChange={setTopicModalOpen}>
-        <DialogContent className="sm:max-w-3xl">
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add Topics</DialogTitle>
+            <DialogTitle>Add topics</DialogTitle>
             <DialogDescription>Select from the predefined topic catalog.</DialogDescription>
           </DialogHeader>
-          <Input
-            value={topicSearch}
-            onChange={(e) => setTopicSearch(e.target.value)}
-            placeholder="Search topics..."
-          />
+          <Input value={topicSearch} onChange={(e) => setTopicSearch(e.target.value)} placeholder="Search topics..." />
           <SelectorGrid
             options={filteredTopicOptions}
             selectedIds={topicIds}
@@ -1161,16 +882,12 @@ export default function ProblemDetailPage({
       </Dialog>
 
       <Dialog open={patternModalOpen} onOpenChange={setPatternModalOpen}>
-        <DialogContent className="sm:max-w-3xl">
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add Patterns</DialogTitle>
+            <DialogTitle>Add patterns</DialogTitle>
             <DialogDescription>Select from the predefined pattern catalog.</DialogDescription>
           </DialogHeader>
-          <Input
-            value={patternSearch}
-            onChange={(e) => setPatternSearch(e.target.value)}
-            placeholder="Search patterns..."
-          />
+          <Input value={patternSearch} onChange={(e) => setPatternSearch(e.target.value)} placeholder="Search patterns..." />
           <SelectorGrid
             options={filteredPatternOptions}
             selectedIds={patternIds}
@@ -1181,54 +898,50 @@ export default function ProblemDetailPage({
       </Dialog>
 
       <Dialog open={relatedModalOpen} onOpenChange={setRelatedModalOpen}>
-        <DialogContent className="sm:max-w-3xl">
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add Related Problem</DialogTitle>
+            <DialogTitle>Add related problem</DialogTitle>
             <DialogDescription>Search and add a related problem.</DialogDescription>
           </DialogHeader>
-          <div className="space-y-3">
-            <Input
-              value={relatedSearch}
-              onChange={(e) => setRelatedSearch(e.target.value)}
-              placeholder="Search by title or LeetCode number..."
-            />
-            <div className="max-h-80 space-y-1 overflow-y-auto rounded-md border p-2">
-              {filteredRelatedOptions.length === 0 ? (
-                <p className="px-2 py-2 text-xs text-muted-foreground">No matching problems found.</p>
-              ) : (
-                filteredRelatedOptions.map((option) => {
-                  const selected = relatedIds.has(option.id)
-                  return (
-                    <button
-                      key={option.id}
-                      type="button"
-                      disabled={selected || addRelatedMutation.isPending}
-                      onClick={() => handleAddRelated(option.id)}
-                      className="flex w-full items-center justify-between rounded-md px-2 py-1.5 text-left text-xs transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      <span className="truncate pr-2">{option.label}</span>
-                      <span className="shrink-0 text-[11px] text-muted-foreground">
-                        {selected ? "Added" : option.subtitle}
-                      </span>
-                    </button>
-                  )
-                })
-              )}
-            </div>
+          <Input
+            value={relatedSearch}
+            onChange={(e) => setRelatedSearch(e.target.value)}
+            placeholder="Search by title or LeetCode number..."
+          />
+          <div className={styles.relatedList}>
+            {filteredRelatedOptions.length === 0 ? (
+              <p className={styles.selectorEmpty}>No matching problems found.</p>
+            ) : (
+              filteredRelatedOptions.map((option) => {
+                const selected = relatedIds.has(option.id)
+                return (
+                  <button
+                    key={option.id}
+                    type="button"
+                    disabled={selected || addRelatedMutation.isPending}
+                    onClick={() => handleAddRelated(option.id)}
+                    className={styles.relatedOption}
+                  >
+                    <span className={styles.relatedOptionLabel}>{option.label}</span>
+                    <span className={styles.relatedOptionMeta}>{selected ? "Added" : option.subtitle}</span>
+                  </button>
+                )
+              })
+            )}
           </div>
-          <div className="flex items-center justify-between rounded-md border border-dashed p-3">
-            <p className="text-xs text-muted-foreground">Need a problem that is not here yet?</p>
+          <div className={styles.dialogHint}>
+            <p>Need a problem that is not here yet?</p>
             <Button asChild variant="outline" size="sm">
-              <Link href="/problems">Create New Problem</Link>
+              <Link href="/problems">Create new problem</Link>
             </Button>
           </div>
         </DialogContent>
       </Dialog>
 
       <Dialog open={listModalOpen} onOpenChange={setListModalOpen}>
-        <DialogContent className="sm:max-w-3xl">
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add to List</DialogTitle>
+            <DialogTitle>Add to list</DialogTitle>
             <DialogDescription>Select a list to add this problem to, or create a new one.</DialogDescription>
           </DialogHeader>
           <SelectorGrid
@@ -1237,9 +950,9 @@ export default function ProblemDetailPage({
             onSelect={handleAddToList}
             isPending={addToListMutation.isPending}
           />
-          <div className="space-y-2 rounded-md border border-dashed p-3">
-            <p className="text-xs font-medium">Create new list</p>
-            <div className="space-y-1">
+          <div className={styles.newListPanel}>
+            <p className={styles.newListTitle}>Create new list</p>
+            <div className={styles.newListField}>
               <Label htmlFor="new-list-name">Name</Label>
               <Input
                 id="new-list-name"
@@ -1248,18 +961,14 @@ export default function ProblemDetailPage({
                 placeholder="e.g. Blind 75"
               />
             </div>
-            <div className="flex justify-end">
-              <Button
-                onClick={handleCreateList}
-                disabled={createListMutation.isPending || addToListMutation.isPending}
-              >
-                Create and Add
+            <div className={styles.newListActions}>
+              <Button onClick={handleCreateList} disabled={createListMutation.isPending || addToListMutation.isPending}>
+                Create and add
               </Button>
             </div>
           </div>
         </DialogContent>
       </Dialog>
-
     </div>
   )
 }

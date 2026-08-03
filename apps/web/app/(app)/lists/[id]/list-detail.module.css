@@ -1,0 +1,101 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.back {
+  align-self: flex-start;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: var(--step-2);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.subtitle {
+  margin-top: var(--space-2xs);
+  font-size: var(--step--1);
+  color: var(--muted-foreground);
+}
+
+.notFound {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 16rem;
+  color: var(--muted-foreground);
+}
+
+.skeletons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.skeletonTitle {
+  height: 2rem;
+  width: 12rem;
+}
+
+.skeletonBody {
+  height: 16rem;
+}
+
+.error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  padding: var(--space-lg);
+  border: 1px solid color-mix(in oklch, var(--destructive) 40%, transparent);
+  border-radius: var(--radius-lg);
+  background: color-mix(in oklch, var(--destructive) 6%, transparent);
+  font-size: var(--step--1);
+  color: var(--muted-foreground);
+}
+
+.errorIcon {
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+  color: var(--destructive);
+}
+
+.errorTitle {
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.tableShell {
+  overflow: hidden;
+  border: var(--rule);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-panel);
+}
+
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+
+.pagerStatus {
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--step--1);
+  color: var(--muted-foreground);
+}
+
+.pagerButtons {
+  display: flex;
+  gap: var(--space-xs);
+}

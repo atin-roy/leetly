@@ -30,3 +30,10 @@ Thumbs.db
 
 # Git worktrees
 .worktrees
+
+# AI planning/context files, never part of repo history
+GOAL.md
+CLAUDE.md
+AGENTS.md
+.claude/
+docs/superpowers/

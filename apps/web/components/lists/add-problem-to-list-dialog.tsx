@@ -17,6 +17,7 @@ import { fetchLeetCodeProblem, parseProblemInput } from "@/lib/leetcode"
 import { getListDisplayNameFromName } from "@/lib/list-display"
 import { useAddProblemToList } from "@/hooks/use-lists"
 import { useCreateProblem, useProblemRefs } from "@/hooks/use-problems"
+import styles from "./add-problem-to-list-dialog.module.css"
 
 interface AddProblemToListDialogProps {
   listId: number
@@ -159,7 +160,7 @@ export function AddProblemToListDialog({
           variant={buttonVariant}
           className={buttonClassName}
         >
-          <Plus className="mr-1.5 h-4 w-4" />
+          <Plus />
           Add Problem
         </Button>
       </DialogTrigger>
@@ -167,8 +168,8 @@ export function AddProblemToListDialog({
         <DialogHeader>
           <DialogTitle>Add Problem to {displayListName}</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4">
-          <div className="space-y-1.5">
+        <div className={styles.body}>
+          <div className={styles.field}>
             <Label htmlFor="list-problem-input">LeetCode numbers or URLs</Label>
             <Textarea
               id="list-problem-input"
@@ -177,14 +178,14 @@ export function AddProblemToListDialog({
               placeholder="e.g. 1, 42, leetcode.com/problems/two-sum/"
               rows={1}
               disabled={isImportingBulk || createProblemMutation.isPending || addMutation.isPending}
-              className="max-h-[8.5rem] min-h-10 resize-none overflow-y-auto"
+              className={styles.textarea}
             />
-            <p className="text-xs text-muted-foreground">
+            <p className={styles.hint}>
               Use commas or new lines. Existing problems will be linked to this list; new ones will be created.
             </p>
           </div>
 
-          <div className="flex justify-end gap-2">
+          <div className={styles.actions}>
             <Button variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
@@ -199,7 +200,7 @@ export function AddProblemToListDialog({
             >
               {isImportingBulk || createProblemMutation.isPending || addMutation.isPending ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className={styles.spin} />
                   Adding...
                 </>
               ) : (

@@ -41,16 +41,7 @@ export default function RootLayout({
       className={`${display.variable} ${mono.variable}`}
       suppressHydrationWarning
     >
-      <head>
-        {/* Applies the stored theme before first paint to avoid a flash of the
-            default palette. ThemeInitializer takes over inside the app tree. */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `try{var t=localStorage.getItem("leetly-theme");document.documentElement.setAttribute("data-theme",t||"default")}catch(e){}`,
-          }}
-        />
-      </head>
-      <body className="min-h-svh antialiased">
+      <body>
         <Providers>{children}</Providers>
       </body>
     </html>

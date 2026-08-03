@@ -10,7 +10,9 @@ import {
   useSendFriendRequest,
   useUnfriend,
 } from "@/hooks/use-social"
+import { cn } from "@/lib/utils"
 import type { SocialUserDto } from "@/lib/types"
+import styles from "./friend-action-button.module.css"
 
 export function FriendActionButton({
   user,
@@ -86,13 +88,13 @@ export function FriendActionButton({
 
   if (user.friendshipState === "INCOMING_REQUEST") {
     return (
-      <div className={`flex gap-2 ${fullWidth ? "w-full" : ""}`}>
-        <Button onClick={handleAccept} disabled={isPending} className={fullWidth ? "flex-1" : ""}>
-          {acceptMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserCheck2 className="h-4 w-4" />}
+      <div className={cn(styles.row, fullWidth && styles.full)}>
+        <Button onClick={handleAccept} disabled={isPending} className={cn(fullWidth && styles.grow)}>
+          {acceptMutation.isPending ? <Loader2 className={styles.spin} /> : <UserCheck2 />}
           Accept
         </Button>
-        <Button variant="outline" onClick={handleDecline} disabled={isPending} className={fullWidth ? "flex-1" : ""}>
-          {declineMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />}
+        <Button variant="outline" onClick={handleDecline} disabled={isPending} className={cn(fullWidth && styles.grow)}>
+          {declineMutation.isPending ? <Loader2 className={styles.spin} /> : <X />}
           Decline
         </Button>
       </div>
@@ -101,8 +103,8 @@ export function FriendActionButton({
 
   if (user.friendshipState === "OUTGOING_REQUEST") {
     return (
-      <Button variant="outline" onClick={handleCancel} disabled={isPending} className={fullWidth ? "w-full" : ""}>
-        {cancelMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />}
+      <Button variant="outline" onClick={handleCancel} disabled={isPending} className={cn(fullWidth && styles.full)}>
+        {cancelMutation.isPending ? <Loader2 className={styles.spin} /> : <X />}
         Cancel request
       </Button>
     )
@@ -110,16 +112,16 @@ export function FriendActionButton({
 
   if (user.friendshipState === "FRIENDS") {
     return (
-      <Button variant="outline" onClick={handleUnfriend} disabled={isPending} className={fullWidth ? "w-full" : ""}>
-        {unfriendMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserRoundX className="h-4 w-4" />}
+      <Button variant="outline" onClick={handleUnfriend} disabled={isPending} className={cn(fullWidth && styles.full)}>
+        {unfriendMutation.isPending ? <Loader2 className={styles.spin} /> : <UserRoundX />}
         Unfriend
       </Button>
     )
   }
 
   return (
-    <Button onClick={handleSend} disabled={isPending} className={fullWidth ? "w-full" : ""}>
-      {sendMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus2 className="h-4 w-4" />}
+    <Button onClick={handleSend} disabled={isPending} className={cn(fullWidth && styles.full)}>
+      {sendMutation.isPending ? <Loader2 className={styles.spin} /> : <UserPlus2 />}
       Add friend
     </Button>
   )

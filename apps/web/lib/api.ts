@@ -28,7 +28,6 @@ import type {
   ReviewLogDto,
   ReviewStatsDto,
   SocialUserDto,
-  ThemeDto,
   TopicDto,
   UpdateAttemptRequest,
   UpdateNoteRequest,
@@ -444,21 +443,6 @@ export function updateUserTimezone(
     method: "PATCH",
     body: JSON.stringify({ timezone }),
   })
-}
-
-export function updateUserTheme(
-  token: string | undefined,
-  themeId: number | null,
-): Promise<UserSettingsDto> {
-  return apiFetch("/api/me/settings/theme", token, {
-    method: "PATCH",
-    body: JSON.stringify({ themeId }),
-  })
-}
-
-
-export function getThemes(token: string | undefined): Promise<ThemeDto[]> {
-  return apiFetch("/api/themes", token)
 }
 
 // ─── Profile ──────────────────────────────────────────────────────────────────
