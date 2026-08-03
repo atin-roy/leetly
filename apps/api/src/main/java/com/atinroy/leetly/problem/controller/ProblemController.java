@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 import com.atinroy.leetly.problem.dto.CreateProblemRequest;
+import com.atinroy.leetly.problem.dto.ProblemCountsDto;
 import com.atinroy.leetly.problem.dto.ProblemDetailDto;
 import com.atinroy.leetly.problem.dto.ProblemRefDto;
 import com.atinroy.leetly.problem.dto.ProblemSummaryDto;
@@ -60,6 +61,16 @@ public class ProblemController {
     public List<ProblemRefDto> findRefs(@AuthenticationPrincipal Jwt jwt) {
         User user = userService.requireBySubject(jwt.getSubject());
         return problemService.findRefs(user);
+    }
+
+    /**
+     * Aggregate counts for the dashboard, which previously derived them by
+     * fetching a 1000-row page of full problem rows on every load.
+     */
+    @GetMapping("/counts")
+    public ProblemCountsDto findCounts(@AuthenticationPrincipal Jwt jwt) {
+        User user = userService.requireBySubject(jwt.getSubject());
+        return problemService.findCounts(user);
     }
 
     @GetMapping("/{id}")
