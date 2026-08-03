@@ -1,0 +1,384 @@
+/*
+ * Account. Same header + facts spine as the rest of the app, then three
+ * panels (profile, appearance, preferences) and a session panel.
+ *
+ * The previous version opened three different gradient heroes ("Account
+ * Studio", "Theme Lab", a third unnamed one on preferences), restated the
+ * selected theme and public-module count three times each, and closed a
+ * settings form with a "Live Summary" card mirroring the three fields above
+ * it plus a paragraph of generic advice. Every number here appears once.
+ */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  padding-bottom: var(--space-md);
+}
+
+/* ── Header ──────────────────────────────────────────────────────────────── */
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+@media (min-width: 900px) {
+  .header {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+}
+
+.eyebrow {
+  font-family: var(--font-data);
+  font-size: var(--step--2);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+.title {
+  margin-top: var(--space-2xs);
+  font-family: var(--font-display);
+  font-size: var(--step-3);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.lede {
+  margin-top: var(--space-2xs);
+  max-width: 44ch;
+  font-size: var(--step--1);
+  line-height: 1.55;
+  color: var(--muted-foreground);
+  text-wrap: pretty;
+}
+
+/* ── Fact strip ──────────────────────────────────────────────────────────── */
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-md) var(--space-lg);
+  padding-block: var(--space-md);
+  border-block: var(--rule);
+}
+
+.fact {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.factLabel {
+  font-family: var(--font-data);
+  font-size: var(--step--2);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+.factValue {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-data);
+  font-size: var(--step-1);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+/* ── Panels ──────────────────────────────────────────────────────────────── */
+
+.panel {
+  border: var(--rule);
+  border-radius: var(--radius-3xl);
+  background: color-mix(in oklch, var(--card) 45%, transparent);
+}
+
+.panelHead {
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: var(--rule);
+}
+
+.panelTitle {
+  font-family: var(--font-display);
+  font-size: var(--step-1);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.panelNote {
+  margin-top: var(--space-2xs);
+  font-size: var(--step--1);
+  color: var(--muted-foreground);
+}
+
+.panelBody {
+  padding: var(--space-lg);
+}
+
+/* ── Profile section ─────────────────────────────────────────────────────── */
+
+.profileGrid {
+  display: grid;
+  gap: var(--space-lg);
+}
+
+@media (min-width: 1200px) {
+  .profileGrid {
+    grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+  }
+}
+
+.profileMain {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.avatarRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  border: var(--rule);
+  border-radius: var(--radius-2xl);
+  background: color-mix(in oklch, var(--background) 45%, transparent);
+}
+
+@media (min-width: 640px) {
+  .avatarRow {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.avatarIdentity {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.avatar {
+  width: 5rem;
+  height: 5rem;
+  border: var(--rule);
+  font-size: var(--step-1);
+}
+
+.avatarNote {
+  max-width: 26rem;
+  margin-top: var(--space-2xs);
+  font-size: var(--step--1);
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+.avatarActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+.hiddenInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.bioMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--step--2);
+  color: var(--muted-foreground);
+}
+
+.linkFields {
+  display: grid;
+  gap: var(--space-md);
+}
+
+@media (min-width: 900px) {
+  .linkFields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.inputIconWrap {
+  position: relative;
+}
+
+.inputIcon {
+  position: absolute;
+  top: 50%;
+  left: var(--space-sm);
+  translate: 0 -50%;
+  color: var(--muted-foreground);
+  pointer-events: none;
+}
+
+.inputWithIcon {
+  padding-left: 2.25rem;
+}
+
+.profileAside {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.asideBlock {
+  padding: var(--space-md);
+  border: var(--rule);
+  border-radius: var(--radius-2xl);
+  background: color-mix(in oklch, var(--background) 45%, transparent);
+}
+
+.asideHead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.asideTitle {
+  font-family: var(--font-display);
+  font-size: var(--step-0);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.asideNote {
+  margin-top: var(--space-2xs);
+  font-size: var(--step--1);
+  color: var(--muted-foreground);
+}
+
+.visibilityList {
+  margin-top: var(--space-sm);
+  display: flex;
+  flex-direction: column;
+}
+
+.visibilityRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding-block: var(--space-sm);
+}
+
+.visibilityLabel {
+  cursor: pointer;
+  font-size: var(--step--1);
+  font-weight: 500;
+}
+
+.visibilityDescription {
+  margin-top: var(--space-2xs);
+  font-size: var(--step--2);
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+.peopleLink {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-md);
+  border: var(--rule);
+  border-radius: var(--radius-2xl);
+  background: color-mix(in oklch, var(--background) 45%, transparent);
+  font-size: var(--step--1);
+  font-weight: 500;
+  color: var(--foreground);
+  text-decoration: none;
+  transition: background-color 150ms ease;
+}
+
+.peopleLink:hover {
+  background: color-mix(in oklch, var(--accent) 20%, transparent);
+}
+
+/* ── Preferences section ─────────────────────────────────────────────────── */
+
+.prefGrid {
+  display: grid;
+  gap: var(--space-md);
+}
+
+@media (min-width: 900px) {
+  .prefGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.prefField {
+  padding: var(--space-md);
+  border: var(--rule);
+  border-radius: var(--radius-2xl);
+  background: color-mix(in oklch, var(--background) 45%, transparent);
+}
+
+.prefFieldWide {
+  grid-column: 1 / -1;
+}
+
+.prefFieldNote {
+  margin-top: var(--space-xs);
+  font-size: var(--step--2);
+  color: var(--muted-foreground);
+}
+
+/* ── Session panel ───────────────────────────────────────────────────────── */
+
+.sessionRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+@media (min-width: 640px) {
+  .sessionRow {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.sessionNote {
+  max-width: 40ch;
+  font-size: var(--step--1);
+  line-height: 1.55;
+  color: var(--muted-foreground);
+}
+
+/* ── Skeleton ────────────────────────────────────────────────────────────── */
+
+.skeletonPage {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.skeletonHeader {
+  height: 5rem;
+}
+
+.skeletonPanel {
+  height: 20rem;
+}

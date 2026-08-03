@@ -3,11 +3,9 @@
 import { use, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react"
+import { AlertCircle, ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { AlertCircle } from "lucide-react"
 import { ProblemFilters } from "@/components/problems/problem-filters"
 import { Skeleton } from "@/components/ui/skeleton"
 import { AddProblemToListDialog } from "@/components/lists/add-problem-to-list-dialog"
@@ -18,6 +16,7 @@ import { useEnrollReview, useRemoveReview } from "@/hooks/use-reviews"
 import { getListDisplayName } from "@/lib/list-display"
 import { getNewNoteHref, getNoteHref } from "@/lib/note-display"
 import type { ProblemFilters as Filters, ProblemSummaryDto } from "@/lib/types"
+import styles from "./list-detail.module.css"
 
 const PAGE_SIZE = 20
 const DEFAULT_FILTERS: Filters = { page: 0, size: PAGE_SIZE, sort: "createdDate,desc" }
@@ -122,91 +121,75 @@ export default function ListDetailPage({
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        <Skeleton className="h-8 w-48" />
-        <Skeleton className="h-64 w-full" />
+      <div className={styles.skeletons}>
+        <Skeleton className={styles.skeletonTitle} />
+        <Skeleton className={styles.skeletonBody} />
       </div>
     )
   }
 
   if (!list) {
-    return (
-      <div className="flex h-64 items-center justify-center text-muted-foreground">
-        List not found.
-      </div>
-    )
+    return <div className={styles.notFound}>List not found.</div>
   }
 
   const displayListName = getListDisplayName(list)
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <Button variant="ghost" size="sm" asChild>
-          <Link href="/lists">
-            <ArrowLeft className="mr-1 h-4 w-4" />
-            Back
-          </Link>
-        </Button>
-      </div>
-      <div className="flex items-center justify-between">
+    <div className={styles.page}>
+      <Button variant="ghost" size="sm" asChild className={styles.back}>
+        <Link href="/lists">
+          <ArrowLeft size={16} />
+          Back
+        </Link>
+      </Button>
+
+      <div className={styles.header}>
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">{displayListName}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <h1 className={styles.title}>{displayListName}</h1>
+          <p className={styles.subtitle}>
             {totalElements} problem{totalElements !== 1 ? "s" : ""}
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <AddProblemToListDialog
-            listId={list.id}
-            listName={displayListName}
-            listProblemIds={list.problems.map((problem) => problem.id)}
-          />
-        </div>
+        <AddProblemToListDialog
+          listId={list.id}
+          listName={displayListName}
+          listProblemIds={list.problems.map((problem) => problem.id)}
+        />
       </div>
-      <ProblemFilters
-        filters={filters}
-        onChange={handleChange}
-        onReset={handleReset}
-      />
+
+      <ProblemFilters filters={filters} onChange={handleChange} onReset={handleReset} />
+
       {isError ? (
-        <Card className="border-destructive/40 bg-destructive/5">
-          <CardContent className="flex items-start gap-3 p-6 text-sm text-muted-foreground">
-            <AlertCircle className="mt-0.5 h-4 w-4 text-destructive" />
-            <div>
-              <p className="font-medium text-foreground">Failed to load problems.</p>
-              <p>{error instanceof Error ? error.message : "Unexpected error"}</p>
-            </div>
-          </CardContent>
-        </Card>
+        <div className={styles.error}>
+          <AlertCircle size={16} className={styles.errorIcon} aria-hidden="true" />
+          <div>
+            <p className={styles.errorTitle}>Failed to load problems.</p>
+            <p>{error instanceof Error ? error.message : "Unexpected error"}</p>
+          </div>
+        </div>
       ) : null}
-      <Card>
-        <CardContent className="p-0">
-          <ProblemTable
-            problems={problems}
-            isLoading={isProblemsLoading && !pagedResponse}
-            pageSize={PAGE_SIZE}
-            onNoteClick={handleNoteClick}
-            onDelete={handleRemoveProblem}
-            notedProblemIds={new Set(noteIdsByProblemId.keys())}
-            onEnrollReview={(p) => enrollReviewMutation.mutate(p.id)}
-            onRemoveReview={(_problemId, cardId) => removeReviewMutation.mutate(cardId)}
-          />
-        </CardContent>
-      </Card>
+
+      <div className={styles.tableShell}>
+        <ProblemTable
+          problems={problems}
+          isLoading={isProblemsLoading && !pagedResponse}
+          pageSize={PAGE_SIZE}
+          onNoteClick={handleNoteClick}
+          onDelete={handleRemoveProblem}
+          notedProblemIds={new Set(noteIdsByProblemId.keys())}
+          onEnrollReview={(p) => enrollReviewMutation.mutate(p.id)}
+          onRemoveReview={(_problemId, cardId) => removeReviewMutation.mutate(cardId)}
+        />
+      </div>
+
       {totalPages > 1 && !isError ? (
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-muted-foreground">
+        <div className={styles.pager}>
+          <p className={styles.pagerStatus}>
             Page {page + 1} of {totalPages}
           </p>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page === 0}
-              onClick={() => handleChange({ page: page - 1 })}
-            >
-              <ChevronLeft className="h-4 w-4" />
+          <div className={styles.pagerButtons}>
+            <Button variant="outline" size="sm" disabled={page === 0} onClick={() => handleChange({ page: page - 1 })}>
+              <ChevronLeft size={16} />
               Previous
             </Button>
             <Button
@@ -216,7 +199,7 @@ export default function ListDetailPage({
               onClick={() => handleChange({ page: page + 1 })}
             >
               Next
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight size={16} />
             </Button>
           </div>
         </div>

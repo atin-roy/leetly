@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils"
 import { fetchLeetCodeProblem, parseProblemInput, type FetchedProblem } from "@/lib/leetcode"
 import { DifficultyBadge } from "./difficulty-badge"
 import type { CreateProblemRequest, ProblemSummaryDto } from "@/lib/types"
+import styles from "./add-problem-dialog.module.css"
 
 interface Props {
   onAdd: (problem: CreateProblemRequest) => Promise<ProblemSummaryDto>
@@ -116,85 +117,76 @@ export function AddProblemDialog({
     <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) resetAll() }}>
       <DialogTrigger asChild>
         <Button size="sm">
-          <Plus className="mr-1.5 h-4 w-4" />
+          <Plus />
           {triggerLabel}
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent>
         {step !== "added" ? (
           <>
             <DialogHeader>
               <DialogTitle>{title}</DialogTitle>
             </DialogHeader>
 
-            <div className="space-y-4 pt-2">
-              <div className="space-y-1.5">
+            <div className={styles.body}>
+              <div className={styles.field}>
                 <Label htmlFor="problem-input">LeetCode number or URL</Label>
-                <div className="relative">
+                <div className={styles.inputWrap}>
                   <Input
                     id="problem-input"
                     placeholder="e.g. 42 or leetcode.com/problems/two-sum/"
                     value={input}
                     onChange={(e) => handleInputChange(e.target.value)}
-                    className={fetchStatus === "loading" ? "pr-8" : ""}
+                    className={fetchStatus === "loading" ? styles.inputLoading : undefined}
                   />
-                  {fetchStatus === "loading" && (
-                    <Loader2 className="absolute right-2.5 top-2.5 h-4 w-4 animate-spin text-muted-foreground" />
-                  )}
+                  {fetchStatus === "loading" && <Loader2 size={16} className={styles.spinner} />}
                 </div>
-                {error && <p className="text-xs text-destructive">{error}</p>}
+                {error && <p className={styles.error}>{error}</p>}
               </div>
 
               {preview && (
                 isDuplicate ? (
-                  <div className={cn("rounded-lg border p-4 space-y-3", tones.tone, tones.amber)}>
-                    <div className="flex items-start gap-2.5">
-                      <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-                      <div className="space-y-0.5">
-                        <p className="text-sm font-medium">Already in your list</p>
-                        <p className="text-xs text-muted-foreground">
+                  <div className={cn(styles.duplicate, tones.tone, tones.amber)}>
+                    <div className={styles.duplicateHead}>
+                      <AlertCircle size={16} className={styles.duplicateIcon} />
+                      <div>
+                        <p className={styles.duplicateTitle}>Already in your list</p>
+                        <p className={styles.duplicateNote}>
                           You&apos;re already tracking{" "}
-                          <span className="font-medium text-foreground">{preview.title}</span>
+                          <span className={styles.duplicateStrong}>{preview.title}</span>
                         </p>
                       </div>
                     </div>
-                    <Button asChild size="sm" variant="outline" className="w-full" onClick={handleClose}>
+                    <Button asChild size="sm" variant="outline" className={styles.duplicateAction} onClick={handleClose}>
                       <Link href={`/problems/${duplicateId}`}>
-                        <ArrowRight className="mr-1.5 h-3.5 w-3.5" />
+                        <ArrowRight size={14} />
                         Go to problem
                       </Link>
                     </Button>
                   </div>
                 ) : (
-                  <div className="rounded-lg border bg-muted/40 p-4 space-y-2">
-                    <div className="flex items-start justify-between gap-2">
+                  <div className={styles.preview}>
+                    <div className={styles.previewHead}>
                       <div>
-                        <p className="font-mono text-xs text-muted-foreground mb-1">
-                          #{preview.leetcodeId}
-                        </p>
-                        <p className="font-medium leading-snug">{preview.title}</p>
+                        <p className={styles.previewId}>#{preview.leetcodeId}</p>
+                        <p className={styles.previewTitle}>{preview.title}</p>
                       </div>
                       <DifficultyBadge difficulty={preview.difficulty} />
                     </div>
-                    <a
-                      href={preview.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-                    >
-                      <ExternalLink className="h-3 w-3" />
+                    <a href={preview.url} target="_blank" rel="noopener noreferrer" className={styles.previewLink}>
+                      <ExternalLink size={12} />
                       View on LeetCode
                     </a>
                   </div>
                 )
               )}
 
-              <div className="flex justify-end gap-2">
+              <div className={styles.actions}>
                 <Button variant="outline" onClick={handleClose}>
                   Cancel
                 </Button>
                 <Button onClick={handleAdd} disabled={!preview || isDuplicate || step === "adding"}>
-                  {step === "adding" ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Adding…</> : submitLabel}
+                  {step === "adding" ? <><Loader2 size={16} className={styles.buttonSpinner} />Adding…</> : submitLabel}
                 </Button>
               </div>
             </div>
@@ -205,26 +197,26 @@ export function AddProblemDialog({
               <DialogTitle>Problem Added</DialogTitle>
             </DialogHeader>
 
-            <div className="space-y-5 pt-2">
-              <div className="flex items-center gap-3 rounded-lg border bg-muted/40 p-4">
-                <CheckCircle2 className="h-5 w-5 shrink-0 text-green-500" />
-                <div className="min-w-0">
-                  <p className="font-medium leading-snug truncate">{added?.title}</p>
-                  <p className="text-xs text-muted-foreground font-mono">
-                    #{added?.leetcodeId} · {added?.difficulty}
+            <div className={styles.addedBody}>
+              <div className={styles.addedCard}>
+                <CheckCircle2 size={20} className={styles.addedIcon} />
+                <div className={styles.addedText}>
+                  <p className={styles.addedTitle}>{added?.title}</p>
+                  <p className={styles.addedMeta}>
+                    #{added?.leetcodeId} &middot; {added?.difficulty}
                   </p>
                 </div>
               </div>
 
-              <div className="flex flex-col gap-2">
+              <div className={styles.addedActions}>
                 <Button asChild>
                   <Link href={`/problems/${added?.id}`} onClick={handleClose}>
-                    <ArrowRight className="mr-2 h-4 w-4" />
+                    <ArrowRight size={16} />
                     Open Problem
                   </Link>
                 </Button>
                 <Button variant="outline" onClick={handleTrackAnother}>
-                  <RotateCcw className="mr-2 h-4 w-4" />
+                  <RotateCcw size={16} />
                   Track Another
                 </Button>
                 <Button variant="ghost" onClick={handleClose}>

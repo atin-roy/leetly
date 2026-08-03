@@ -1,6 +1,6 @@
 "use client"
 
-import { type ChangeEvent, type ReactNode, useEffect, useState } from "react"
+import { type ChangeEvent, useEffect } from "react"
 import Link from "next/link"
 import { useAuth } from "@/components/auth-provider"
 import { useForm, useWatch } from "react-hook-form"
@@ -10,15 +10,10 @@ import {
   Clock3,
   Code2,
   Camera,
-  Globe2,
   Github,
   LogOut,
   MonitorSmartphone,
-  MoonStar,
-  Palette,
   ShieldCheck,
-  Sparkles,
-  SunMedium,
   Target,
   Trash2,
   User,
@@ -26,15 +21,7 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
 import {
   Form,
   FormControl,
@@ -60,13 +47,11 @@ import {
   useSettings,
   useUpdateDailyGoal,
   useUpdateLanguage,
-  useUpdateTheme,
   useUpdateTimezone,
 } from "@/hooks/use-settings"
-import { useTheme } from "@/hooks/use-theme"
-import { THEMES, type Theme, type ThemeId } from "@/lib/themes"
 import type { Language, UpdateProfileRequest } from "@/lib/types"
 import { cn } from "@/lib/utils"
+import styles from "./account.module.css"
 
 const LANGUAGES: Language[] = [
   "JAVA",
@@ -200,9 +185,6 @@ const visibilityFields = [
   },
 ]
 
-const LIGHT_THEMES = THEMES.filter((theme) => theme.mode === "light")
-const DARK_THEMES = THEMES.filter((theme) => theme.mode === "dark")
-
 function normalizeSettings(values?: {
   preferredLanguage?: Language | null
   dailyGoal?: number | null
@@ -256,10 +238,6 @@ function getInitials(name: string) {
     .join("")
     .toUpperCase()
     .slice(0, 2)
-}
-
-function isMissingThemeSaveEndpoint(error: unknown) {
-  return error instanceof Error && error.message.startsWith("404:")
 }
 
 function normalizeProfile(values?: {
@@ -330,158 +308,6 @@ async function compressAvatarFile(file: File) {
   }
 }
 
-function resolvePersistedThemeId(themeId?: number | null): ThemeId {
-  return themeId && themeId > 0 && themeId <= THEMES.length ? THEMES[themeId - 1].id : "default"
-}
-
-function ThemeSwatch({
-  theme,
-  active,
-  className,
-}: {
-  theme: Theme
-  active: boolean
-  className?: string
-}) {
-  return (
-    <div
-      className={cn("overflow-hidden rounded-[1.35rem] border bg-transparent p-2", className)}
-      style={{
-        borderColor: active ? theme.preview.primary : theme.preview.border,
-        boxShadow: active
-          ? `0 0 0 1px ${theme.preview.primary}, 0 18px 42px color-mix(in oklab, ${theme.preview.primary} 22%, transparent)`
-          : `0 10px 24px color-mix(in oklab, ${theme.preview.border} 35%, transparent)`,
-      }}
-    >
-      <div
-        className="grid h-full min-h-[120px] grid-cols-[54px_1fr] overflow-hidden rounded-[1rem]"
-        style={{ background: theme.preview.bg }}
-      >
-        <div className="flex flex-col gap-2 p-3" style={{ background: theme.preview.sidebar }}>
-          <div className="h-2.5 w-full rounded-full" style={{ background: theme.preview.primary }} />
-          <div className="h-1.5 w-4/5 rounded-full" style={{ background: theme.preview.fg, opacity: 0.42 }} />
-          <div className="h-1.5 w-3/5 rounded-full" style={{ background: theme.preview.fg, opacity: 0.28 }} />
-          <div className="mt-auto h-6 rounded-[0.8rem]" style={{ background: theme.preview.card }}>
-            <div
-              className="m-1 h-1.5 rounded-full"
-              style={{ background: theme.preview.primary, opacity: 0.75 }}
-            />
-          </div>
-        </div>
-        <div className="flex flex-col gap-2 p-3">
-          <div className="flex items-start justify-between gap-2">
-            <div className="space-y-1">
-              <div className="h-2.5 w-16 rounded-full" style={{ background: theme.preview.fg, opacity: 0.7 }} />
-              <div className="h-1.5 w-24 rounded-full" style={{ background: theme.preview.fg, opacity: 0.22 }} />
-            </div>
-            <div className="h-6 w-6 rounded-full" style={{ background: theme.preview.primary, opacity: 0.9 }} />
-          </div>
-          <div
-            className="rounded-[0.9rem] border p-2"
-            style={{ background: theme.preview.card, borderColor: theme.preview.border }}
-          >
-            <div className="flex gap-1.5">
-              <div className="h-7 flex-1 rounded-[0.7rem]" style={{ background: theme.preview.primary, opacity: 0.22 }} />
-              <div className="h-7 w-12 rounded-[0.7rem]" style={{ background: theme.preview.border, opacity: 0.65 }} />
-            </div>
-            <div className="mt-2 space-y-1.5">
-              <div className="h-1.5 w-full rounded-full" style={{ background: theme.preview.fg, opacity: 0.16 }} />
-              <div className="h-1.5 w-4/5 rounded-full" style={{ background: theme.preview.fg, opacity: 0.16 }} />
-            </div>
-          </div>
-          <div className="mt-auto flex gap-1.5">
-            <div className="h-6 flex-1 rounded-full" style={{ background: theme.preview.primary }} />
-            <div className="h-6 w-14 rounded-full" style={{ background: theme.preview.border, opacity: 0.8 }} />
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function ThemeOption({
-  theme,
-  active,
-  onSelect,
-}: {
-  theme: Theme
-  active: boolean
-  onSelect: (themeId: ThemeId) => void
-}) {
-  return (
-    <button
-      type="button"
-      onClick={() => onSelect(theme.id)}
-      className={cn(
-        "group rounded-[1.6rem] border p-3 text-left transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-        active
-          ? "border-primary/60 bg-primary/[0.08] shadow-[0_20px_50px_color-mix(in_oklab,var(--primary)_18%,transparent)]"
-          : "border-border/70 bg-card/72 hover:-translate-y-0.5 hover:border-primary/30 hover:bg-card",
-      )}
-    >
-      <ThemeSwatch theme={theme} active={active} className="w-full" />
-      <div className="mt-3 flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <p className="font-semibold tracking-tight">{theme.name}</p>
-            <Badge variant={active ? "default" : "secondary"} className="capitalize">
-              {theme.mode}
-            </Badge>
-          </div>
-          <p className="mt-1 text-sm leading-5 text-muted-foreground">{theme.description}</p>
-        </div>
-        <div
-          className={cn(
-            "mt-1 h-3 w-3 rounded-full border transition-colors",
-            active ? "border-primary bg-primary" : "border-border bg-background group-hover:border-primary/50",
-          )}
-        />
-      </div>
-    </button>
-  )
-}
-
-function ThemeGroup({
-  title,
-  description,
-  themes,
-  selectedThemeId,
-  onSelect,
-  icon,
-}: {
-  title: string
-  description: string
-  themes: Theme[]
-  selectedThemeId: ThemeId
-  onSelect: (themeId: ThemeId) => void
-  icon: ReactNode
-}) {
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="text-muted-foreground">{icon}</span>
-            <h3 className="text-lg font-semibold tracking-tight">{title}</h3>
-          </div>
-          <p className="mt-1 text-sm text-muted-foreground">{description}</p>
-        </div>
-        <Badge variant="outline">{themes.length} themes</Badge>
-      </div>
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {themes.map((theme) => (
-          <ThemeOption
-            key={theme.id}
-            theme={theme}
-            active={selectedThemeId === theme.id}
-            onSelect={onSelect}
-          />
-        ))}
-      </div>
-    </div>
-  )
-}
-
 function ProfileSection({
   form,
   isLoading,
@@ -493,10 +319,7 @@ function ProfileSection({
   if (!session) return null
 
   const name = session.user?.username ?? ""
-  const email = session.user?.email ?? ""
-  const uploadedAvatar = form.watch("avatarDataUrl")
-  const image = uploadedAvatar || undefined
-  const visibleCount = visibilityFields.filter(({ name: fieldName }) => form.watch(fieldName)).length
+  const image = form.watch("avatarDataUrl") || undefined
 
   async function handleAvatarChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0]
@@ -515,92 +338,52 @@ function ProfileSection({
 
   return (
     <Form {...form}>
-      <Card className="overflow-hidden border-border/70 py-0">
-        <div className="relative overflow-hidden border-b border-border/60 px-5 py-6">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,hsl(var(--primary)/0.18),transparent_42%),radial-gradient(circle_at_bottom_right,hsl(var(--accent)/0.14),transparent_34%)]" />
-          <div className="relative flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex items-center gap-4">
-              <Avatar className="h-[4.5rem] w-[4.5rem] border border-white/20 text-lg shadow-lg">
-                <AvatarImage src={image} alt={name || "User"} />
-                <AvatarFallback>
-                  {name ? getInitials(name) : <User className="h-6 w-6" />}
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge variant="outline">Identity provider</Badge>
-                  <Badge variant="secondary">{visibleCount}/4 public modules</Badge>
-                </div>
-                <h2 className="mt-3 text-2xl font-semibold tracking-tight">{name || "Your account"}</h2>
-                <p className="mt-1 text-sm text-muted-foreground">{email || "No email available"}</p>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3 sm:min-w-[300px]">
-              <div className="rounded-2xl border border-border/60 bg-background/72 p-3 backdrop-blur">
-                <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Profile Surface</p>
-                <p className="mt-2 text-sm font-medium">Display name, bio, and privacy controls in one place.</p>
-              </div>
-              <div className="rounded-2xl border border-border/60 bg-background/72 p-3 backdrop-blur">
-                <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Public Signal</p>
-                <p className="mt-2 text-sm font-medium">Decide what other users can inspect when they visit your profile.</p>
-              </div>
-            </div>
-          </div>
+      <section className={styles.panel}>
+        <div className={styles.panelHead}>
+          <p className={styles.panelTitle}>Public profile</p>
+          <p className={styles.panelNote}>Shape how your name and study identity appear across Leetly.</p>
         </div>
-        <CardContent className="space-y-8 py-6">
-          <div className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]">
-            <div className="space-y-5">
-              <div className="space-y-1">
-                <h3 className="text-lg font-semibold tracking-tight">Public profile</h3>
-                <p className="text-sm text-muted-foreground">
-                  Shape how your name and study identity appear across Leetly.
-                </p>
-              </div>
-              <div className="rounded-[1.6rem] border border-border/70 bg-muted/[0.28] p-4">
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="flex items-center gap-4">
-                    <Avatar className="h-20 w-20 border border-border/70 text-lg shadow-sm">
-                      <AvatarImage src={image} alt={name || "User"} />
-                      <AvatarFallback>
-                        {name ? getInitials(name) : <User className="h-7 w-7" />}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium">Profile picture</p>
-                      <p className="max-w-sm text-sm leading-5 text-muted-foreground">
-                        Upload a square-friendly headshot or logo. Images are compressed before saving.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <Button type="button" variant="secondary" className="gap-2" asChild>
-                      <label>
-                        <Camera className="h-4 w-4" />
-                        Upload photo
-                        <input
-                          type="file"
-                          accept="image/png,image/jpeg,image/webp,image/gif"
-                          className="sr-only"
-                          disabled={isLoading}
-                          onChange={handleAvatarChange}
-                        />
-                      </label>
-                    </Button>
-                    {uploadedAvatar ? (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="gap-2"
+        <div className={styles.panelBody}>
+          <div className={styles.profileGrid}>
+            <div className={styles.profileMain}>
+              <div className={styles.avatarRow}>
+                <div className={styles.avatarIdentity}>
+                  <Avatar className={styles.avatar}>
+                    <AvatarImage src={image} alt={name || "User"} />
+                    <AvatarFallback>{name ? getInitials(name) : <User />}</AvatarFallback>
+                  </Avatar>
+                  <p className={styles.avatarNote}>
+                    Upload a square-friendly headshot or logo. Images are compressed before saving.
+                  </p>
+                </div>
+                <div className={styles.avatarActions}>
+                  <Button type="button" variant="secondary" asChild>
+                    <label>
+                      <Camera size={16} />
+                      Upload photo
+                      <input
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp,image/gif"
+                        className={styles.hiddenInput}
                         disabled={isLoading}
-                        onClick={() => form.setValue("avatarDataUrl", "", { shouldDirty: true, shouldValidate: true })}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                        Remove custom
-                      </Button>
-                    ) : null}
-                  </div>
+                        onChange={handleAvatarChange}
+                      />
+                    </label>
+                  </Button>
+                  {form.watch("avatarDataUrl") ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={isLoading}
+                      onClick={() => form.setValue("avatarDataUrl", "", { shouldDirty: true, shouldValidate: true })}
+                    >
+                      <Trash2 size={16} />
+                      Remove
+                    </Button>
+                  ) : null}
                 </div>
               </div>
+
               <FormField
                 control={form.control}
                 name="displayName"
@@ -608,12 +391,7 @@ function ProfileSection({
                   <FormItem>
                     <FormLabel>Display name</FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder={name || "Your display name"}
-                        disabled={isLoading}
-                        {...field}
-                        value={field.value ?? ""}
-                      />
+                      <Input placeholder={name || "Your display name"} disabled={isLoading} {...field} value={field.value ?? ""} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -628,13 +406,12 @@ function ProfileSection({
                     <FormControl>
                       <Textarea
                         placeholder="A short bio about yourself…"
-                        className="min-h-[132px] resize-none"
                         disabled={isLoading}
                         {...field}
                         value={field.value ?? ""}
                       />
                     </FormControl>
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <div className={styles.bioMeta}>
                       <span>Short, specific bios read better than status-line filler.</span>
                       <span>{field.value?.length ?? 0}/500</span>
                     </div>
@@ -642,7 +419,7 @@ function ProfileSection({
                   </FormItem>
                 )}
               />
-              <div className="grid gap-4 lg:grid-cols-2">
+              <div className={styles.linkFields}>
                 <FormField
                   control={form.control}
                   name="leetcodeUrl"
@@ -650,11 +427,11 @@ function ProfileSection({
                     <FormItem>
                       <FormLabel>LeetCode profile</FormLabel>
                       <FormControl>
-                        <div className="relative">
-                          <MonitorSmartphone className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <div className={styles.inputIconWrap}>
+                          <MonitorSmartphone size={16} className={styles.inputIcon} aria-hidden="true" />
                           <Input
                             placeholder="https://leetcode.com/u/your-handle/"
-                            className="pl-9"
+                            className={styles.inputWithIcon}
                             disabled={isLoading}
                             {...field}
                             value={field.value ?? ""}
@@ -672,11 +449,11 @@ function ProfileSection({
                     <FormItem>
                       <FormLabel>GitHub profile</FormLabel>
                       <FormControl>
-                        <div className="relative">
-                          <Github className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <div className={styles.inputIconWrap}>
+                          <Github size={16} className={styles.inputIcon} aria-hidden="true" />
                           <Input
                             placeholder="https://github.com/your-handle"
-                            className="pl-9"
+                            className={styles.inputWithIcon}
                             disabled={isLoading}
                             {...field}
                             value={field.value ?? ""}
@@ -690,33 +467,27 @@ function ProfileSection({
               </div>
             </div>
 
-            <div className="space-y-4">
-              <div className="rounded-[1.6rem] border border-border/70 bg-muted/[0.28] p-4">
-                <div className="flex items-center gap-2">
-                  <ShieldCheck className="h-4 w-4 text-primary" />
-                  <h3 className="text-lg font-semibold tracking-tight">Visibility controls</h3>
+            <div className={styles.profileAside}>
+              <div className={styles.asideBlock}>
+                <div className={styles.asideHead}>
+                  <ShieldCheck size={16} />
+                  <h3 className={styles.asideTitle}>Visibility</h3>
                 </div>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Keep your public profile useful without exposing everything.
-                </p>
-                <div className="mt-4 space-y-1">
+                <p className={styles.asideNote}>Keep your public profile useful without exposing everything.</p>
+                <div className={styles.visibilityList}>
                   {visibilityFields.map(({ name: fieldName, label, description }, index) => (
                     <div key={fieldName}>
                       <FormField
                         control={form.control}
                         name={fieldName}
                         render={({ field }) => (
-                          <FormItem className="flex items-center justify-between gap-4 rounded-2xl px-1 py-3">
-                            <div className="min-w-0">
-                              <FormLabel className="cursor-pointer text-sm font-medium">{label}</FormLabel>
-                              <p className="mt-1 text-sm leading-5 text-muted-foreground">{description}</p>
+                          <FormItem className={styles.visibilityRow}>
+                            <div>
+                              <FormLabel className={styles.visibilityLabel}>{label}</FormLabel>
+                              <p className={styles.visibilityDescription}>{description}</p>
                             </div>
                             <FormControl>
-                              <Switch
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                                disabled={isLoading}
-                              />
+                              <Switch checked={field.value} onCheckedChange={field.onChange} disabled={isLoading} />
                             </FormControl>
                           </FormItem>
                         )}
@@ -726,40 +497,14 @@ function ProfileSection({
                   ))}
                 </div>
               </div>
-              <div className="rounded-[1.6rem] border border-border/70 bg-muted/[0.28] p-4">
-                <div className="flex items-center gap-2">
-                  <Globe2 className="h-4 w-4 text-primary" />
-                  <h3 className="text-lg font-semibold tracking-tight">Linked profiles</h3>
-                </div>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Add the public places people already know you from.
-                </p>
-                <div className="mt-4 space-y-3">
-                  <div className="rounded-2xl border border-border/60 bg-background/75 px-4 py-3">
-                    <p className="text-sm font-medium">LeetCode</p>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {form.watch("leetcodeUrl") ? "Connected for your public study identity." : "No LeetCode profile linked yet."}
-                    </p>
-                  </div>
-                  <div className="rounded-2xl border border-border/60 bg-background/75 px-4 py-3">
-                    <p className="text-sm font-medium">GitHub</p>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {form.watch("githubUrl") ? "Connected for project and code visibility." : "No GitHub profile linked yet."}
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <Link
-                href="/people"
-                className="flex items-center gap-2 rounded-[1.6rem] border border-border/70 bg-muted/[0.28] p-4 text-sm font-medium text-foreground transition-colors hover:bg-muted/[0.45]"
-              >
-                <Users className="h-4 w-4 text-primary" />
+              <Link href="/people" className={styles.peopleLink}>
+                <Users size={16} />
                 Friends and people you follow
               </Link>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </section>
     </Form>
   )
 }
@@ -771,301 +516,114 @@ function PreferencesSection({
   form: ReturnType<typeof useForm<SettingsFormValues>>
   isLoading: boolean
 }) {
-  const preferredLanguage = useWatch({
-    control: form.control,
-    name: "preferredLanguage",
-  })
-  const dailyGoal = useWatch({
-    control: form.control,
-    name: "dailyGoal",
-  })
-  const timezone = useWatch({
-    control: form.control,
-    name: "timezone",
-  })
-
-  const preferenceStats = [
-    {
-      label: "Language",
-      value: getLanguageLabel(preferredLanguage ?? "JAVA"),
-      note: "Default starter for new attempts",
-      icon: <Code2 className="h-4 w-4" />,
-    },
-    {
-      label: "Daily goal",
-      value: `${dailyGoal ?? 1} problems`,
-      note: "Used to anchor streak expectations",
-      icon: <Target className="h-4 w-4" />,
-    },
-    {
-      label: "Timezone",
-      value: timezone ?? "UTC",
-      note: "Controls reset windows and daily rollovers",
-      icon: <Clock3 className="h-4 w-4" />,
-    },
-  ]
-
   return (
-    <Card className="overflow-hidden border-border/70 py-0">
-      <CardHeader className="relative overflow-hidden border-b border-border/60 py-0">
-        <div className="absolute inset-0 bg-[linear-gradient(135deg,color-mix(in_oklab,var(--background)_84%,var(--primary)_16%),color-mix(in_oklab,var(--background)_92%,var(--accent)_8%))]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,hsl(var(--primary)/0.18),transparent_36%),radial-gradient(circle_at_85%_30%,hsl(var(--accent)/0.12),transparent_28%)]" />
-        <div className="relative px-6 py-6">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="max-w-2xl">
-            <Badge variant="outline" className="border-white/20 bg-background/70">
-              Practice defaults
-            </Badge>
-            <CardTitle className="text-lg">Preferences</CardTitle>
-            <CardDescription className="mt-2 max-w-xl text-sm leading-6">
-              Set the defaults that shape how you practice every day.
-            </CardDescription>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Badge variant="outline" className="gap-1 border-white/20 bg-background/70">
-              <Target className="h-3 w-3" />
-              Daily rhythm
-            </Badge>
-            <Badge variant="outline" className="gap-1 border-white/20 bg-background/70">
-              <Globe2 className="h-3 w-3" />
-              Regional time
-            </Badge>
-          </div>
-        </div>
-        </div>
-      </CardHeader>
-      <CardContent className="py-6">
+    <section className={styles.panel}>
+      <div className={styles.panelHead}>
+        <p className={styles.panelTitle}>Preferences</p>
+        <p className={styles.panelNote}>Set the defaults that shape how you practice every day.</p>
+      </div>
+      <div className={styles.panelBody}>
         <Form {...form}>
-          <div className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(280px,0.9fr)]">
-            <div className="space-y-4">
-              <div className="grid gap-4 lg:grid-cols-2">
-                <FormField
-                  control={form.control}
-                  name="preferredLanguage"
-                  render={({ field }) => (
-                    <FormItem className="rounded-[1.6rem] border border-border/70 bg-card/70 p-5 shadow-sm">
-                      <div className="mb-4 flex items-start justify-between gap-3">
-                        <div>
-                          <FormLabel>Preferred language</FormLabel>
-                          <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                            Use a readable default whenever you open a new attempt.
-                          </p>
-                        </div>
-                        <div className="rounded-full border border-border/70 bg-muted/60 p-2 text-muted-foreground">
-                          <Code2 className="h-4 w-4" />
-                        </div>
-                      </div>
-                      <Select disabled={isLoading} onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger className="h-12 bg-background/80">
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {LANGUAGES.map((language) => (
-                            <SelectItem key={language} value={language}>
-                              {getLanguageLabel(language)}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+          <div className={styles.prefGrid}>
+            <FormField
+              control={form.control}
+              name="preferredLanguage"
+              render={({ field }) => (
+                <FormItem className={styles.prefField}>
+                  <FormLabel>
+                    <Code2 size={16} />
+                    Preferred language
+                  </FormLabel>
+                  <Select disabled={isLoading} onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {LANGUAGES.map((language) => (
+                        <SelectItem key={language} value={language}>
+                          {getLanguageLabel(language)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className={styles.prefFieldNote}>Default starter for new attempts.</p>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-                <FormField
-                  control={form.control}
-                  name="dailyGoal"
-                  render={({ field }) => (
-                    <FormItem className="rounded-[1.6rem] border border-border/70 bg-card/70 p-5 shadow-sm">
-                      <div className="mb-4 flex items-start justify-between gap-3">
-                        <div>
-                          <FormLabel>Daily goal</FormLabel>
-                          <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                            Keep the target honest enough to survive normal weekdays.
-                          </p>
-                        </div>
-                        <div className="rounded-full border border-border/70 bg-muted/60 p-2 text-muted-foreground">
-                          <Target className="h-4 w-4" />
-                        </div>
-                      </div>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          min={1}
-                          max={50}
-                          placeholder="Problems / day"
-                          className="h-12 bg-background/80"
-                          disabled={isLoading}
-                          value={Number.isFinite(field.value) ? field.value : ""}
-                          onChange={(e) => {
-                            const raw = e.target.value
-                            if (raw === "") {
-                              field.onChange(undefined)
-                              return
-                            }
-                            const next = Number(raw)
-                            field.onChange(Number.isFinite(next) ? next : undefined)
-                          }}
-                          onBlur={field.onBlur}
-                          name={field.name}
-                        />
-                      </FormControl>
-                      <p className="mt-3 text-sm text-muted-foreground">
-                        Recommended range is 3 to 8 if you want consistency without padding the stat.
-                      </p>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+            <FormField
+              control={form.control}
+              name="dailyGoal"
+              render={({ field }) => (
+                <FormItem className={styles.prefField}>
+                  <FormLabel>
+                    <Target size={16} />
+                    Daily goal
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      min={1}
+                      max={50}
+                      placeholder="Problems / day"
+                      disabled={isLoading}
+                      value={Number.isFinite(field.value) ? field.value : ""}
+                      onChange={(e) => {
+                        const raw = e.target.value
+                        if (raw === "") {
+                          field.onChange(undefined)
+                          return
+                        }
+                        const next = Number(raw)
+                        field.onChange(Number.isFinite(next) ? next : undefined)
+                      }}
+                      onBlur={field.onBlur}
+                      name={field.name}
+                    />
+                  </FormControl>
+                  <p className={styles.prefFieldNote}>Recommended range is 3 to 8 for consistency without padding the stat.</p>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-              <FormField
-                control={form.control}
-                name="timezone"
-                render={({ field }) => (
-                  <FormItem className="rounded-[1.6rem] border border-border/70 bg-card/70 p-5 shadow-sm">
-                    <div className="mb-4 flex items-start justify-between gap-3">
-                      <div>
-                        <FormLabel>Timezone</FormLabel>
-                        <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                          This sets when your streak, daily goal, and session boundaries roll over.
-                        </p>
-                      </div>
-                      <div className="rounded-full border border-border/70 bg-muted/60 p-2 text-muted-foreground">
-                        <Clock3 className="h-4 w-4" />
-                      </div>
-                    </div>
-                    <Select disabled={isLoading} onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="h-12 bg-background/80">
-                          <SelectValue placeholder="Select timezone" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {TIMEZONES.map((timezone) => (
-                          <SelectItem key={timezone} value={timezone}>
-                            {timezone}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      <Badge variant="secondary" className="bg-muted/70">
-                        Midnight reset
-                      </Badge>
-                      <Badge variant="secondary" className="bg-muted/70">
-                        Local day tracking
-                      </Badge>
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="space-y-4">
-              <div className="rounded-[1.8rem] border border-border/70 bg-[linear-gradient(180deg,color-mix(in_oklab,var(--background)_92%,var(--primary)_8%),color-mix(in_oklab,var(--background)_97%,var(--accent)_3%))] p-5 shadow-sm">
-                <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Live Summary</p>
-                <div className="mt-4 space-y-3">
-                  {preferenceStats.map((stat) => (
-                    <div
-                      key={stat.label}
-                      className="flex items-start gap-3 rounded-[1.2rem] border border-border/60 bg-background/72 p-3"
-                    >
-                      <div className="mt-0.5 rounded-full border border-border/70 bg-muted/60 p-2 text-muted-foreground">
-                        {stat.icon}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
-                          {stat.label}
-                        </p>
-                        <p className="mt-1 break-words text-sm font-semibold text-foreground">
-                          {stat.value}
-                        </p>
-                        <p className="mt-1 text-sm leading-6 text-muted-foreground">{stat.note}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="rounded-[1.6rem] border border-border/70 bg-muted/[0.22] p-5">
-                <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Setup Notes</p>
-                <div className="mt-4 space-y-3 text-sm leading-6 text-muted-foreground">
-                  <p>Your language default becomes the starting point whenever you create a new attempt.</p>
-                  <p>Daily goal works best when it matches your ordinary pace instead of your best day.</p>
-                  <p>Timezone is the guardrail that keeps streak math aligned with your actual local day.</p>
-                </div>
-              </div>
-            </div>
+            <FormField
+              control={form.control}
+              name="timezone"
+              render={({ field }) => (
+                <FormItem className={cn(styles.prefField, styles.prefFieldWide)}>
+                  <FormLabel>
+                    <Clock3 size={16} />
+                    Timezone
+                  </FormLabel>
+                  <Select disabled={isLoading} onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select timezone" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {TIMEZONES.map((timezone) => (
+                        <SelectItem key={timezone} value={timezone}>
+                          {timezone}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className={styles.prefFieldNote}>
+                    Controls when your streak, daily goal, and session boundaries roll over.
+                  </p>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
         </Form>
-      </CardContent>
-    </Card>
-  )
-}
-
-function AppearanceSection({
-  themeId,
-  onSelect,
-}: {
-  themeId: ThemeId
-  onSelect: (themeId: ThemeId) => void
-}) {
-  const selectedTheme = THEMES.find((theme) => theme.id === themeId) ?? THEMES[0]
-
-  return (
-    <Card className="overflow-hidden border-border/70 py-0">
-      <div className="relative border-b border-border/60 px-5 py-6">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,hsl(var(--primary)/0.14),transparent_34%),radial-gradient(circle_at_80%_20%,hsl(var(--accent)/0.16),transparent_30%)]" />
-        <div className="relative grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_380px]">
-          <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="outline" className="gap-1">
-                <Palette className="h-3 w-3" />
-                Theme Lab
-              </Badge>
-              <Badge variant="secondary">{LIGHT_THEMES.length} light / {DARK_THEMES.length} dark</Badge>
-            </div>
-            <h2 className="mt-4 text-2xl font-semibold tracking-tight">Appearance with actual range</h2>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-              The theme catalog now splits evenly between bright and dark palettes, with more distinct moods than minor shade swaps.
-            </p>
-          </div>
-          <div className="rounded-[1.8rem] border border-border/60 bg-background/72 p-4 backdrop-blur">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Current pick</p>
-                <p className="mt-2 text-xl font-semibold tracking-tight">{selectedTheme.name}</p>
-                <p className="mt-1 text-sm text-muted-foreground">{selectedTheme.description}</p>
-              </div>
-              <Badge className="capitalize">{selectedTheme.mode}</Badge>
-            </div>
-            <ThemeSwatch theme={selectedTheme} active className="mt-4" />
-          </div>
-        </div>
       </div>
-      <CardContent className="space-y-8 py-6">
-        <ThemeGroup
-          title="Light Themes"
-          description="Bright palettes with different temperatures, materials, and accent personalities."
-          themes={LIGHT_THEMES}
-          selectedThemeId={themeId}
-          onSelect={onSelect}
-          icon={<SunMedium className="h-4 w-4" />}
-        />
-        <ThemeGroup
-          title="Dark Themes"
-          description="Dark workspaces ranging from quiet graphite to louder neon and cinematic color."
-          themes={DARK_THEMES}
-          selectedThemeId={themeId}
-          onSelect={onSelect}
-          icon={<MoonStar className="h-4 w-4" />}
-        />
-      </CardContent>
-    </Card>
+    </section>
   )
 }
 
@@ -1077,9 +635,6 @@ export default function AccountPage() {
   const languageMutation = useUpdateLanguage()
   const goalMutation = useUpdateDailyGoal()
   const timezoneMutation = useUpdateTimezone()
-  const themeMutation = useUpdateTheme()
-  const { themeId: appliedThemeId, setTheme } = useTheme()
-  const [selectedThemeId, setSelectedThemeId] = useState<ThemeId>(appliedThemeId)
 
   const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
@@ -1102,28 +657,17 @@ export default function AccountPage() {
     }
   }, [settings, settingsForm])
 
-  useEffect(() => {
-    setSelectedThemeId(appliedThemeId)
-  }, [appliedThemeId])
-
   const isSaving =
     isProfileSaving ||
     languageMutation.isPending ||
     goalMutation.isPending ||
-    timezoneMutation.isPending ||
-    themeMutation.isPending
+    timezoneMutation.isPending
 
-  const persistedThemeId = resolvePersistedThemeId(settings?.themeId)
   const watchedVisibility = useWatch({
     control: profileForm.control,
     name: ["progressPublic", "streakPublic", "listsPublic", "notesPublic"],
   })
   const publicCount = watchedVisibility.filter(Boolean).length
-
-  function handleThemeSelect(themeId: ThemeId) {
-    setSelectedThemeId(themeId)
-    setTheme(themeId, { persist: false })
-  }
 
   async function handleSave() {
     const [isProfileValid, isSettingsValid] = await Promise.all([
@@ -1154,16 +698,13 @@ export default function AccountPage() {
       settingsValues.dailyGoal !== normalizedSettings.dailyGoal ||
       settingsValues.timezone !== normalizedSettings.timezone
 
-    const themeChanged = selectedThemeId !== persistedThemeId
-
-    if (!profileChanged && !settingsChanged && !themeChanged) {
+    if (!profileChanged && !settingsChanged) {
       toast.message("No changes to save")
       return
     }
 
     try {
       const operations: Promise<unknown>[] = []
-      let themeSaveError: unknown = null
 
       if (profileChanged) {
         const payload: UpdateProfileRequest = {
@@ -1193,129 +734,76 @@ export default function AccountPage() {
         operations.push(timezoneMutation.mutateAsync(settingsValues.timezone))
       }
 
-      if (themeChanged) {
-        const nextThemeIndex = THEMES.findIndex((theme) => theme.id === selectedThemeId)
-        operations.push(
-          themeMutation.mutateAsync(nextThemeIndex >= 0 ? nextThemeIndex + 1 : null).catch((error) => {
-            if (isMissingThemeSaveEndpoint(error)) {
-              themeSaveError = error
-              return null
-            }
-            throw error
-          }),
-        )
-      }
-
       await Promise.all(operations)
 
-      if (settingsChanged || themeChanged) {
+      if (settingsChanged) {
         const latest = await refetch()
         if (latest.data) {
           settingsForm.reset(normalizeSettings(latest.data))
         }
       }
 
-      if (themeSaveError) {
-        toast.warning("Profile saved, but theme sync is not available yet")
-        return
-      }
-
       toast.success("Account saved")
-    } catch (error) {
-      if (isMissingThemeSaveEndpoint(error)) {
-        toast.warning("Theme saved locally, but server sync is not available yet")
-        return
-      }
-
+    } catch {
       toast.error("Failed to save changes")
     }
   }
 
   if (isSettingsLoading) {
     return (
-      <div className="space-y-6">
-        <Skeleton className="h-[170px] w-full rounded-[2rem]" />
-        <Skeleton className="h-[460px] w-full rounded-[2rem]" />
-        <Skeleton className="h-[760px] w-full rounded-[2rem]" />
-        <Skeleton className="h-[280px] w-full rounded-[2rem]" />
+      <div className={styles.skeletonPage}>
+        <Skeleton className={styles.skeletonHeader} />
+        <Skeleton className={styles.skeletonPanel} />
+        <Skeleton className={styles.skeletonPanel} />
+        <Skeleton className={styles.skeletonPanel} />
       </div>
     )
   }
 
   return (
-    <div className="space-y-6 pb-8">
-      <section className="relative overflow-hidden rounded-[2rem] border border-border/70 bg-[linear-gradient(135deg,color-mix(in_oklab,var(--background)_90%,var(--primary)_10%),color-mix(in_oklab,var(--background)_84%,var(--accent)_16%))] px-6 py-6 shadow-(--shadow-float)">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,hsl(var(--primary)/0.22),transparent_34%),radial-gradient(circle_at_80%_20%,hsl(var(--accent)/0.16),transparent_30%),radial-gradient(circle_at_bottom_right,hsl(var(--primary)/0.1),transparent_34%)]" />
-        <div className="relative flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
-          <div className="max-w-3xl">
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="outline" className="gap-1 border-white/20 bg-background/60">
-                <Sparkles className="h-3 w-3" />
-                Account Studio
-              </Badge>
-              <Badge variant="secondary" className="bg-background/70">
-                {LIGHT_THEMES.length + DARK_THEMES.length} curated themes
-              </Badge>
-            </div>
-            <h1 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">Make the workspace feel intentional.</h1>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-[15px]">
-              Tune your public profile, daily defaults, and theme system from one page without the flat settings-screen feel.
-            </p>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-3 xl:min-w-[560px]">
-            <div className="rounded-[1.5rem] border border-border/60 bg-background/76 p-4 backdrop-blur">
-              <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Selected Theme</p>
-              <p className="mt-2 text-lg font-semibold">{THEMES.find((theme) => theme.id === selectedThemeId)?.name ?? "Default"}</p>
-              <p className="mt-1 text-sm text-muted-foreground capitalize">
-                {THEMES.find((theme) => theme.id === selectedThemeId)?.mode ?? "light"} palette
-              </p>
-            </div>
-            <div className="rounded-[1.5rem] border border-border/60 bg-background/76 p-4 backdrop-blur">
-              <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Public Modules</p>
-              <p className="mt-2 text-lg font-semibold">{publicCount}/4 enabled</p>
-              <p className="mt-1 text-sm text-muted-foreground">Progress, streak, lists, and notes visibility.</p>
-            </div>
-            <div className="rounded-[1.5rem] border border-border/60 bg-background/76 p-4 backdrop-blur">
-              <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Session</p>
-              <p className="mt-2 truncate text-lg font-semibold">{session?.user?.email ?? "Signed in"}</p>
-              <p className="mt-1 text-sm text-muted-foreground">Changes persist locally first, then sync when available.</p>
-            </div>
-          </div>
+    <div className={styles.page}>
+      <header className={styles.header}>
+        <div>
+          <p className={styles.eyebrow}>Account</p>
+          <h1 className={styles.title}>Tune your profile and defaults.</h1>
+          <p className={styles.lede}>Save whenever you are done shaping the profile.</p>
         </div>
-        <div className="relative mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="text-sm text-muted-foreground">
-            Save whenever you are done shaping the profile and previewing themes.
-          </div>
-          <Button onClick={handleSave} disabled={isSaving || isProfileLoading || isSettingsLoading} size="lg">
-            {isSaving ? "Saving…" : "Save changes"}
-          </Button>
+        <Button onClick={handleSave} disabled={isSaving || isProfileLoading || isSettingsLoading} size="lg">
+          {isSaving ? "Saving…" : "Save changes"}
+        </Button>
+      </header>
+
+      <div className={styles.facts}>
+        <div className={styles.fact}>
+          <span className={styles.factLabel}>Public modules</span>
+          <span className={styles.factValue}>{publicCount}/4</span>
         </div>
-      </section>
+        <div className={styles.fact}>
+          <span className={styles.factLabel}>Signed in as</span>
+          <span className={styles.factValue}>{session?.user?.email ?? "—"}</span>
+        </div>
+      </div>
 
       <ProfileSection form={profileForm} isLoading={isProfileLoading} />
-      <AppearanceSection themeId={selectedThemeId} onSelect={handleThemeSelect} />
       <PreferencesSection form={settingsForm} isLoading={isSettingsLoading} />
 
-      <Card className="border-border/70 py-0">
-        <CardHeader className="border-b border-border/60 py-5">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <CardTitle className="text-lg">Session</CardTitle>
-              <CardDescription>Sign out of your Leetly account on this device.</CardDescription>
-            </div>
-            <Badge variant="outline">Secure exit</Badge>
+      <section className={styles.panel}>
+        <div className={styles.panelHead}>
+          <p className={styles.panelTitle}>Session</p>
+          <p className={styles.panelNote}>Sign out of your Leetly account on this device.</p>
+        </div>
+        <div className={styles.panelBody}>
+          <div className={styles.sessionRow}>
+            <p className={styles.sessionNote}>
+              Signing out returns you to the home page. Saved profile and settings changes remain attached to your account.
+            </p>
+            <Button variant="destructive" onClick={() => void signOut()}>
+              <LogOut size={16} />
+              Sign out
+            </Button>
           </div>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4 py-6 sm:flex-row sm:items-center sm:justify-between">
-          <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
-            Signing out returns you to the home page. Saved profile and settings changes remain attached to your account.
-          </p>
-          <Button variant="destructive" onClick={() => void signOut()}>
-            <LogOut className="h-4 w-4" />
-            Sign Out
-          </Button>
-        </CardContent>
-      </Card>
+        </div>
+      </section>
     </div>
   )
 }
