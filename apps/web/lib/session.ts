@@ -80,8 +80,14 @@ export async function readRefreshCookie() {
 }
 
 /**
- * Exchanges the stored refresh token for a fresh access token. Used by server
- * components that need a token to prefetch, and by the client's renewal route.
+ * Exchanges the stored refresh token for a fresh access token, rotating it.
+ *
+ * Route handlers only. It writes a cookie, which a Server Component render is
+ * not allowed to do, and calling it from a render is worse than a no-op: the
+ * API rotates the token server-side, the replacement is then dropped on the
+ * floor, and the next request replays a token the API has already retired.
+ * That trips reuse detection and revokes the whole family, locking the account
+ * out until the cookie is cleared.
  */
 export async function resolveSession(): Promise<ClientSession | null> {
   const refreshToken = await readRefreshCookie()

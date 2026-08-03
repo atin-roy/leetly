@@ -90,21 +90,11 @@
 }
 
 .eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-xs);
   font-family: var(--font-data);
   font-size: var(--step--1);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--muted-foreground);
-}
-
-.eyebrowRule {
-  display: block;
-  width: 2rem;
-  height: 1px;
-  background: var(--primary);
 }
 
 .title {
