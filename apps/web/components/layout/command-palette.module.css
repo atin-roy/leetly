@@ -1,0 +1,129 @@
+/*
+ * The palette is the primary way to move around the app on desktop, so it is
+ * deliberately plain: a field and a list, no chrome competing with the results.
+ */
+
+.content {
+  top: var(--overlay-top);
+  left: 50%;
+  translate: -50% 0;
+  width: min(var(--overlay-w), calc(100vw - 2rem));
+  max-height: var(--overlay-max-h);
+  padding: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
+}
+
+.field {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  border-bottom: var(--rule);
+}
+
+.fieldIcon {
+  flex-shrink: 0;
+  color: var(--muted-foreground);
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: none;
+  color: var(--foreground);
+  font-family: var(--font-body);
+  font-size: var(--step-0);
+}
+
+.input:focus {
+  outline: none;
+}
+
+.input::placeholder {
+  color: var(--muted-foreground);
+}
+
+.hint {
+  flex-shrink: 0;
+  padding: 0.1rem 0.4rem;
+  border: var(--rule);
+  border-radius: var(--radius-sm);
+  color: var(--muted-foreground);
+  font-family: var(--font-data);
+  font-size: var(--step--1);
+}
+
+.results {
+  overflow-y: auto;
+  padding: var(--space-2xs) 0 var(--space-xs);
+}
+
+.groupLabel {
+  padding: var(--space-sm) var(--space-md) var(--space-2xs);
+  color: var(--muted-foreground);
+  font-size: var(--step--1);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  width: 100%;
+  padding: var(--space-xs) var(--space-md);
+  border: 0;
+  background: none;
+  color: var(--foreground);
+  font-family: inherit;
+  font-size: var(--step-0);
+  text-align: left;
+  cursor: pointer;
+}
+
+/*
+ * Selection follows the keyboard, not the mouse pointer, so the highlight is
+ * driven by data-active rather than :hover — otherwise arrowing down while the
+ * cursor rests over the list shows two highlighted rows.
+ */
+.item[data-active="true"] {
+  background: var(--secondary);
+  color: var(--secondary-foreground);
+}
+
+.itemIcon {
+  flex-shrink: 0;
+  color: var(--muted-foreground);
+}
+
+.item[data-active="true"] .itemIcon {
+  color: var(--primary);
+}
+
+.itemId {
+  flex-shrink: 0;
+  min-width: 3.5rem;
+  color: var(--muted-foreground);
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--step--1);
+}
+
+.itemLabel {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.empty {
+  padding: var(--space-lg) var(--space-md);
+  color: var(--muted-foreground);
+  font-size: var(--step-0);
+  text-align: center;
+}

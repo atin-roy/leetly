@@ -12,9 +12,9 @@ import {
   List,
   Menu,
   RotateCcw,
+  Search,
   StickyNote,
   UserCircle2,
-  Users,
 } from "lucide-react"
 import {
   Sheet,
@@ -24,6 +24,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet"
 import styles from "./sidebar.module.css"
+import { useCommandPalette } from "./command-palette"
 import { useSidebar } from "./sidebar-context"
 
 const navItems = [
@@ -32,7 +33,6 @@ const navItems = [
   { href: "/review", label: "Review", icon: RotateCcw },
   { href: "/lists", label: "My Lists", icon: List },
   { href: "/notes", label: "Notes", icon: StickyNote },
-  { href: "/people", label: "People", icon: Users },
   { href: "/account", label: "Account", icon: UserCircle2 },
 ]
 
@@ -66,6 +66,27 @@ function NavList({
         )
       })}
     </ul>
+  )
+}
+
+function SearchTrigger({ collapsed }: { collapsed: boolean }) {
+  const { open } = useCommandPalette()
+
+  return (
+    <button
+      type="button"
+      onClick={open}
+      title={collapsed ? "Search" : undefined}
+      className={`${styles.searchTrigger} ${collapsed ? styles.collapsedLink : ""}`}
+    >
+      <Search size={16} className={styles.navIcon} aria-hidden="true" />
+      {!collapsed && (
+        <>
+          <span>Search</span>
+          <kbd className={styles.searchHint}>⌘K</kbd>
+        </>
+      )}
+    </button>
   )
 }
 
@@ -115,11 +136,12 @@ export function AppSidebar() {
               <Wordmark showName />
             </SheetTitle>
             <SheetDescription className={styles.sheetDescription}>
-              Move between dashboard, backlog, review, notes, and account.
+              Move between dashboard, problems, review, notes, and account.
             </SheetDescription>
           </SheetHeader>
 
           <nav className={styles.sheetNav}>
+            <SearchTrigger collapsed={false} />
             <NavList mobile collapsed={collapsed} pathname={pathname} />
           </nav>
         </SheetContent>
@@ -141,6 +163,7 @@ export function AppSidebar() {
         </div>
 
         <nav className={styles.railNav}>
+          <SearchTrigger collapsed={collapsed} />
           <NavList collapsed={collapsed} pathname={pathname} />
         </nav>
 

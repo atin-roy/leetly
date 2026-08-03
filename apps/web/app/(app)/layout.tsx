@@ -1,6 +1,7 @@
 import styles from "./shell.module.css"
 import { AppProviders } from "@/components/app-providers"
 import { AppSidebar } from "@/components/layout/app-sidebar"
+import { CommandPaletteProvider } from "@/components/layout/command-palette"
 import { SidebarProvider } from "@/components/layout/sidebar-context"
 import { readRefreshCookie } from "@/lib/session"
 import { redirect } from "next/navigation"
@@ -18,12 +19,16 @@ export default async function AppLayout({
   return (
     <AppProviders>
       <SidebarProvider>
-        <div className={styles.shell}>
-          <AppSidebar />
-          <div className={styles.content}>
-            <main className={`aesthetic-background ${styles.main}`}>{children}</main>
+        <CommandPaletteProvider>
+          <div className={styles.shell}>
+            <AppSidebar />
+            <div className={styles.content}>
+              <main className={`aesthetic-background ${styles.main}`}>
+                {children}
+              </main>
+            </div>
           </div>
-        </div>
+        </CommandPaletteProvider>
       </SidebarProvider>
     </AppProviders>
   )
