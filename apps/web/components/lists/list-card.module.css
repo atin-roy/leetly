@@ -1,0 +1,297 @@
+/*
+ * A list card. Progress is the headline because it's the only number that
+ * answers "should I open this list?" — the difficulty mix and the per-status
+ * counts are supporting detail, and are sized that way.
+ */
+
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: var(--rule);
+  border-radius: var(--radius-3xl);
+  background: color-mix(in oklch, var(--card) 80%, transparent);
+  box-shadow: var(--shadow-panel);
+  transition: border-color 150ms ease, box-shadow 150ms ease, translate 150ms ease;
+}
+
+.card:hover {
+  translate: 0 -2px;
+  border-color: color-mix(in oklch, var(--primary) 25%, transparent);
+  box-shadow: var(--shadow-float);
+}
+
+/* ── Head ────────────────────────────────────────────────────────────────── */
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-md) var(--space-sm);
+  border-bottom: var(--rule);
+}
+
+.headText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  min-width: 0;
+}
+
+.badgeLine {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid color-mix(in oklch, var(--primary) 18%, transparent);
+  border-radius: var(--radius-lg);
+  background: color-mix(in oklch, var(--background) 90%, transparent);
+  color: var(--primary);
+}
+
+.name {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  font-family: var(--font-display);
+  font-size: var(--step-1);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--foreground);
+  text-decoration: none;
+}
+
+.name:hover {
+  color: var(--primary);
+}
+
+/* Revealed on card hover so the resting state stays quiet. */
+.nameArrow {
+  opacity: 0;
+  transition: opacity 150ms ease;
+}
+
+.card:hover .nameArrow,
+.name:focus-visible .nameArrow {
+  opacity: 1;
+}
+
+.count {
+  font-size: var(--step--1);
+  color: var(--muted-foreground);
+}
+
+/* Delete is the one irreversible action here, so it stays hidden until intent. */
+.delete {
+  flex-shrink: 0;
+  border-radius: 9999px;
+  color: var(--destructive);
+  opacity: 0;
+  transition: opacity 150ms ease;
+}
+
+.card:hover .delete,
+.delete:focus-visible {
+  opacity: 1;
+}
+
+/* ── Body ────────────────────────────────────────────────────────────────── */
+
+.body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-md);
+  padding: var(--space-md);
+}
+
+.progress {
+  padding: var(--space-md);
+  border: var(--rule);
+  border-radius: var(--radius-2xl);
+  background: color-mix(in oklch, var(--background) 45%, transparent);
+}
+
+.progressHead {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+
+.progressLabel {
+  font-family: var(--font-data);
+  font-size: var(--step--2);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+.progressValue {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2xs);
+  margin-top: var(--space-2xs);
+}
+
+.progressCount {
+  font-family: var(--font-data);
+  font-size: var(--step-2);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.progressTotal {
+  font-size: var(--step--1);
+  color: var(--muted-foreground);
+}
+
+.progressRate {
+  flex-shrink: 0;
+  padding: 0.2rem var(--space-sm);
+  border: var(--rule);
+  border-radius: 9999px;
+  background: color-mix(in oklch, var(--background) 80%, transparent);
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--step--1);
+  font-weight: 500;
+}
+
+.progressBar {
+  height: 0.5rem;
+  margin-top: var(--space-sm);
+}
+
+/* ── Stat tiles ──────────────────────────────────────────────────────────── */
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-xs);
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2xs);
+  padding: var(--space-sm);
+  border: var(--rule);
+  border-radius: var(--radius-2xl);
+  background: color-mix(in oklch, var(--background) 55%, transparent);
+  text-align: center;
+}
+
+.statIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: var(--radius-md);
+  background: color-mix(in oklch, var(--muted) 80%, transparent);
+}
+
+.statValue {
+  font-family: var(--font-data);
+  font-size: var(--step-1);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.statLabel {
+  font-size: var(--step--2);
+  color: var(--muted-foreground);
+}
+
+/* ── Difficulty mix ──────────────────────────────────────────────────────── */
+
+.mix {
+  padding: var(--space-md);
+  border: 1px dashed color-mix(in oklch, var(--border) 80%, transparent);
+  border-radius: var(--radius-2xl);
+  background: color-mix(in oklch, var(--background) 35%, transparent);
+}
+
+.mixHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-xs);
+}
+
+.mixLabel {
+  font-family: var(--font-data);
+  font-size: var(--step--2);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+.mixNote {
+  font-size: var(--step--2);
+  color: var(--muted-foreground);
+}
+
+.mixRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  margin-top: var(--space-sm);
+}
+
+.mixChip {
+  padding: 0.25rem var(--space-sm);
+  border: var(--rule);
+  border-radius: 9999px;
+  background: color-mix(in oklch, var(--background) 80%, transparent);
+  font-size: var(--step--1);
+}
+
+.mixChipValue {
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+/* ── Foot ────────────────────────────────────────────────────────────────── */
+
+.foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  margin-top: auto;
+  padding-top: var(--space-sm);
+  border-top: var(--rule);
+}
+
+.footText {
+  min-width: 0;
+}
+
+.footPrimary {
+  font-size: var(--step--1);
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.footSecondary {
+  font-size: var(--step--2);
+  color: var(--muted-foreground);
+}

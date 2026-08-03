@@ -1,0 +1,203 @@
+/*
+ * The problem library. Same shape as the dashboard and the review page —
+ * header, fact strip, then the work — so the three main surfaces read as one
+ * app rather than three designs.
+ *
+ * The previous version opened with a gradient hero and four stat cards named
+ * "Solved Momentum", "Review Pressure" and "Filter Load", then printed the
+ * total and the page position a second time above the table. Every number
+ * here appears once, under the name it actually has.
+ */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  padding-bottom: var(--space-md);
+}
+
+/* ── Header ──────────────────────────────────────────────────────────────── */
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+@media (min-width: 900px) {
+  .header {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+}
+
+.eyebrow {
+  font-family: var(--font-data);
+  font-size: var(--step--2);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+.title {
+  margin-top: var(--space-2xs);
+  font-family: var(--font-display);
+  font-size: var(--step-3);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.lede {
+  margin-top: var(--space-2xs);
+  max-width: 44ch;
+  font-size: var(--step--1);
+  line-height: 1.55;
+  color: var(--muted-foreground);
+  text-wrap: pretty;
+}
+
+.actions {
+  display: flex;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  gap: var(--space-2xs);
+}
+
+/* ── Fact strip ──────────────────────────────────────────────────────────── */
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-md) var(--space-lg);
+  padding-block: var(--space-md);
+  border-block: var(--rule);
+}
+
+@media (min-width: 640px) {
+  .facts {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.fact {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.factLabel {
+  font-family: var(--font-data);
+  font-size: var(--step--2);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+.factValue {
+  font-family: var(--font-data);
+  font-size: var(--step-2);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.factCaption {
+  font-size: var(--step--2);
+  color: var(--muted-foreground);
+}
+
+/* ── Table shell ─────────────────────────────────────────────────────────── */
+
+.tableShell {
+  overflow: hidden;
+  border: var(--rule);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-panel);
+}
+
+/* ── Pagination ──────────────────────────────────────────────────────────── */
+
+.pager {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+@media (min-width: 640px) {
+  .pager {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.pagerStatus {
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--step--1);
+  color: var(--muted-foreground);
+}
+
+.pagerButtons {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-xs);
+}
+
+@media (min-width: 640px) {
+  .pagerButtons {
+    display: flex;
+  }
+}
+
+/* ── Error ───────────────────────────────────────────────────────────────── */
+
+.error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  padding: var(--space-lg);
+  border: 1px solid color-mix(in oklch, var(--destructive) 40%, transparent);
+  border-radius: var(--radius-lg);
+  background: color-mix(in oklch, var(--destructive) 6%, transparent);
+  font-size: var(--step--1);
+  color: var(--muted-foreground);
+}
+
+.errorIcon {
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+  color: var(--destructive);
+}
+
+.errorTitle {
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+/* ── Skeleton ────────────────────────────────────────────────────────────── */
+
+.skeletonPage {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.skeletonHeader {
+  height: 5rem;
+}
+
+.skeletonFacts {
+  height: 4.5rem;
+}
+
+.skeletonFilters {
+  height: 4rem;
+}
+
+.skeletonTable {
+  height: 30rem;
+}
