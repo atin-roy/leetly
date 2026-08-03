@@ -160,6 +160,89 @@ study-centric visual identity is applied across the app shell, the marketing
 pages (`app/page.tsx`, `about`, `privacy`, `terms`), and all feature pages, with
 phone and tablet breakpoints treated as first-class.
 
+### Done
+
+`styles/tokens.css`; the landing, about, privacy and terms pages; sign-in and
+sign-up; the app shell (nav rail as a ruled margin rather than a floating
+panel); all 23 remaining `components/ui` primitives. `calendar`, `command`,
+`dropdown-menu` and `sidebar` were deleted — nothing imported them — taking
+`cmdk`, `react-day-picker` and `class-variance-authority` with them.
+
+Tailwind stays installed until the last file is migrated, so every commit is
+shippable.
+
+### Method change: rewrite the pages, do not migrate them
+
+Porting the existing markup was the wrong frame. The pages are `"use client"`
+top to bottom, so nothing server-renders: the tree ships to the browser, waits
+for hydration, then for the auth bootstrap, then for the data. Three stages
+before a number appears. Re-styling that changes none of it.
+
+The pages are also badly redundant. `/review` showed ten distinct facts across
+seventeen stat slots — `13` appeared on screen ten times — and the "At a glance"
+card restated three stats from two panels above it.
+
+So the remaining ~10,400 lines (12 app pages and the feature components under
+`components/{stats,problems,notes,review,lists,social}`) are rewritten rather
+than migrated, page by page, **server component by default with client islands
+only where there is interaction**. This fixes the lag and the bloat in one pass.
+
+Kept as-is: `hooks/`, `lib/`, the primitives, the shell, auth, and the public
+pages — about 5,700 lines, half of them rewritten during this phase already.
+A full-frontend restart was considered and rejected: it would re-derive the
+auth plumbing debugged in Phase 2 and below, with placements six days out.
+
+### Three rules for the rewrite
+
+1. **One fact, one place.** If a number already appears on the page, it does not
+   get a second panel.
+2. **A card must earn its border.** Grouping related things earns one; a single
+   number does not.
+3. **Height comes from content.** No hero cards, no fixed-height panels, no
+   empty thirds.
+
+Copy follows the same discipline: name the thing the user controls, in their
+words, and let the number carry the emphasis. `13 cards due today` rather than
+`Keep recall sharp before drift turns into relearning`. The tells to remove are
+abstract nouns standing in for concrete things (*load*, *pressure*, *signal*,
+*checkpoint*, *snapshot*), verbs doing rhetorical work (*compound*, *chip away*,
+*reduce drag*), em dashes, and headlines asserting a philosophy instead of
+stating a fact.
+
+`/review` is the worked example: 730 lines → 322 plus a 383-line module, with
+five panels reduced to a header, a six-fact strip and the queue itself.
+
+## The refresh token was rotated during a server render
+
+The app layout called `resolveSession()` to seed the client session. That
+redeems the refresh token, which **rotates** it — and a Server Component cannot
+write cookies, so `setRefreshCookie` threw and the replacement was dropped. The
+next request replayed a token the API had already retired, reuse detection
+revoked the whole family, and the dead-but-present cookie bounced the user
+between `/dashboard` and `/sign-in` indefinitely.
+
+This broke the deployed app on the first navigation after any login. It was
+missed because the Phase 2 verification exercised the API directly and never
+the browser flow.
+
+Redemption now happens only in the `/api/session/refresh` route handler, which
+can store the rotated token and clears the cookie when it fails. `AuthProvider`
+obtains the access token on the same single timer that later renews it, so two
+rotations can never race.
+
+**Known cost:** this moved token acquisition out of the server render, so a cold
+load now waits on a client fetch before any data query — part of the Phase 1
+waterfall, back. Recovering it needs either a non-rotating "mint an access
+token" endpoint that a render may safely call, or starting data fetches in
+parallel with the bootstrap rather than behind it.
+
+## Deployment drift
+
+`APP_CORS_ALLOWED_ORIGINS` in `/srv/apps/leetly/docker-compose.yml` now includes
+`http://localhost:3000` so the frontend can be run locally against real data.
+That compose file is not in git; the change lives only on the VPS. Backup at
+`docker-compose.yml.bak-cors`.
+
 ## Flyway was not running in production
 
 Found during the Phase 2 deploy, when the API crash-looped on
