@@ -18,3 +18,6 @@ app:
     refresh-token-ttl: P30D
   auth:
     secure-cookies: false
+  rate-limit:
+    auth:
+      max-requests: 1000
