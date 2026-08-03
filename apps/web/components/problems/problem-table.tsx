@@ -31,15 +31,16 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useUpdateProblemStatus } from "@/hooks/use-problems"
 import { ReviewIndicator } from "@/components/review/review-indicator"
 import { QuickReviewButtons } from "@/components/review/quick-review-buttons"
+import tones from "@/components/ui/tone.module.css"
 import { cn } from "@/lib/utils"
 import { AttemptForm } from "./attempt-form"
 import { CopyProblemButton } from "./copy-problem-button"
 import { DifficultyBadge } from "./difficulty-badge"
 import { statusLabels, statusStyles } from "./status-badge"
+import styles from "./problem-table.module.css"
 import type { ProblemStatus, ProblemSummaryDto } from "@/lib/types"
 
 const COLS = 6
-const ROW_H = "h-[108px]"
 const STATUSES: ProblemStatus[] = [
   "UNSEEN",
   "ATTEMPTED",
@@ -71,7 +72,7 @@ function isInteractiveTarget(target: EventTarget | null) {
 
 function FillerRow() {
   return (
-    <TableRow className={`${ROW_H} pointer-events-none select-none`}>
+    <TableRow className={styles.fillerRow}>
       {Array.from({ length: COLS }).map((_, j) => (
         <TableCell key={j} />
       ))}
@@ -124,28 +125,33 @@ function StatusCell({ problem }: { problem: ProblemSummaryDto }) {
   }
 
   return (
-    <div data-interactive="true" className="flex justify-center" onClick={(e) => e.stopPropagation()}>
+    <div data-interactive="true" className={styles.statusCell} onClick={(e) => e.stopPropagation()}>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger
           data-interactive="true"
           aria-label={`Change status for ${problem.title}`}
           disabled={statusMutation.isPending}
           onClick={(e) => e.stopPropagation()}
-          className="cursor-pointer"
+          className={styles.statusTrigger}
         >
-          <Badge variant="outline" className={`${statusStyles[status]} transition-opacity hover:opacity-80`}>
+          <Badge variant="outline" className={cn(statusStyles[status], styles.statusTriggerBadge)}>
             {statusLabels[status]}
           </Badge>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-1" align="center">
-          <div className="flex flex-col gap-0.5">
+        <PopoverContent className={styles.statusPopover} align="center">
+          <div className={styles.statusList}>
             {STATUSES.map((option) => (
               <button
                 key={option}
                 onClick={() => handleChange(option)}
-                className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-accent transition-colors"
+                className={styles.statusOption}
               >
-                <Check className={`h-3.5 w-3.5 ${option === status ? "opacity-100" : "opacity-0"}`} />
+                <Check
+                  className={cn(
+                    styles.statusCheck,
+                    option !== status && styles.statusCheckHidden,
+                  )}
+                />
                 <Badge variant="outline" className={statusStyles[option]}>
                   {statusLabels[option]}
                 </Badge>
@@ -167,7 +173,7 @@ function ActionIconButton({
     <Button
       variant="ghost"
       size="icon"
-      className={cn("h-8 w-8 rounded-full text-muted-foreground hover:bg-accent hover:text-foreground", className)}
+      className={cn(styles.iconButton, className)}
       {...props}
     >
       {children}
@@ -177,7 +183,7 @@ function ActionIconButton({
 
 function ProblemUtilityActions({ problem, hasNote, onNoteClick }: ProblemActionProps) {
   return (
-    <div className="flex items-center gap-1.5" data-interactive="true" onClick={(e) => e.stopPropagation()}>
+    <div className={styles.utilityActions} data-interactive="true" onClick={(e) => e.stopPropagation()}>
       <ActionIconButton asChild title="Open in LeetCode">
         <a
           href={problem.url}
@@ -185,7 +191,7 @@ function ProblemUtilityActions({ problem, hasNote, onNoteClick }: ProblemActionP
           rel="noopener noreferrer"
           data-interactive="true"
         >
-          <ExternalLink className="h-4 w-4" />
+          <ExternalLink />
         </a>
       </ActionIconButton>
       <ActionIconButton
@@ -193,16 +199,16 @@ function ProblemUtilityActions({ problem, hasNote, onNoteClick }: ProblemActionP
         data-interactive="true"
         disabled={!onNoteClick}
         title={hasNote ? "Open note" : "Create note"}
-        className={hasNote ? "text-primary hover:text-primary" : undefined}
+        className={hasNote ? styles.iconButtonNoted : undefined}
       >
-        <StickyNote className={cn("h-4 w-4", hasNote ? "fill-primary/15" : "")} />
+        <StickyNote className={hasNote ? styles.notedIcon : undefined} />
       </ActionIconButton>
       <CopyProblemButton
         problemId={problem.id}
         size="icon"
         showText={false}
         title="Copy full problem details"
-        className="h-8 w-8 rounded-full text-muted-foreground hover:bg-accent hover:text-foreground"
+        className={styles.iconButton}
       />
     </div>
   )
@@ -227,13 +233,13 @@ export function ProblemTable({
 
   const header = (
     <TableHeader>
-      <TableRow className="border-b border-border/70 bg-background/65">
-        <TableHead className="w-[44%] py-4">Problem</TableHead>
-        <TableHead className="w-[18%] py-4">Last Activity</TableHead>
-        <TableHead className="w-[16%] py-4 text-center">Progress</TableHead>
-        <TableHead className="w-[12%] py-4 text-center">Review</TableHead>
-        <TableHead className="w-[10%] py-4 text-center">Attempts</TableHead>
-        <TableHead className="w-10" />
+      <TableRow className={styles.headRow}>
+        <TableHead className={cn(styles.headCell, styles.colProblem)}>Problem</TableHead>
+        <TableHead className={cn(styles.headCell, styles.colActivity)}>Last Activity</TableHead>
+        <TableHead className={cn(styles.headCellCenter, styles.colProgress)}>Progress</TableHead>
+        <TableHead className={cn(styles.headCellCenter, styles.colReview)}>Review</TableHead>
+        <TableHead className={cn(styles.headCellCenter, styles.colAttempts)}>Attempts</TableHead>
+        <TableHead className={styles.colGutter} />
       </TableRow>
     </TableHeader>
   )
@@ -241,38 +247,36 @@ export function ProblemTable({
   if (isLoading) {
     return (
       <>
-        <div className="grid gap-3 p-3 sm:hidden">
+        <div className={styles.cards}>
           {Array.from({ length: Math.min(pageSize, 6) }).map((_, i) => (
-            <div key={i} className="rounded-3xl border border-border/70 bg-card/70 p-4">
-              <div className="space-y-3">
-                <Skeleton className="h-4 w-24" />
-                <Skeleton className="h-6 w-3/4" />
-                <div className="flex gap-2">
-                  <Skeleton className="h-6 w-16 rounded-full" />
-                  <Skeleton className="h-6 w-24 rounded-full" />
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <Skeleton className="h-14 rounded-2xl" />
-                  <Skeleton className="h-14 rounded-2xl" />
-                </div>
-                <div className="grid grid-cols-3 gap-2">
-                  <Skeleton className="h-9 rounded-full" />
-                  <Skeleton className="h-9 rounded-full" />
-                  <Skeleton className="h-9 rounded-full" />
-                </div>
+            <div key={i} className={styles.skeletonCard}>
+              <Skeleton className={styles.skeletonLineShort} />
+              <Skeleton className={styles.skeletonLineTitle} />
+              <div className={styles.skeletonPills}>
+                <Skeleton className={styles.skeletonPillSm} />
+                <Skeleton className={styles.skeletonPillLg} />
+              </div>
+              <div className={styles.pairGrid}>
+                <Skeleton className={styles.skeletonBox} />
+                <Skeleton className={styles.skeletonBox} />
+              </div>
+              <div className={styles.skeletonTriple}>
+                <Skeleton className={styles.skeletonAction} />
+                <Skeleton className={styles.skeletonAction} />
+                <Skeleton className={styles.skeletonAction} />
               </div>
             </div>
           ))}
         </div>
 
-        <Table className="hidden sm:table">
+        <Table className={styles.table}>
           {header}
           <TableBody>
             {Array.from({ length: pageSize }).map((_, i) => (
-              <TableRow key={i} className={ROW_H}>
+              <TableRow key={i} className={styles.fillerRow}>
                 {Array.from({ length: COLS }).map((_, j) => (
                   <TableCell key={j}>
-                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className={styles.skeletonCellLine} />
                   </TableCell>
                 ))}
               </TableRow>
@@ -288,33 +292,23 @@ export function ProblemTable({
 
   return (
     <>
-      <div className="space-y-3 p-3 sm:hidden">
+      <div className={styles.cards}>
         {rows.length === 0 ? (
-          <div className="rounded-3xl border border-dashed border-border/70 bg-card/50 px-5 py-12 text-center text-sm text-muted-foreground">
-            No problems found.
-          </div>
+          <div className={styles.empty}>No problems found.</div>
         ) : (
           rows.map((p) => {
             const hasNote = notedProblemIds?.has(p.id) ?? false
 
             return (
-              <article
-                key={p.id}
-                className="rounded-3xl border border-border/70 bg-card/75 p-4 shadow-[0_18px_50px_-36px_rgba(15,23,42,0.35)]"
-              >
-                <div
-                  className="space-y-4"
-                  onClick={() => openProblem(p.id)}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0 space-y-2">
-                      <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-                        <span className="rounded-full border border-border/70 bg-background/70 px-2 py-1 font-mono tracking-[0.18em]">
-                          #{p.leetcodeId}
-                        </span>
+              <article key={p.id} className={styles.card}>
+                <div className={styles.cardBody} onClick={() => openProblem(p.id)}>
+                  <div className={styles.cardHead}>
+                    <div className={styles.cardHeadText}>
+                      <div className={styles.metaLine}>
+                        <span className={styles.leetcodeId}>#{p.leetcodeId}</span>
                         <span>{formatLastAttemptDetail(p.lastAttemptedAt)}</span>
                       </div>
-                      <h3 className="text-base font-semibold leading-6 text-foreground">{p.title}</h3>
+                      <h3 className={styles.cardTitle}>{p.title}</h3>
                     </div>
 
                     <ProblemUtilityActions
@@ -324,52 +318,52 @@ export function ProblemTable({
                     />
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-2">
+                  <div className={styles.badgeRow}>
                     <DifficultyBadge difficulty={p.difficulty} />
                     <StatusCell problem={p} />
                     {p.reviewCard ? (
                       <Badge
                         variant="outline"
-                        className="rounded-full border-emerald-500/25 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-medium text-emerald-700 dark:text-emerald-300"
+                        className={cn(styles.reviewBadge, tones.tone, tones.green)}
                       >
                         In review
                       </Badge>
                     ) : null}
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2" data-interactive="true" onClick={(e) => e.stopPropagation()}>
-                    <div className="rounded-2xl border border-border/70 bg-background/70 px-3 py-3">
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Last Attempt</p>
-                      <p className="mt-1 text-sm font-medium text-foreground">{formatLastAttempt(p.lastAttemptedAt)}</p>
+                  <div className={styles.pairGrid} data-interactive="true" onClick={(e) => e.stopPropagation()}>
+                    <div className={styles.statBox}>
+                      <p className={styles.statLabel}>Last Attempt</p>
+                      <p className={styles.statValue}>{formatLastAttempt(p.lastAttemptedAt)}</p>
                     </div>
-                    <div className="rounded-2xl border border-border/70 bg-background/70 px-3 py-3">
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Attempts</p>
-                      <p className="mt-1 text-sm font-medium text-foreground">
+                    <div className={styles.statBox}>
+                      <p className={styles.statLabel}>Attempts</p>
+                      <p className={styles.statValue}>
                         {p.totalAttempts > 0 ? `${p.totalAttempts} logged` : "None yet"}
                       </p>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2" data-interactive="true" onClick={(e) => e.stopPropagation()}>
+                  <div className={styles.pairGrid} data-interactive="true" onClick={(e) => e.stopPropagation()}>
                     {p.reviewCard ? (
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button
                             variant="outline"
-                            className="h-11 rounded-full border-border/70 bg-background/70 justify-center"
+                            className={styles.cardButton}
                             data-interactive="true"
                           >
                             <ReviewIndicator reviewCard={p.reviewCard} />
-                            <span className="ml-2">Review</span>
+                            Review
                           </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-[calc(100vw-3rem)] max-w-72 p-3" align="center">
+                        <PopoverContent className={styles.reviewPopoverMobile} align="center">
                           <QuickReviewButtons cardId={p.reviewCard.id} size="sm" />
                           {onRemoveReview ? (
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="mt-2 w-full rounded-full text-muted-foreground hover:text-foreground"
+                              className={styles.removeReviewButton}
                               onClick={() => onRemoveReview(p.id, p.reviewCard!.id)}
                             >
                               Remove from review
@@ -380,42 +374,42 @@ export function ProblemTable({
                     ) : (
                       <Button
                         variant="outline"
-                        className="h-11 rounded-full border-border/70 bg-background/70"
+                        className={styles.cardButton}
                         onClick={() => onEnrollReview?.(p)}
                         data-interactive="true"
                         disabled={!onEnrollReview}
                       >
-                        <Clock className="mr-2 h-4 w-4" />
+                        <Clock />
                         Queue Review
                       </Button>
                     )}
 
                     <Button
                       variant="outline"
-                      className="h-11 rounded-full border-border/70 bg-background/70"
+                      className={styles.cardButton}
                       onClick={() => setAttemptProblem(p)}
                       data-interactive="true"
                     >
-                      <Plus className="mr-2 h-4 w-4" />
+                      <Plus />
                       {p.totalAttempts > 0 ? "Log Again" : "Log Attempt"}
                     </Button>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2" data-interactive="true" onClick={(e) => e.stopPropagation()}>
+                  <div className={styles.pairGrid} data-interactive="true" onClick={(e) => e.stopPropagation()}>
                     <Button
                       variant="ghost"
-                      className="h-11 rounded-full text-muted-foreground hover:text-foreground"
+                      className={styles.cardGhostButton}
                       onClick={() => openProblem(p.id)}
                     >
                       Open Detail
                     </Button>
                     <Button
                       variant="ghost"
-                      className="h-11 rounded-full text-muted-foreground hover:text-destructive"
+                      className={cn(styles.cardGhostButton, styles.cardDangerButton)}
                       onClick={() => onDelete?.(p)}
                       disabled={!onDelete}
                     >
-                      <Trash2 className="mr-2 h-4 w-4" />
+                      <Trash2 />
                       Remove
                     </Button>
                   </div>
@@ -426,13 +420,13 @@ export function ProblemTable({
         )}
       </div>
 
-      <Table className="hidden sm:table">
+      <Table className={styles.table}>
         {header}
         <TableBody>
           {rows.length === 0 ? (
             <>
-              <TableRow className={`${ROW_H} pointer-events-none select-none`}>
-                <TableCell colSpan={COLS} className="text-center text-sm text-muted-foreground">
+              <TableRow className={styles.fillerRow}>
+                <TableCell colSpan={COLS} className={styles.emptyCell}>
                   No problems found.
                 </TableCell>
               </TableRow>
@@ -448,7 +442,7 @@ export function ProblemTable({
                   <ContextMenu key={p.id}>
                     <ContextMenuTrigger asChild>
                       <TableRow
-                        className={`${ROW_H} group cursor-pointer border-b border-border/60 transition-colors hover:bg-accent/25`}
+                        className={styles.row}
                         onClick={(e) => {
                           if (isInteractiveTarget(e.target)) return
                           openProblem(p.id)
@@ -463,57 +457,49 @@ export function ProblemTable({
                           openProblemInNewTab(p.id)
                         }}
                       >
-                        <TableCell className="py-4">
-                          <div className="space-y-1">
-                            <div className="flex items-start justify-between gap-4">
-                              <div className="min-w-0 space-y-1">
-                                <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
-                                  <span className="rounded-full border border-border/70 bg-background/70 px-2 py-1 font-mono tracking-[0.18em]">
-                                    #{p.leetcodeId}
-                                  </span>
-                                  <span>{formatLastAttemptDetail(p.lastAttemptedAt)}</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <p className="truncate text-base font-semibold text-foreground">{p.title}</p>
-                                </div>
+                        <TableCell className={styles.cell}>
+                          <div className={styles.titleBlock}>
+                            <div className={styles.titleText}>
+                              <div className={styles.metaLine}>
+                                <span className={styles.leetcodeId}>#{p.leetcodeId}</span>
+                                <span>{formatLastAttemptDetail(p.lastAttemptedAt)}</span>
                               </div>
-
-                              <ProblemUtilityActions
-                                problem={p}
-                                hasNote={hasNote}
-                                onNoteClick={onNoteClick}
-                              />
+                              <p className={styles.rowTitle}>{p.title}</p>
                             </div>
+
+                            <ProblemUtilityActions
+                              problem={p}
+                              hasNote={hasNote}
+                              onNoteClick={onNoteClick}
+                            />
                           </div>
                         </TableCell>
-                        <TableCell className="py-4">
-                          <div className="space-y-1">
-                            <p className="text-sm font-medium text-foreground">{formatLastAttempt(p.lastAttemptedAt)}</p>
-                            <p className="text-sm text-muted-foreground">
-                              {p.totalAttempts > 0 ? `${p.totalAttempts} logged attempt${p.totalAttempts === 1 ? "" : "s"}` : "Fresh in backlog"}
-                            </p>
-                          </div>
+                        <TableCell className={styles.cell}>
+                          <p className={styles.activityPrimary}>{formatLastAttempt(p.lastAttemptedAt)}</p>
+                          <p className={styles.activitySecondary}>
+                            {p.totalAttempts > 0 ? `${p.totalAttempts} logged attempt${p.totalAttempts === 1 ? "" : "s"}` : "Fresh in backlog"}
+                          </p>
                         </TableCell>
-                        <TableCell className="py-4 text-center" data-interactive="true" onClick={(e) => e.stopPropagation()}>
-                          <div className="flex flex-col items-center gap-2">
+                        <TableCell className={styles.cellCenter} data-interactive="true" onClick={(e) => e.stopPropagation()}>
+                          <div className={styles.progressStack}>
                             <DifficultyBadge difficulty={p.difficulty} />
                             <StatusCell problem={p} />
                           </div>
                         </TableCell>
-                        <TableCell className="py-4 text-center" data-interactive="true" onClick={(e) => e.stopPropagation()}>
+                        <TableCell className={styles.cellCenter} data-interactive="true" onClick={(e) => e.stopPropagation()}>
                           {p.reviewCard ? (
                             <Popover>
                               <PopoverTrigger asChild>
                                 <button
                                   data-interactive="true"
-                                  className="inline-flex flex-col items-center gap-2 rounded-2xl border border-border/70 bg-background/70 px-3 py-2 text-sm text-muted-foreground transition-colors hover:border-border hover:bg-accent/30 hover:text-foreground"
+                                  className={styles.reviewTrigger}
                                   onClick={(e) => e.stopPropagation()}
                                 >
                                   <ReviewIndicator reviewCard={p.reviewCard} />
-                                  <span className="text-xs font-medium">Review live</span>
+                                  <span className={styles.reviewTriggerLabel}>Review live</span>
                                 </button>
                               </PopoverTrigger>
-                              <PopoverContent className="w-72 p-3" align="center">
+                              <PopoverContent className={styles.reviewPopover} align="center">
                                 <QuickReviewButtons cardId={p.reviewCard.id} size="sm" />
                               </PopoverContent>
                             </Popover>
@@ -525,31 +511,28 @@ export function ProblemTable({
                               data-interactive="true"
                               disabled={!onEnrollReview}
                               title="Mark for review"
-                              className="rounded-full border-border/70 bg-background/70 text-muted-foreground transition-colors hover:bg-accent/30 hover:text-foreground disabled:pointer-events-none"
+                              className={styles.queueButton}
                             >
-                              <Clock className="mr-1.5 h-3.5 w-3.5" />
+                              <Clock />
                               Queue
                             </Button>
                           )}
                         </TableCell>
-                        <TableCell className="py-4 text-center" data-interactive="true" onClick={(e) => e.stopPropagation()}>
-                          <div className="flex items-center justify-center">
+                        <TableCell className={styles.cellCenter} data-interactive="true" onClick={(e) => e.stopPropagation()}>
+                          <div className={styles.attemptsCell}>
                             {p.totalAttempts > 0 ? (
                               <button
                                 onClick={() => setAttemptProblem(p)}
                                 data-interactive="true"
                                 title="Log attempt"
                                 aria-label={`Log attempt for ${p.title}`}
-                                className="group/attempt inline-flex items-center justify-center"
+                                className={styles.attemptCountButton}
                               >
-                                <Badge
-                                  variant="secondary"
-                                  className="relative inline-flex min-w-9 items-center justify-center rounded-full border border-border/70 bg-background px-2.5 py-1 text-xs font-semibold tabular-nums transition-colors group-hover/attempt:bg-foreground group-hover/attempt:text-background"
-                                >
-                                  <span className="transition-opacity group-hover/attempt:opacity-0">
+                                <Badge variant="secondary" className={styles.attemptCountBadge}>
+                                  <span className={styles.attemptCountValue}>
                                     {p.totalAttempts}
                                   </span>
-                                  <Plus className="absolute h-3.5 w-3.5 opacity-0 transition-opacity group-hover/attempt:opacity-100" />
+                                  <Plus className={styles.attemptCountPlus} />
                                 </Badge>
                               </button>
                             ) : (
@@ -558,28 +541,28 @@ export function ProblemTable({
                                 data-interactive="true"
                                 title="Log attempt"
                                 aria-label={`Log attempt for ${p.title}`}
-                                className="inline-flex items-center gap-1 rounded-full border border-dashed border-border/80 px-3 py-1 text-xs font-medium text-muted-foreground transition-colors hover:border-border hover:text-foreground"
+                                className={styles.attemptLogButton}
                               >
-                                <Plus className="h-3.5 w-3.5" />
+                                <Plus size={14} />
                                 Log
                               </button>
                             )}
                           </div>
                         </TableCell>
-                        <TableCell className="py-4 text-center" data-interactive="true" onClick={(e) => e.stopPropagation()}>
+                        <TableCell className={styles.cellCenter} data-interactive="true" onClick={(e) => e.stopPropagation()}>
                           <ActionIconButton
                             onClick={() => onDelete?.(p)}
                             data-interactive="true"
                             disabled={!onDelete}
                             title="Remove problem"
-                            className="opacity-0 transition-opacity group-hover:opacity-100 hover:text-destructive"
+                            className={styles.deleteButton}
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 />
                           </ActionIconButton>
                         </TableCell>
                       </TableRow>
                     </ContextMenuTrigger>
-                    <ContextMenuContent className="w-56">
+                    <ContextMenuContent>
                       <ContextMenuItem onClick={() => openProblemInNewTab(p.id)}>
                         <SquareArrowOutUpRight />
                         Open problem detail

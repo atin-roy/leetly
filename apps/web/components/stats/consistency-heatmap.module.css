@@ -1,0 +1,128 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.frame {
+  padding: var(--space-md);
+  overflow-x: auto;
+  border: var(--rule);
+  border-radius: var(--radius);
+}
+
+.grid {
+  display: flex;
+  gap: var(--space-sm);
+  width: fit-content;
+}
+
+.weekdays {
+  display: grid;
+  flex-shrink: 0;
+  margin-top: 1.25rem;
+}
+
+.weekday {
+  display: flex;
+  align-items: center;
+  font-family: var(--font-data);
+  font-size: 0.625rem;
+  line-height: 1;
+  color: var(--muted-foreground);
+}
+
+.columns {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+}
+
+.months {
+  display: grid;
+  align-items: end;
+  height: 1rem;
+  font-family: var(--font-data);
+  font-size: 0.625rem;
+  line-height: 1;
+  color: var(--muted-foreground);
+}
+
+.cells {
+  display: grid;
+  grid-auto-flow: column;
+}
+
+.cell {
+  border: 1px solid transparent;
+  border-radius: 3px;
+  transition: transform 120ms ease;
+}
+
+.cell:hover {
+  transform: scale(1.15);
+  border-color: var(--primary);
+}
+
+/* Five steps from "no solves" to "six or more". */
+.tone0 {
+  background: color-mix(in oklch, var(--muted) 55%, transparent);
+  border-color: color-mix(in oklch, var(--border) 45%, transparent);
+}
+
+.tone1 {
+  background: color-mix(in oklch, var(--primary) 28%, transparent);
+}
+
+.tone2 {
+  background: color-mix(in oklch, var(--primary) 48%, transparent);
+}
+
+.tone3 {
+  background: color-mix(in oklch, var(--primary) 70%, transparent);
+}
+
+.tone4 {
+  background: var(--primary);
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  font-size: var(--step--2);
+  color: var(--muted-foreground);
+}
+
+.scale {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2xs);
+}
+
+.swatches {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.swatch {
+  width: 0.75rem;
+  height: 0.75rem;
+  border: 1px solid transparent;
+  border-radius: 3px;
+}
+
+.placeholder {
+  display: flex;
+  align-items: center;
+  height: 15rem;
+  font-size: var(--step--1);
+  color: var(--muted-foreground);
+}
+
+.skeleton {
+  height: 15rem;
+}

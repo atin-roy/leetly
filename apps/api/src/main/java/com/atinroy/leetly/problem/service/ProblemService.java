@@ -153,7 +153,6 @@ public class ProblemService {
         problem.setUrl(request.url());
         problem.setDifficulty(request.difficulty());
         problem.setStatus(ProblemStatus.UNSEEN);
-        problem.setAiReview(request.aiReview());
 
         Problem savedProblem = problemRepository.save(problem);
         ProblemList defaultList = problemListRepository.findByUserAndIsDefaultTrue(user)
@@ -172,7 +171,6 @@ public class ProblemService {
         problem.setTitle(request.title());
         problem.setUrl(request.url());
         problem.setDifficulty(request.difficulty());
-        problem.setAiReview(request.aiReview());
         return problemRepository.save(problem);
     }
 
@@ -225,9 +223,4 @@ public class ProblemService {
         return problemRepository.save(problem);
     }
 
-    public Problem updateAiReview(long problemId, String aiReview, User user) {
-        Problem problem = findById(problemId, user);
-        problem.setAiReview(aiReview);
-        return problemRepository.save(problem);
-    }
 }

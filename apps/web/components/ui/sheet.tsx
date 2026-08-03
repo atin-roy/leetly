@@ -5,6 +5,7 @@ import { XIcon } from "lucide-react"
 import { Dialog as SheetPrimitive } from "radix-ui"
 
 import { cn } from "@/lib/utils"
+import styles from "./sheet.module.css"
 
 function Sheet({ ...props }: React.ComponentProps<typeof SheetPrimitive.Root>) {
   return <SheetPrimitive.Root data-slot="sheet" {...props} />
@@ -35,10 +36,7 @@ function SheetOverlay({
   return (
     <SheetPrimitive.Overlay
       data-slot="sheet-overlay"
-      className={cn(
-        "fixed inset-0 z-50 bg-foreground/35 backdrop-blur-sm",
-        className
-      )}
+      className={cn(styles.overlay, className)}
       {...props}
     />
   )
@@ -59,20 +57,13 @@ function SheetContent({
       <SheetOverlay />
       <SheetPrimitive.Content
         data-slot="sheet-content"
-        className={cn(
-          "surface-panel fixed z-50 flex flex-col gap-4 border shadow-lg",
-          side === "right" && "inset-y-0 right-0 h-full w-3/4 sm:max-w-sm",
-          side === "left" && "inset-y-0 left-0 h-full w-3/4 sm:max-w-sm",
-          side === "top" && "inset-x-0 top-0 h-auto",
-          side === "bottom" && "inset-x-0 bottom-0 h-auto",
-          className
-        )}
+        className={cn(styles.content, styles[side], className)}
         {...props}
       >
         {children}
         {showCloseButton && (
-          <SheetPrimitive.Close className="absolute top-4 right-4 rounded-md p-1 text-muted-foreground transition-colors hover:bg-accent/20 hover:text-foreground focus:ring-2 focus:ring-ring/40 focus:outline-hidden disabled:pointer-events-none">
-            <XIcon className="size-4" />
+          <SheetPrimitive.Close className={styles.close}>
+            <XIcon size={16} />
             <span className="sr-only">Close</span>
           </SheetPrimitive.Close>
         )}
@@ -85,7 +76,7 @@ function SheetHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="sheet-header"
-      className={cn("flex flex-col gap-1.5 p-4", className)}
+      className={cn(styles.header, className)}
       {...props}
     />
   )
@@ -95,7 +86,7 @@ function SheetFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="sheet-footer"
-      className={cn("mt-auto flex flex-col gap-2 p-4", className)}
+      className={cn(styles.footer, className)}
       {...props}
     />
   )
@@ -108,7 +99,7 @@ function SheetTitle({
   return (
     <SheetPrimitive.Title
       data-slot="sheet-title"
-      className={cn("text-foreground font-semibold", className)}
+      className={cn(styles.title, className)}
       {...props}
     />
   )
@@ -121,7 +112,7 @@ function SheetDescription({
   return (
     <SheetPrimitive.Description
       data-slot="sheet-description"
-      className={cn("text-muted-foreground text-sm", className)}
+      className={cn(styles.description, className)}
       {...props}
     />
   )

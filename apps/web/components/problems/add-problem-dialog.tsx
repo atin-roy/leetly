@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import tones from "@/components/ui/tone.module.css"
+import { cn } from "@/lib/utils"
 import { fetchLeetCodeProblem, parseProblemInput, type FetchedProblem } from "@/lib/leetcode"
 import { DifficultyBadge } from "./difficulty-badge"
 import type { CreateProblemRequest, ProblemSummaryDto } from "@/lib/types"
@@ -145,9 +147,9 @@ export function AddProblemDialog({
 
               {preview && (
                 isDuplicate ? (
-                  <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 space-y-3 dark:border-amber-800 dark:bg-amber-950/30">
+                  <div className={cn("rounded-lg border p-4 space-y-3", tones.tone, tones.amber)}>
                     <div className="flex items-start gap-2.5">
-                      <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
+                      <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
                       <div className="space-y-0.5">
                         <p className="text-sm font-medium">Already in your list</p>
                         <p className="text-xs text-muted-foreground">

@@ -1,0 +1,123 @@
+.tabs {
+  display: flex;
+  gap: var(--space-2xs);
+}
+
+.tabs[data-orientation="horizontal"] {
+  flex-direction: column;
+}
+
+.list {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted-foreground);
+}
+
+.tabs[data-orientation="vertical"] .list {
+  height: fit-content;
+  flex-direction: column;
+}
+
+.listDefault {
+  height: 2.25rem;
+  padding: 3px;
+  background: var(--muted);
+  border-radius: var(--radius);
+}
+
+/*
+ * The line variant marks the active tab with a rule underneath rather than a
+ * filled pill — quieter next to a table, and it reads as a section marker.
+ */
+.listLine {
+  gap: 0.25rem;
+  background: none;
+  border-radius: 0;
+}
+
+.trigger {
+  position: relative;
+  display: inline-flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.5rem;
+  font: inherit;
+  font-size: var(--step--1);
+  font-weight: 500;
+  white-space: nowrap;
+  color: var(--muted-foreground);
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  outline: none;
+  transition: color 120ms ease, background-color 120ms ease;
+}
+
+.tabs[data-orientation="vertical"] .trigger {
+  width: 100%;
+  justify-content: flex-start;
+}
+
+.trigger:hover {
+  color: var(--foreground);
+}
+
+.trigger:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: -1px;
+}
+
+.trigger:disabled {
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+.trigger svg {
+  pointer-events: none;
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
+}
+
+.listDefault .trigger[data-state="active"] {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.listLine .trigger[data-state="active"] {
+  color: var(--foreground);
+}
+
+.listLine .trigger::after {
+  content: "";
+  position: absolute;
+  background: var(--foreground);
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.tabs[data-orientation="horizontal"] .listLine .trigger::after {
+  inset-inline: 0;
+  bottom: -5px;
+  height: 2px;
+}
+
+.tabs[data-orientation="vertical"] .listLine .trigger::after {
+  inset-block: 0;
+  right: -4px;
+  width: 2px;
+}
+
+.listLine .trigger[data-state="active"]::after {
+  opacity: 1;
+}
+
+.content {
+  flex: 1;
+  outline: none;
+}

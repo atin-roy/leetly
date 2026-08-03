@@ -32,7 +32,7 @@ const features = [
     icon: BarChart3,
     title: "Progress you can read",
     description:
-      "Daily streaks, solve rates by difficulty, and an activity heatmap — enough to see whether the last month actually moved.",
+      "Daily streaks, solve rates by difficulty, and an activity heatmap. Enough to see whether the last month actually moved.",
   },
   {
     icon: Target,
@@ -56,7 +56,7 @@ const features = [
 
 const attempts = [
   { index: "01", note: "Brute force, two nested loops", outcome: "Time limit" },
-  { index: "02", note: "Sorted first — lost the original indices", outcome: "Wrong answer" },
+  { index: "02", note: "Sorted first, lost the original indices", outcome: "Wrong answer" },
   { index: "03", note: "Hash map of complements", outcome: "Accepted" },
 ]
 
@@ -97,7 +97,6 @@ export default async function Home() {
       <header className={styles.hero}>
         <div>
           <p className={styles.eyebrow}>
-            <span className={styles.eyebrowRule} aria-hidden="true" />
             Deliberate practice
           </p>
           <h1 className={styles.title}>
@@ -106,7 +105,7 @@ export default async function Home() {
             <span className={styles.titleAccent}>learning it.</span>
           </h1>
           <p className={styles.lede}>
-            Leetly keeps the record of how you actually solved a problem — every
+            Leetly keeps the record of how you actually solved a problem: every
             attempt, every wrong turn, and when to come back to it.
           </p>
           <div className={styles.ctaRow}>

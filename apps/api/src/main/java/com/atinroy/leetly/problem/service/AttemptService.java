@@ -62,7 +62,6 @@ public class AttemptService {
         attempt.setMistakes(request.mistakes() != null ? request.mistakes() : List.of());
         attempt.setTimeComplexity(request.timeComplexity());
         attempt.setSpaceComplexity(request.spaceComplexity());
-        attempt.setAiReview(request.aiReview());
         attempt.setLearned(request.learned());
         attempt.setTakeaways(request.takeaways());
         attempt.setNotes(request.notes());
@@ -106,7 +105,6 @@ public class AttemptService {
         attempt.setMistakes(request.mistakes() != null ? request.mistakes() : List.of());
         attempt.setTimeComplexity(request.timeComplexity());
         attempt.setSpaceComplexity(request.spaceComplexity());
-        attempt.setAiReview(request.aiReview());
         attempt.setLearned(request.learned());
         attempt.setTakeaways(request.takeaways());
         attempt.setNotes(request.notes());

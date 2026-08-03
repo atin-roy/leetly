@@ -167,7 +167,7 @@ function SurfaceSection({
   children: React.ReactNode
 }) {
   return (
-    <div className="overflow-hidden rounded-[28px] border border-border/70 bg-card/80 shadow-[0_20px_60px_-40px_rgba(15,23,42,0.35)]">
+    <div className="overflow-hidden rounded-[28px] border border-border/70 bg-card/80 shadow-(--shadow-panel)">
       <div className="flex flex-col gap-3 border-b border-border/70 px-5 py-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-1">
           {eyebrow ? (
@@ -908,7 +908,7 @@ export default function ProblemDetailPage({
         </div>
 
         <aside className="space-y-6 xl:sticky xl:top-6 xl:self-start">
-          <div className="overflow-hidden rounded-[28px] border border-border/70 bg-card/80 shadow-[0_20px_60px_-40px_rgba(15,23,42,0.35)]">
+          <div className="overflow-hidden rounded-[28px] border border-border/70 bg-card/80 shadow-(--shadow-panel)">
             <div className="border-b border-border/70 px-5 py-4">
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
                 Problem Metadata
@@ -1088,7 +1088,7 @@ export default function ProblemDetailPage({
             </div>
           </div>
 
-          <div className="overflow-hidden rounded-[28px] border border-border/70 bg-card/80 shadow-[0_20px_60px_-40px_rgba(15,23,42,0.35)]">
+          <div className="overflow-hidden rounded-[28px] border border-border/70 bg-card/80 shadow-(--shadow-panel)">
             <div className="border-b border-border/70 px-4 py-4">
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
                 Study Snapshot

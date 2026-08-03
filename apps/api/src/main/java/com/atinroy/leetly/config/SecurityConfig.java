@@ -36,6 +36,23 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                /*
+                 * CSRF protection is off because there is nothing here for a
+                 * forged request to ride on. This API authenticates solely from
+                 * the Authorization header — it issues no session cookie and
+                 * reads none — so a cross-site form post arrives unauthenticated
+                 * no matter what the browser attaches to it. A CSRF token would
+                 * guard a mechanism the API does not use.
+                 *
+                 * The cookie in this system is the refresh token, and it belongs
+                 * to the web app's own origin, not to this service. That surface
+                 * is defended in apps/web/lib/session.ts: HttpOnly (script cannot
+                 * read it), Secure in production, and SameSite=Lax, which is what
+                 * actually stops a cross-site POST from carrying it to the
+                 * refresh route. Allowed origins are an explicit list below, and
+                 * allowCredentials is only safe because that list is never a
+                 * wildcard.
+                 */
                 .csrf(csrf -> csrf.disable())
                 .cors(Customizer.withDefaults())
                 .sessionManagement(session ->

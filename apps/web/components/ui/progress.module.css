@@ -1,0 +1,21 @@
+.root {
+  position: relative;
+  width: 100%;
+  height: 0.5rem;
+  overflow: hidden;
+  background: color-mix(in oklch, var(--primary) 15%, transparent);
+  border-radius: 9999px;
+}
+
+.indicator {
+  width: 100%;
+  height: 100%;
+  background: var(--primary);
+  transition: transform 240ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .indicator {
+    transition: none;
+  }
+}

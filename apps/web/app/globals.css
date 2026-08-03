@@ -1,6 +1,11 @@
 @import "tailwindcss";
 
-@custom-variant dark (&:is(.dark *));
+/*
+ * There is no `dark:` variant and no `.dark` class. Light and dark are whole
+ * themes selected by [data-theme], not a modifier on one palette — see the
+ * theme blocks below. Components that need a hue that survives both (difficulty,
+ * status, ratings) derive it from --card/--foreground in ui/tone.module.css.
+ */
 
 @theme inline {
   --color-background: var(--background);
@@ -46,9 +51,57 @@
 }
 
 :root {
-  --font-space-grotesk: "Avenir Next", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
-  --font-geist-mono: "SFMono-Regular", "Cascadia Code", "Fira Code", ui-monospace, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  /*
+   * Tailwind's font-sans/font-mono resolve through these. They point at the
+   * same tokens the CSS Modules layer uses, so a page still on utility classes
+   * and a migrated one render the same type — the two systems have to agree
+   * for as long as the migration is unfinished. See styles/tokens.css.
+   */
+  --font-space-grotesk: var(--font-body);
+  --font-geist-mono: var(--font-data);
   --radius: 0.5rem;
+
+  /*
+   * Instrument panel — the default. Dark first, because this is a tool you sit
+   * in for an hour at a time next to an editor, not a page you land on. Near
+   * neutral slate so the only saturated things on screen are the ones that
+   * mean something: the teal primary, and the semantic tones.
+   */
+  --background: oklch(0.17 0.008 200);
+  --foreground: oklch(0.94 0.008 195);
+  --card: oklch(0.215 0.009 200);
+  --card-foreground: oklch(0.94 0.008 195);
+  --popover: oklch(0.235 0.009 200);
+  --popover-foreground: oklch(0.94 0.008 195);
+  --primary: oklch(0.76 0.13 178);
+  --primary-foreground: oklch(0.16 0.01 200);
+  --secondary: oklch(0.27 0.01 200);
+  --secondary-foreground: oklch(0.9 0.01 195);
+  --muted: oklch(0.25 0.009 200);
+  --muted-foreground: oklch(0.66 0.015 197);
+  --accent: oklch(0.72 0.14 42);
+  --accent-foreground: oklch(0.16 0.01 200);
+  --destructive: oklch(0.66 0.2 24);
+  --border: oklch(0.3 0.011 200);
+  --input: oklch(0.3 0.011 200);
+  --ring: oklch(0.76 0.13 178);
+  --chart-1: oklch(0.76 0.13 178);
+  --chart-2: oklch(0.72 0.14 42);
+  --chart-3: oklch(0.66 0.13 245);
+  --chart-4: oklch(0.72 0.15 145);
+  --chart-5: oklch(0.68 0.15 330);
+  --sidebar: oklch(0.14 0.008 200);
+  --sidebar-foreground: oklch(0.94 0.008 195);
+  --sidebar-primary: oklch(0.76 0.13 178);
+  --sidebar-primary-foreground: oklch(0.14 0.008 200);
+  --sidebar-accent: oklch(0.22 0.009 200);
+  --sidebar-accent-foreground: oklch(0.9 0.01 195);
+  --sidebar-border: oklch(0.23 0.01 200);
+  --sidebar-ring: oklch(0.76 0.13 178);
+}
+
+/* The previous default, kept as an explicit choice rather than deleted. */
+[data-theme="daylight"] {
   --background: oklch(0.985 0.012 178);
   --foreground: oklch(0.19 0.035 182);
   --card: oklch(0.997 0.006 178);
@@ -76,44 +129,10 @@
   --sidebar-foreground: oklch(0.19 0.035 182);
   --sidebar-primary: oklch(0.56 0.13 174);
   --sidebar-primary-foreground: oklch(0.985 0.012 178);
-  --sidebar-accent: oklch(0.90 0.03 176);
+  --sidebar-accent: oklch(0.9 0.03 176);
   --sidebar-accent-foreground: oklch(0.25 0.05 178);
   --sidebar-border: oklch(0.84 0.028 178);
   --sidebar-ring: oklch(0.56 0.13 174);
-}
-
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
 }
 
 @layer base {
@@ -168,17 +187,22 @@
     background-size: auto;
   }
 
+  /*
+   * The top highlight used to be a literal white inset, which reads as a glare
+   * streak on the dark themes. Deriving it from --foreground makes it a light
+   * lift on dark and a soft one on light, from the same declaration.
+   */
   .surface-panel {
     background:
       linear-gradient(
         180deg,
-        color-mix(in oklab, var(--card) 94%, white),
-        color-mix(in oklab, var(--card) 96%, var(--muted))
+        var(--card),
+        color-mix(in oklab, var(--card) 94%, var(--muted))
       );
     border-color: color-mix(in oklab, var(--border) 78%, transparent);
     box-shadow:
-      0 1px 0 color-mix(in oklab, white 48%, transparent) inset,
-      0 8px 22px color-mix(in oklab, var(--foreground) 6%, transparent);
+      0 1px 0 color-mix(in oklab, var(--foreground) 10%, transparent) inset,
+      0 8px 22px color-mix(in oklab, black 20%, transparent);
   }
 
   .markdown-content {

@@ -25,21 +25,9 @@ import { Textarea } from "@/components/ui/textarea"
 import { MarkdownContent } from "@/components/ui/markdown-content"
 import type { NoteDto, NoteTag } from "@/lib/types"
 
-const TAG_COLORS: Record<NoteTag, string> = {
-  GENERAL: "bg-gray-100 text-gray-700",
-  INTERVIEW: "bg-blue-100 text-blue-700",
-  LEARNING: "bg-green-100 text-green-700",
-  REVIEW: "bg-orange-100 text-orange-700",
-  STRATEGY: "bg-purple-100 text-purple-700",
-}
-
-const TAGS: { value: NoteTag; label: string }[] = [
-  { value: "GENERAL", label: "General" },
-  { value: "INTERVIEW", label: "Interview" },
-  { value: "LEARNING", label: "Learning" },
-  { value: "REVIEW", label: "Review" },
-  { value: "STRATEGY", label: "Strategy" },
-]
+// Same source as every other note tag chip in the app — this file used to keep
+// a second, drifting copy of both the colours and the labels.
+import { NOTE_TAGS as TAGS, NOTE_TAG_COLORS as TAG_COLORS } from "@/lib/note-display"
 
 // Shared dialog dimensions — both modes use the same fixed size
 const DIALOG_SIZE = "sm:max-w-5xl h-[85vh] flex flex-col overflow-hidden"

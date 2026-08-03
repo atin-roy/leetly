@@ -153,7 +153,7 @@ function NoteCard({
 
   return (
     <Card
-      className="group cursor-pointer overflow-hidden border-border/70 bg-card/80 shadow-[0_18px_50px_-36px_rgba(15,23,42,0.35)] transition-colors hover:border-border hover:bg-card"
+      className="group cursor-pointer overflow-hidden border-border/70 bg-card/80 shadow-(--shadow-panel) transition-colors hover:border-border hover:bg-card"
       onClick={onClick}
     >
       <CardContent className="space-y-4 p-4 sm:p-5">
@@ -212,7 +212,7 @@ function NoteTable({
         {notes.map((note) => (
           <article
             key={note.id}
-            className="rounded-3xl border border-border/70 bg-card/80 p-4 shadow-[0_18px_50px_-36px_rgba(15,23,42,0.35)]"
+            className="rounded-3xl border border-border/70 bg-card/80 p-4 shadow-(--shadow-panel)"
           >
             <div className="space-y-4" onClick={() => onView(note)}>
               <div className="flex items-start justify-between gap-3">
@@ -472,7 +472,7 @@ export default function NotesPage() {
         </CardContent>
       </Card>
 
-      <Card className="overflow-hidden border-border/70 bg-card/80 shadow-[0_20px_60px_-40px_rgba(15,23,42,0.35)]">
+      <Card className="overflow-hidden border-border/70 bg-card/80 shadow-(--shadow-panel)">
         <CardContent className="space-y-5 p-4 sm:p-5">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div className="space-y-1">
@@ -556,7 +556,7 @@ export default function NotesPage() {
         </CardContent>
       </Card>
 
-      <Card className="overflow-hidden border-border/70 py-0 shadow-[0_20px_60px_-40px_rgba(15,23,42,0.35)]">
+      <Card className="overflow-hidden border-border/70 py-0 shadow-(--shadow-panel)">
         <div className="flex flex-col gap-3 border-b border-border/70 px-4 py-4 sm:px-5 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-lg font-semibold text-foreground">Notes Library</p>

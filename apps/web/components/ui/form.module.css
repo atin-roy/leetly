@@ -1,0 +1,18 @@
+.item {
+  display: grid;
+  gap: var(--space-2xs);
+}
+
+.label[data-error="true"] {
+  color: var(--destructive);
+}
+
+.description {
+  font-size: var(--step--1);
+  color: var(--muted-foreground);
+}
+
+.message {
+  font-size: var(--step--1);
+  color: var(--destructive);
+}

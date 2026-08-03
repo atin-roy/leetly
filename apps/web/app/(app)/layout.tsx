@@ -1,7 +1,9 @@
+import styles from "./shell.module.css"
 import { AppProviders } from "@/components/app-providers"
 import { AppSidebar } from "@/components/layout/app-sidebar"
+import { CommandPaletteProvider } from "@/components/layout/command-palette"
 import { SidebarProvider } from "@/components/layout/sidebar-context"
-import { resolveSession } from "@/lib/session"
+import { readRefreshCookie } from "@/lib/session"
 import { redirect } from "next/navigation"
 
 export default async function AppLayout({
@@ -9,18 +11,24 @@ export default async function AppLayout({
 }: {
   children: React.ReactNode
 }) {
-  const session = await resolveSession()
-  if (!session) redirect("/sign-in")
+  // Presence only. Redeeming the token here would rotate it without being able
+  // to store the replacement — see resolveSession. AuthProvider redeems it via
+  // the refresh route handler, which is allowed to write the cookie.
+  if (!(await readRefreshCookie())) redirect("/sign-in")
 
   return (
-    <AppProviders session={session}>
+    <AppProviders>
       <SidebarProvider>
-        <div className="flex h-svh flex-col overflow-hidden md:flex-row">
-          <AppSidebar />
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-            <main className="aesthetic-background min-h-0 flex-1 overflow-y-auto p-4 sm:p-5 md:p-6">{children}</main>
+        <CommandPaletteProvider>
+          <div className={styles.shell}>
+            <AppSidebar />
+            <div className={styles.content}>
+              <main className={`aesthetic-background ${styles.main}`}>
+                {children}
+              </main>
+            </div>
           </div>
-        </div>
+        </CommandPaletteProvider>
       </SidebarProvider>
     </AppProviders>
   )

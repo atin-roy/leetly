@@ -20,6 +20,7 @@ import type {
   ProblemDetailDto,
   ProblemFilters,
   ProblemListDto,
+  ProblemCountsDto,
   ProblemRefDto,
   ProblemSummaryDto,
   QuickReviewRequest,
@@ -31,7 +32,6 @@ import type {
   TopicDto,
   UpdateAttemptRequest,
   UpdateNoteRequest,
-  UpdateProblemAiReviewRequest,
   UpdateProfileRequest,
   UserProfileDto,
   UserSettingsDto,
@@ -92,6 +92,12 @@ export function getProblemRefs(
   return apiFetch("/api/problems/refs", token)
 }
 
+export function getProblemCounts(
+  token: string | undefined,
+): Promise<ProblemCountsDto> {
+  return apiFetch("/api/problems/counts", token)
+}
+
 export function createProblem(
   token: string | undefined,
   body: CreateProblemRequest,
@@ -144,17 +150,6 @@ export function updateProblemStatus(
   return apiFetch(`/api/problems/${id}/status`, token, {
     method: "PATCH",
     body: JSON.stringify({ status }),
-  })
-}
-
-export function updateProblemAiReview(
-  token: string | undefined,
-  id: number,
-  body: UpdateProblemAiReviewRequest,
-): Promise<ProblemDetailDto> {
-  return apiFetch(`/api/problems/${id}/ai-review`, token, {
-    method: "PATCH",
-    body: JSON.stringify(body),
   })
 }
 

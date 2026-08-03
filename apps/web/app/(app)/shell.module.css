@@ -1,0 +1,33 @@
+.shell {
+  display: flex;
+  flex-direction: column;
+  height: 100svh;
+  overflow: hidden;
+}
+
+@media (min-width: 768px) {
+  .shell {
+    flex-direction: row;
+  }
+}
+
+.content {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.main {
+  min-height: 0;
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-md);
+}
+
+@media (min-width: 768px) {
+  .main {
+    padding: var(--space-lg);
+  }
+}

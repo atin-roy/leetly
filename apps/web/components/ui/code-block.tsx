@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Check, Copy } from "lucide-react"
 import hljs from "highlight.js/lib/common"
 import { cn } from "@/lib/utils"
+import styles from "./code-block.module.css"
 
 interface CodeBlockProps {
   code: string
@@ -91,22 +92,22 @@ export function CodeBlock({
   }
 
   return (
-    <div className={cn("code-highlight overflow-hidden rounded-xl border", className)}>
+    <div className={cn("code-highlight", styles.block, className)}>
       {chrome ? (
-        <div className="code-highlight__header flex items-center justify-between gap-3 border-b px-3 py-2">
-          <span className="text-xs font-medium text-muted-foreground">
+        <div className={cn("code-highlight__header", styles.header)}>
+          <span className={styles.language}>
             {languageLabel}
           </span>
           {showCopyButton ? (
             <button
               type="button"
               onClick={handleCopy}
-              className="flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
+              className={styles.copy}
             >
               {copied ? (
-                <Check className="h-3.5 w-3.5" />
+                <Check size={14} />
               ) : (
-                <Copy className="h-3.5 w-3.5" />
+                <Copy size={14} />
               )}
               {copied ? "Copied" : "Copy"}
             </button>
@@ -114,13 +115,10 @@ export function CodeBlock({
         </div>
       ) : null}
       <pre
-        className={cn(
-          "overflow-x-auto px-4 py-3 text-sm leading-6",
-          preClassName
-        )}
+        className={cn(styles.pre, preClassName)}
       >
         <code
-          className="hljs block min-w-full bg-transparent p-0 font-mono text-[13px]"
+          className={cn("hljs", styles.code)}
           dangerouslySetInnerHTML={{ __html: html }}
         />
       </pre>

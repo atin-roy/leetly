@@ -50,6 +50,13 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 
+# The standalone output of a pnpm workspace keeps the app's server entrypoint at
+# its workspace path, so this is /app/apps/web/server.js — not /app/server.js.
+# Without this the image only runs where something else supplies the working
+# directory (the compose file does, which is why this went unnoticed); run the
+# published image directly and it exits immediately with MODULE_NOT_FOUND.
+WORKDIR /app/apps/web
+
 # Runtime env vars (NOT baked in — pass at docker run / compose):
 #   API_URL (backend URL reachable from this container, e.g. http://api:8080)
 #           used for server-side auth calls; the browser uses NEXT_PUBLIC_API_URL

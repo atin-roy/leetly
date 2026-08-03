@@ -72,7 +72,7 @@ class ProblemServiceTest {
         when(problemListRepository.save(any(ProblemList.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         Problem created = problemService.create(
-                new CreateProblemRequest(1L, "Two Sum", "https://leetcode.com/problems/two-sum/", Difficulty.EASY, null),
+                new CreateProblemRequest(1L, "Two Sum", "https://leetcode.com/problems/two-sum/", Difficulty.EASY),
                 user
         );
 
@@ -97,7 +97,7 @@ class ProblemServiceTest {
         when(problemRepository.findByUserAndLeetcodeId(user, 523L)).thenReturn(Optional.of(existing));
 
         Problem created = problemService.create(
-                new CreateProblemRequest(523L, "Continuous Subarray Sum", "https://leetcode.com/problems/continuous-subarray-sum/", Difficulty.MEDIUM, null),
+                new CreateProblemRequest(523L, "Continuous Subarray Sum", "https://leetcode.com/problems/continuous-subarray-sum/", Difficulty.MEDIUM),
                 user
         );
 

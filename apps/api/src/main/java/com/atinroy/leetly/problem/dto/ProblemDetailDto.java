@@ -14,7 +14,6 @@ public record ProblemDetailDto(
         Difficulty difficulty,
         ProblemStatus status,
         LocalDateTime lastAttemptedAt,
-        String aiReview,
         List<TopicDto> topics,
         List<PatternDto> patterns,
         List<ProblemSummaryDto> relatedProblems,
@@ -32,7 +31,7 @@ public record ProblemDetailDto(
 
     public ProblemDetailDto withReviewCard(ReviewCardSummary reviewCard) {
         return new ProblemDetailDto(
-                id, leetcodeId, title, url, difficulty, status, lastAttemptedAt, aiReview,
+                id, leetcodeId, title, url, difficulty, status, lastAttemptedAt,
                 topics, patterns, relatedProblems, attempts, reviewCard
         );
     }
@@ -46,7 +45,6 @@ public record ProblemDetailDto(
                 problem.getDifficulty(),
                 problem.getStatus(),
                 problem.getLastAttemptedAt(),
-                problem.getAiReview(),
                 problem.getTopics().stream().map(TopicDto::from).toList(),
                 problem.getPatterns().stream().map(PatternDto::from).toList(),
                 problem.getRelatedProblems().stream().map(ProblemSummaryDto::from).toList(),

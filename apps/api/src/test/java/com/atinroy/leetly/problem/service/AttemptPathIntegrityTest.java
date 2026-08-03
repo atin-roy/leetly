@@ -76,7 +76,7 @@ class AttemptPathIntegrityTest {
 
         Attempt attempt = new Attempt();
         AttemptDto dto = new AttemptDto(
-                1L, 1L, 1, null, null, null, null, null, null, null, null, null, null, null, null,
+                1L, 1L, 1, null, null, null, null, null, null, null, null, null, null, null,
                 null, null, null
         );
         when(attemptService.findByIdAndProblem(5L, 1L, user)).thenReturn(attempt);

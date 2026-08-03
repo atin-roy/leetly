@@ -2,35 +2,16 @@
 
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
+import tone from "@/components/ui/tone.module.css"
 import { useQuickReview } from "@/hooks/use-reviews"
 import type { Rating } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
 const RATINGS: { value: Rating; label: string; className: string }[] = [
-  {
-    value: "AGAIN",
-    label: "Again",
-    className:
-      "border-rose-300/35 bg-rose-300/[0.08] text-rose-700 hover:border-rose-400/50 hover:bg-rose-300/[0.16] hover:text-rose-800 dark:text-rose-100 dark:hover:text-rose-50",
-  },
-  {
-    value: "HARD",
-    label: "Hard",
-    className:
-      "border-amber-300/35 bg-amber-300/[0.08] text-amber-700 hover:border-amber-400/50 hover:bg-amber-300/[0.16] hover:text-amber-800 dark:text-amber-100 dark:hover:text-amber-50",
-  },
-  {
-    value: "GOOD",
-    label: "Good",
-    className:
-      "border-cyan-300/35 bg-cyan-300/[0.08] text-cyan-700 hover:border-cyan-400/50 hover:bg-cyan-300/[0.16] hover:text-cyan-800 dark:text-cyan-100 dark:hover:text-cyan-50",
-  },
-  {
-    value: "EASY",
-    label: "Easy",
-    className:
-      "border-emerald-300/35 bg-emerald-300/[0.08] text-emerald-700 hover:border-emerald-400/50 hover:bg-emerald-300/[0.16] hover:text-emerald-800 dark:text-emerald-100 dark:hover:text-emerald-50",
-  },
+  { value: "AGAIN", label: "Again", className: cn(tone.toneButton, tone.red) },
+  { value: "HARD", label: "Hard", className: cn(tone.toneButton, tone.amber) },
+  { value: "GOOD", label: "Good", className: cn(tone.toneButton, tone.cyan) },
+  { value: "EASY", label: "Easy", className: cn(tone.toneButton, tone.green) },
 ]
 
 interface Props {

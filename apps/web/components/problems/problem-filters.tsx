@@ -1,10 +1,8 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Filter, Search, SlidersHorizontal, X } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
+import { Search, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -15,6 +13,7 @@ import {
 } from "@/components/ui/select"
 import { usePatterns, useTopics } from "@/hooks/use-problems"
 import type { Difficulty, ProblemFilters, ProblemStatus } from "@/lib/types"
+import styles from "./problem-filters.module.css"
 
 interface Props {
   filters: ProblemFilters
@@ -78,185 +77,115 @@ export function ProblemFilters({ filters, onChange, onReset }: Props) {
     filters.search ||
     (filters.sort && filters.sort !== DEFAULT_SORT)
 
-  const activeFilterCount = [
-    filters.difficulty,
-    filters.status,
-    filters.topicId,
-    filters.patternId,
-    filters.search,
-    filters.sort && filters.sort !== DEFAULT_SORT ? filters.sort : undefined,
-  ].filter(Boolean).length
-
-  const selectedSortLabel = SORT_OPTIONS.find(({ value }) => value === (filters.sort ?? DEFAULT_SORT))?.label ?? "Recently Added"
-
   return (
-    <Card className="overflow-hidden border-border/70 bg-card/80 shadow-[0_20px_60px_-40px_rgba(15,23,42,0.35)] backdrop-blur">
-      <CardContent className="space-y-5 p-4 sm:p-5">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div className="space-y-1">
-            <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
-              <Filter className="h-3.5 w-3.5" />
-              Query Studio
-            </div>
-            <div>
-              <p className="text-sm font-medium text-foreground">Search, slice, and sort your practice backlog.</p>
-              <p className="text-sm text-muted-foreground">Use a saved-looking filter surface instead of a flat utility row.</p>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="outline" className="rounded-full border-border/70 bg-background/70 px-3 py-1 text-xs font-medium text-muted-foreground">
-              {activeFilterCount} active filter{activeFilterCount === 1 ? "" : "s"}
-            </Badge>
-            <Badge variant="outline" className="rounded-full border-border/70 bg-background/70 px-3 py-1 text-xs font-medium text-muted-foreground">
-              Sort: {selectedSortLabel}
-            </Badge>
-            {hasFilters ? (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setSearchValue("")
-                  onReset()
-                }}
-                className="rounded-full"
-              >
-                <X className="mr-1 h-3.5 w-3.5" />
-                Clear filters
-              </Button>
-            ) : null}
-          </div>
+    <div className={styles.bar}>
+      <div className={styles.field}>
+        <label className={styles.label} htmlFor="problem-search">
+          Search
+        </label>
+        <div className={styles.searchWrap}>
+          <Search size={16} className={styles.searchIcon} aria-hidden="true" />
+          <Input
+            id="problem-search"
+            placeholder="Name or ID"
+            value={searchValue}
+            onChange={(e) => setSearchValue(e.target.value)}
+            className={styles.search}
+          />
         </div>
+      </div>
 
-        <div className="grid gap-4 xl:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]">
-          <div className="space-y-2">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">Search</p>
-            <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search by name or ID..."
-                value={searchValue}
-                onChange={(e) => setSearchValue(e.target.value)}
-                className="h-11 rounded-xl border-border/70 bg-background/85 pl-9 shadow-none"
-              />
-            </div>
-          </div>
+      <SelectField
+        label="Difficulty"
+        value={filters.difficulty ?? "all"}
+        onChange={(v) =>
+          onChange({ difficulty: v === "all" ? undefined : (v as Difficulty), page: 0 })
+        }
+        allLabel="All"
+        options={DIFFICULTIES}
+      />
 
-          <div className="space-y-2">
-            <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
-              <SlidersHorizontal className="h-3.5 w-3.5" />
-              Sort
-            </p>
-            <Select
-              value={filters.sort ?? DEFAULT_SORT}
-              onValueChange={(v) =>
-                onChange({ sort: v, page: 0 })
-              }
-            >
-              <SelectTrigger className="h-11 rounded-xl border-border/70 bg-background/85 shadow-none">
-                <SelectValue placeholder="Sort by" />
-              </SelectTrigger>
-              <SelectContent>
-                {SORT_OPTIONS.map(({ value, label }) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
+      <SelectField
+        label="Status"
+        value={filters.status ?? "all"}
+        onChange={(v) =>
+          onChange({ status: v === "all" ? undefined : (v as ProblemStatus), page: 0 })
+        }
+        allLabel="All"
+        options={STATUSES}
+      />
 
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <div className="space-y-2">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">Difficulty</p>
-            <Select
-              value={filters.difficulty ?? "all"}
-              onValueChange={(v) =>
-                onChange({ difficulty: v === "all" ? undefined : (v as Difficulty), page: 0 })
-              }
-            >
-              <SelectTrigger className="h-11 rounded-xl border-border/70 bg-background/85 shadow-none">
-                <SelectValue placeholder="Difficulty" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Difficulties</SelectItem>
-                {DIFFICULTIES.map(({ value, label }) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+      <SelectField
+        label="Topic"
+        value={filters.topicId ? String(filters.topicId) : "all"}
+        onChange={(v) => onChange({ topicId: v === "all" ? undefined : Number(v), page: 0 })}
+        allLabel="All"
+        options={(topics ?? []).map((t) => ({ value: String(t.id), label: t.name }))}
+      />
 
-          <div className="space-y-2">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">Status</p>
-            <Select
-              value={filters.status ?? "all"}
-              onValueChange={(v) =>
-                onChange({ status: v === "all" ? undefined : (v as ProblemStatus), page: 0 })
-              }
-            >
-              <SelectTrigger className="h-11 rounded-xl border-border/70 bg-background/85 shadow-none">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                {STATUSES.map(({ value, label }) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+      <SelectField
+        label="Pattern"
+        value={filters.patternId ? String(filters.patternId) : "all"}
+        onChange={(v) => onChange({ patternId: v === "all" ? undefined : Number(v), page: 0 })}
+        allLabel="All"
+        options={(patterns ?? []).map((p) => ({ value: String(p.id), label: p.name }))}
+      />
 
-          <div className="space-y-2">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">Topic</p>
-            <Select
-              value={filters.topicId ? String(filters.topicId) : "all"}
-              onValueChange={(v) =>
-                onChange({ topicId: v === "all" ? undefined : Number(v), page: 0 })
-              }
-            >
-              <SelectTrigger className="h-11 rounded-xl border-border/70 bg-background/85 shadow-none">
-                <SelectValue placeholder="Topic" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Topics</SelectItem>
-                {topics?.map((t) => (
-                  <SelectItem key={t.id} value={String(t.id)}>
-                    {t.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+      <SelectField
+        label="Sort"
+        value={filters.sort ?? DEFAULT_SORT}
+        onChange={(v) => onChange({ sort: v, page: 0 })}
+        options={SORT_OPTIONS}
+      />
 
-          <div className="space-y-2">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">Pattern</p>
-            <Select
-              value={filters.patternId ? String(filters.patternId) : "all"}
-              onValueChange={(v) =>
-                onChange({ patternId: v === "all" ? undefined : Number(v), page: 0 })
-              }
-            >
-              <SelectTrigger className="h-11 rounded-xl border-border/70 bg-background/85 shadow-none">
-                <SelectValue placeholder="Pattern" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Patterns</SelectItem>
-                {patterns?.map((p) => (
-                  <SelectItem key={p.id} value={String(p.id)}>
-                    {p.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+      {hasFilters ? (
+        <Button
+          variant="ghost"
+          size="sm"
+          className={styles.clear}
+          onClick={() => {
+            setSearchValue("")
+            onReset()
+          }}
+        >
+          <X />
+          Clear
+        </Button>
+      ) : null}
+    </div>
+  )
+}
+
+function SelectField({
+  label,
+  value,
+  onChange,
+  options,
+  allLabel,
+}: {
+  label: string
+  value: string
+  onChange: (value: string) => void
+  options: { value: string; label: string }[]
+  /** Omitted for sort, which always has a value and so has no "all" row. */
+  allLabel?: string
+}) {
+  return (
+    <div className={styles.field}>
+      <span className={styles.label}>{label}</span>
+      <Select value={value} onValueChange={onChange}>
+        <SelectTrigger className={styles.select} aria-label={label}>
+          <SelectValue placeholder={label} />
+        </SelectTrigger>
+        <SelectContent>
+          {allLabel && <SelectItem value="all">{allLabel}</SelectItem>}
+          {options.map(({ value: optionValue, label: optionLabel }) => (
+            <SelectItem key={optionValue} value={optionValue}>
+              {optionLabel}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
   )
 }

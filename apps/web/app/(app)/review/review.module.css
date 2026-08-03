@@ -1,0 +1,383 @@
+/*
+ * Review queue. The page is a header, a strip of facts, and the list of cards
+ * to work through. Every number appears exactly once: the panels that restated
+ * the same counts in a different shape are gone.
+ */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  padding-bottom: var(--space-md);
+}
+
+/* ── Header ──────────────────────────────────────────────────────────────── */
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+@media (min-width: 900px) {
+  .header {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+}
+
+.eyebrow {
+  font-family: var(--font-data);
+  font-size: var(--step--2);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+.title {
+  margin-top: var(--space-2xs);
+  font-family: var(--font-display);
+  font-size: var(--step-3);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.lede {
+  margin-top: var(--space-2xs);
+  max-width: 44ch;
+  font-size: var(--step--1);
+  line-height: 1.55;
+  color: var(--muted-foreground);
+  text-wrap: pretty;
+}
+
+.actions {
+  display: flex;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  gap: var(--space-2xs);
+}
+
+/* ── Fact strip ──────────────────────────────────────────────────────────── */
+
+/*
+ * One row, one border. Each fact is a label and a figure; nothing here needs a
+ * box of its own, and boxing them made six small numbers occupy a third of the
+ * screen.
+ */
+.facts {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-md) var(--space-lg);
+  padding-block: var(--space-md);
+  border-block: var(--rule);
+}
+
+@media (min-width: 640px) {
+  .facts {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1100px) {
+  .facts {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+.fact {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.factLabel {
+  font-family: var(--font-data);
+  font-size: var(--step--2);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+.factValue {
+  font-family: var(--font-data);
+  font-size: var(--step-2);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.factValueAlert {
+  color: var(--destructive);
+}
+
+.factCaption {
+  font-size: var(--step--2);
+  color: var(--muted-foreground);
+}
+
+/* ── Body ────────────────────────────────────────────────────────────────── */
+
+.body {
+  display: grid;
+  gap: var(--space-lg);
+}
+
+@media (min-width: 1100px) {
+  .body {
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+.sectionHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+}
+
+.sectionTitle {
+  font-family: var(--font-display);
+  font-size: var(--step-1);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.sectionNote {
+  font-family: var(--font-data);
+  font-size: var(--step--2);
+  color: var(--muted-foreground);
+}
+
+/* ── Card list ───────────────────────────────────────────────────────────── */
+
+.list {
+  display: flex;
+  flex-direction: column;
+  border: var(--rule);
+  border-radius: var(--radius);
+}
+
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+}
+
+.row + .row {
+  border-top: var(--rule);
+}
+
+.rowHead {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2xs);
+  flex-wrap: wrap;
+}
+
+.queueIndex {
+  font-family: var(--font-data);
+  font-size: var(--step--2);
+  font-variant-numeric: tabular-nums;
+  color: var(--muted-foreground);
+}
+
+.problemId {
+  font-family: var(--font-data);
+  font-size: var(--step--2);
+  color: var(--muted-foreground);
+}
+
+.title2 {
+  display: block;
+  min-width: 0;
+  font-family: var(--font-display);
+  font-size: var(--step-1);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--foreground);
+  text-decoration: none;
+}
+
+.title2:hover {
+  color: var(--primary);
+}
+
+.titleRow {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-xs);
+}
+
+.titleCol {
+  min-width: 0;
+  flex: 1;
+}
+
+.external {
+  flex-shrink: 0;
+  display: inline-flex;
+  padding: 0.25rem;
+  color: var(--muted-foreground);
+  border-radius: var(--radius-sm);
+}
+
+.external:hover {
+  color: var(--foreground);
+  background: var(--accent);
+}
+
+/*
+ * The card's own numbers read as a sentence rather than a grid of tiles: at
+ * this size they are annotations on the row, not headline figures.
+ */
+.rowMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2xs) var(--space-md);
+  font-family: var(--font-data);
+  font-size: var(--step--2);
+  font-variant-numeric: tabular-nums;
+  color: var(--muted-foreground);
+}
+
+.rowMeta strong {
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.rowActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.quickButtons {
+  display: flex;
+  flex: 1;
+  min-width: 15rem;
+  gap: var(--space-2xs);
+}
+
+.quickButton {
+  flex: 1;
+}
+
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2xs);
+}
+
+.stateDot {
+  display: inline-block;
+  width: 0.375rem;
+  height: 0.375rem;
+  margin-right: 0.375rem;
+  border-radius: 9999px;
+  background: currentColor;
+}
+
+/* ── Guidance ────────────────────────────────────────────────────────────── */
+
+.guide {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  border: var(--rule);
+  border-radius: var(--radius);
+}
+
+.guideRow {
+  display: flex;
+  gap: var(--space-xs);
+}
+
+.guideIcon {
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+  color: var(--muted-foreground);
+}
+
+.guideTitle {
+  font-size: var(--step--1);
+  font-weight: 600;
+}
+
+.guideBody {
+  margin-top: 0.125rem;
+  font-size: var(--step--1);
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+/* ── Empty ───────────────────────────────────────────────────────────────── */
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-2xl) var(--space-md);
+  text-align: center;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+}
+
+.emptyTitle {
+  font-family: var(--font-display);
+  font-size: var(--step-1);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.emptyBody {
+  max-width: 32ch;
+  font-size: var(--step--1);
+  line-height: 1.55;
+  color: var(--muted-foreground);
+}
+
+/* ── Skeleton ────────────────────────────────────────────────────────────── */
+
+.skeletonPage {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.skeletonHeader {
+  height: 5rem;
+}
+
+.skeletonFacts {
+  height: 4.5rem;
+}
+
+.skeletonBody {
+  display: grid;
+  gap: var(--space-lg);
+}
+
+@media (min-width: 1100px) {
+  .skeletonBody {
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  }
+}
+
+.skeletonList {
+  height: 32rem;
+}
+
+.skeletonAside {
+  height: 14rem;
+}

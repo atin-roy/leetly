@@ -548,7 +548,7 @@ export function AttemptForm({ open, onOpenChange, problemId, attempt }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex h-[92vh] w-[96vw] max-w-[1180px] flex-col gap-0 overflow-hidden rounded-[32px] border border-border/70 bg-background p-0 shadow-[0_24px_80px_rgba(15,23,42,0.18)] sm:max-w-[1180px] [&>[data-slot=dialog-close]]:top-6 [&>[data-slot=dialog-close]]:right-6 [&>[data-slot=dialog-close]]:rounded-full [&>[data-slot=dialog-close]]:border [&>[data-slot=dialog-close]]:border-border/70 [&>[data-slot=dialog-close]]:bg-background/95 [&>[data-slot=dialog-close]]:p-2 [&>[data-slot=dialog-close]]:text-foreground/70 [&>[data-slot=dialog-close]]:shadow-sm">
+      <DialogContent className="flex h-[92vh] w-[96vw] max-w-[1180px] flex-col gap-0 overflow-hidden rounded-[32px] border border-border/70 bg-background p-0 shadow-(--shadow-float) sm:max-w-[1180px] [&>[data-slot=dialog-close]]:top-6 [&>[data-slot=dialog-close]]:right-6 [&>[data-slot=dialog-close]]:rounded-full [&>[data-slot=dialog-close]]:border [&>[data-slot=dialog-close]]:border-border/70 [&>[data-slot=dialog-close]]:bg-background/95 [&>[data-slot=dialog-close]]:p-2 [&>[data-slot=dialog-close]]:text-foreground/70 [&>[data-slot=dialog-close]]:shadow-sm">
         <DialogHeader className="border-b border-border/70 bg-[linear-gradient(180deg,color-mix(in_oklab,var(--card)_92%,white_8%),var(--background))] px-6 py-6 sm:px-8">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="max-w-3xl space-y-3">

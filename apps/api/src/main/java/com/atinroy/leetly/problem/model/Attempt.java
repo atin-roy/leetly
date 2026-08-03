@@ -59,9 +59,6 @@ public class Attempt extends BaseEntity {
     private String spaceComplexity;
 
     @Column(columnDefinition = "TEXT")
-    private String aiReview;
-
-    @Column(columnDefinition = "TEXT")
     private String learned;
 
     @Column(columnDefinition = "TEXT")

@@ -1,0 +1,67 @@
+/*
+ * Semantic tones for chips that carry meaning independent of the theme's own
+ * palette — difficulty, problem status, review rating.
+ *
+ * These can't use --primary/--accent: a "Hard" chip has to read as hard in all
+ * eighteen themes, not as whatever hue that theme happens to brand with. But
+ * they also can't be fixed colours, or they'd blow out on the dark themes.
+ *
+ * So each tone fixes only the hue, and derives lightness by mixing against the
+ * theme's own --card and --foreground. On a light theme --foreground is near
+ * black and the text resolves dark; on a dark theme it's near white and the
+ * same declaration resolves light. One rule, no variants, no .dark class.
+ */
+
+.tone {
+  background: color-mix(in oklch, var(--tone) 15%, var(--card));
+  border-color: color-mix(in oklch, var(--tone) 32%, transparent);
+  color: color-mix(in oklch, var(--tone) 68%, var(--foreground));
+}
+
+/* Same derivation, for places that tint text or an icon rather than a chip. */
+.toneText {
+  color: color-mix(in oklch, var(--tone) 72%, var(--foreground));
+}
+
+/* Interactive variant: the rating buttons, which need a hover state. */
+.toneButton {
+  background: color-mix(in oklch, var(--tone) 10%, transparent);
+  border-color: color-mix(in oklch, var(--tone) 30%, transparent);
+  color: color-mix(in oklch, var(--tone) 68%, var(--foreground));
+}
+
+.toneButton:hover:not(:disabled) {
+  background: color-mix(in oklch, var(--tone) 20%, transparent);
+  border-color: color-mix(in oklch, var(--tone) 50%, transparent);
+  color: color-mix(in oklch, var(--tone) 82%, var(--foreground));
+}
+
+.green {
+  --tone: oklch(0.68 0.16 150);
+}
+
+.cyan {
+  --tone: oklch(0.68 0.13 200);
+}
+
+.amber {
+  --tone: oklch(0.75 0.15 75);
+}
+
+.red {
+  --tone: oklch(0.63 0.2 25);
+}
+
+.blue {
+  --tone: oklch(0.62 0.15 245);
+}
+
+.violet {
+  --tone: oklch(0.62 0.17 300);
+}
+
+.neutral {
+  background: color-mix(in oklch, var(--muted-foreground) 10%, var(--card));
+  border-color: color-mix(in oklch, var(--muted-foreground) 25%, transparent);
+  color: var(--muted-foreground);
+}

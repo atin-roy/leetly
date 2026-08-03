@@ -1,11 +1,17 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { addDays, differenceInCalendarDays, format, parseISO, startOfWeek } from "date-fns"
+import {
+  addDays,
+  differenceInCalendarDays,
+  format,
+  parseISO,
+  startOfWeek,
+} from "date-fns"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { useDailyStats } from "@/hooks/use-stats"
-import { cn } from "@/lib/utils"
+import styles from "./consistency-heatmap.module.css"
 
 const MIN_CELL_SIZE = 16
 const MAX_CELL_SIZE = 48
@@ -13,12 +19,12 @@ const CELL_GAP = 4
 const LABEL_COLUMN_W = 26
 const WEEKDAY_ROWS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const
 
-function getCellTone(count: number) {
-  if (count <= 0) return "bg-muted/35 border-border/35"
-  if (count === 1) return "bg-primary/30 border-primary/25"
-  if (count <= 3) return "bg-primary/50 border-primary/35"
-  if (count <= 5) return "bg-primary/70 border-primary/45"
-  return "bg-primary border-primary/60"
+function toneClass(count: number) {
+  if (count <= 0) return styles.tone0
+  if (count === 1) return styles.tone1
+  if (count <= 3) return styles.tone2
+  if (count <= 5) return styles.tone3
+  return styles.tone4
 }
 
 export function ConsistencyHeatmap() {
@@ -47,17 +53,13 @@ export function ConsistencyHeatmap() {
   }, [])
 
   if (isLoading) {
-    return <Skeleton className="h-[240px] w-full rounded-2xl" />
+    return <Skeleton className={styles.skeleton} />
   }
 
   const firstSolvedStat = dailyStats?.find((stat) => stat.solved > 0)
 
   if (!firstSolvedStat) {
-    return (
-      <div className="flex h-[240px] items-center text-sm text-muted-foreground">
-        No solved activity yet.
-      </div>
-    )
+    return <div className={styles.placeholder}>No solved activity yet.</div>
   }
 
   const today = new Date()
@@ -84,129 +86,132 @@ export function ConsistencyHeatmap() {
     }
   })
 
-  const weekCount = dates.length > 0 ? Math.max(...dates.map((day) => day.weekIndex)) + 1 : 1
+  const weekCount =
+    dates.length > 0 ? Math.max(...dates.map((day) => day.weekIndex)) + 1 : 1
+
+  // Keyed by week*7+weekday so the render loop is a lookup, not a linear scan
+  // per cell — the previous `dates.find` made a two-year grid quadratic.
+  const bySlot = new Map(
+    dates.map((day) => [day.weekIndex * 7 + day.weekdayIndex, day]),
+  )
+
   const monthMarkers = Array.from({ length: weekCount }, (_, weekIndex) => {
-    const marker = dates.find((day) => day.weekIndex === weekIndex && day.dayOfMonth <= 7)
+    const marker = dates.find(
+      (day) => day.weekIndex === weekIndex && day.dayOfMonth <= 7,
+    )
     if (!marker) {
       return ""
     }
 
     const previousMarker = dates.find(
-      (day) => day.weekIndex === weekIndex - 1 && day.dayOfMonth <= 7
+      (day) => day.weekIndex === weekIndex - 1 && day.dayOfMonth <= 7,
     )
     return previousMarker?.monthLabel === marker.monthLabel ? "" : marker.monthLabel
   })
-  const availableWidth = Math.max((containerWidth ?? 0) - LABEL_COLUMN_W - 12, MIN_CELL_SIZE)
+
+  const availableWidth = Math.max(
+    (containerWidth ?? 0) - LABEL_COLUMN_W - 12,
+    MIN_CELL_SIZE,
+  )
   const computedCellSize =
     containerWidth === null
       ? 24
       : Math.floor(
-          (availableWidth - Math.max(weekCount - 1, 0) * CELL_GAP) / Math.max(weekCount, 1)
+          (availableWidth - Math.max(weekCount - 1, 0) * CELL_GAP) /
+            Math.max(weekCount, 1),
         )
-  const cellSize = Math.max(MIN_CELL_SIZE, Math.min(MAX_CELL_SIZE, computedCellSize))
+  const cellSize = Math.max(
+    MIN_CELL_SIZE,
+    Math.min(MAX_CELL_SIZE, computedCellSize),
+  )
   const chartWidth = weekCount * cellSize + Math.max(weekCount - 1, 0) * CELL_GAP
 
   return (
-    <div className="space-y-4">
-      <div
-        ref={containerRef}
-        className="min-h-[260px] rounded-[24px] border border-border/60 bg-background/18 p-4 sm:p-5"
-      >
-        <div className="overflow-x-auto">
-          <div className="w-fit min-w-fit">
-            <div className="flex gap-3">
-              <div className="shrink-0" style={{ width: LABEL_COLUMN_W }}>
-                <div className="h-5" />
-                <div
-                  className="grid"
-                  style={{
-                    gap: `${CELL_GAP}px`,
-                    gridTemplateRows: `repeat(7, ${cellSize}px)`,
-                  }}
-                >
-                  {WEEKDAY_ROWS.map((label, index) => (
+    <div className={styles.wrap}>
+      <div ref={containerRef} className={styles.frame}>
+        <div className={styles.grid}>
+          <div
+            className={styles.weekdays}
+            style={{
+              width: LABEL_COLUMN_W,
+              gap: CELL_GAP,
+              gridTemplateRows: `repeat(7, ${cellSize}px)`,
+            }}
+          >
+            {WEEKDAY_ROWS.map((label, index) => (
+              <div key={label} className={styles.weekday}>
+                {index % 2 === 0 ? label : ""}
+              </div>
+            ))}
+          </div>
+
+          <div className={styles.columns}>
+            <div
+              className={styles.months}
+              style={{
+                columnGap: CELL_GAP,
+                gridTemplateColumns: `repeat(${weekCount}, ${cellSize}px)`,
+                width: chartWidth,
+              }}
+            >
+              {monthMarkers.map((label, index) => (
+                <div key={`${label}-${index}`}>{label}</div>
+              ))}
+            </div>
+
+            <div
+              className={styles.cells}
+              style={{
+                columnGap: CELL_GAP,
+                rowGap: CELL_GAP,
+                gridTemplateColumns: `repeat(${weekCount}, ${cellSize}px)`,
+                gridTemplateRows: `repeat(7, ${cellSize}px)`,
+                width: chartWidth,
+              }}
+            >
+              {Array.from({ length: weekCount * 7 }, (_, index) => {
+                const weekIndex = Math.floor(index / 7)
+                const weekdayIndex = index % 7
+                const day = bySlot.get(weekIndex * 7 + weekdayIndex)
+
+                if (!day) {
+                  return (
                     <div
-                      key={label}
-                      className="flex items-center text-[10px] leading-none text-muted-foreground"
-                    >
-                      {index % 2 === 0 ? label : ""}
-                    </div>
-                  ))}
-                </div>
-              </div>
+                      key={`empty-${index}`}
+                      style={{ height: cellSize, width: cellSize }}
+                    />
+                  )
+                }
 
-              <div className="space-y-2">
-                <div
-                  className="grid h-5 items-end text-[10px] leading-none text-muted-foreground"
-                  style={{
-                    columnGap: `${CELL_GAP}px`,
-                    gridTemplateColumns: `repeat(${weekCount}, ${cellSize}px)`,
-                    width: chartWidth,
-                  }}
-                >
-                  {monthMarkers.map((label, index) => (
-                    <div key={`${label}-${index}`}>{label}</div>
-                  ))}
-                </div>
-
-                <div
-                  className="grid"
-                  style={{
-                    gridAutoFlow: "column",
-                    columnGap: `${CELL_GAP}px`,
-                    rowGap: `${CELL_GAP}px`,
-                    gridTemplateColumns: `repeat(${weekCount}, ${cellSize}px)`,
-                    gridTemplateRows: `repeat(7, ${cellSize}px)`,
-                    width: chartWidth,
-                  }}
-                >
-                  {Array.from({ length: weekCount * 7 }, (_, index) => {
-                    const weekIndex = Math.floor(index / 7)
-                    const weekdayIndex = index % 7
-                    const day = dates.find(
-                      (entry) =>
-                        entry.weekIndex === weekIndex && entry.weekdayIndex === weekdayIndex
-                    )
-
-                    if (!day) {
-                      return <div key={`empty-${index}`} style={{ height: cellSize, width: cellSize }} />
-                    }
-
-                    return (
-                      <Tooltip key={day.date}>
-                        <TooltipTrigger asChild>
-                          <div
-                            className={cn(
-                              "rounded-[4px] border transition-transform hover:scale-110 hover:border-primary/70",
-                              getCellTone(day.count)
-                            )}
-                            style={{ height: cellSize, width: cellSize }}
-                          />
-                        </TooltipTrigger>
-                        <TooltipContent side="top" className="text-xs">
-                          <p className="font-medium">{day.label}</p>
-                          <p className="text-muted-foreground">{day.count} solved</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    )
-                  })}
-                </div>
-              </div>
+                return (
+                  <Tooltip key={day.date}>
+                    <TooltipTrigger asChild>
+                      <div
+                        className={`${styles.cell} ${toneClass(day.count)}`}
+                        style={{ height: cellSize, width: cellSize }}
+                      />
+                    </TooltipTrigger>
+                    <TooltipContent side="top">
+                      <p>{day.label}</p>
+                      <p>{day.count} solved</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )
+              })}
             </div>
           </div>
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-muted-foreground">
-        <p>Each square is one day from your first recorded solve onward.</p>
-        <div className="flex items-center gap-2">
+      <div className={styles.legend}>
+        <p>Each square is one day since your first solve.</p>
+        <div className={styles.scale}>
           <span>Less</span>
-          <div className="flex items-center gap-1.5">
+          <div className={styles.swatches}>
             {[0, 1, 2, 4, 6].map((count) => (
               <div
                 key={count}
-                className={cn("rounded-[4px] border", getCellTone(count))}
-                style={{ height: cellSize, width: cellSize }}
+                className={`${styles.swatch} ${toneClass(count)}`}
               />
             ))}
           </div>

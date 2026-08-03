@@ -4,6 +4,7 @@ import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
 import { cn } from "@/lib/utils"
 import { CodeBlock } from "@/components/ui/code-block"
+import styles from "./code-block.module.css"
 
 interface MarkdownContentProps {
   content: string
@@ -51,7 +52,7 @@ export function MarkdownContent({
             )
           },
           table: ({ children, ...props }) => (
-            <div className="my-6 overflow-x-auto">
+            <div className={styles.tableWrap}>
               <table {...props}>{children}</table>
             </div>
           ),

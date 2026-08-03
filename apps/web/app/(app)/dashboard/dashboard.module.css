@@ -1,0 +1,354 @@
+/*
+ * Dashboard. The due queue first, then a strip of facts, the activity heatmap,
+ * then three breakdowns sharing one bar-list shape. The previous version
+ * restated the streak, the weekly solves and the backlog in a second panel
+ * each; every number here appears once.
+ *
+ * The queue leads because it is the only part of this page that is work rather
+ * than reporting. Opening the app should present the next thing to do, not a
+ * summary of things already done.
+ */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  padding-bottom: var(--space-md);
+}
+
+/* ── Header ──────────────────────────────────────────────────────────────── */
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+@media (min-width: 900px) {
+  .header {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+}
+
+.eyebrow {
+  font-family: var(--font-data);
+  font-size: var(--step--2);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+.title {
+  margin-top: var(--space-2xs);
+  font-family: var(--font-display);
+  font-size: var(--step-3);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.lede {
+  margin-top: var(--space-2xs);
+  max-width: 44ch;
+  font-size: var(--step--1);
+  line-height: 1.55;
+  color: var(--muted-foreground);
+  text-wrap: pretty;
+}
+
+.actions {
+  display: flex;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  gap: var(--space-2xs);
+}
+
+/* ── Fact strip ──────────────────────────────────────────────────────────── */
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-md) var(--space-lg);
+  padding-block: var(--space-md);
+  border-block: var(--rule);
+}
+
+@media (min-width: 640px) {
+  .facts {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1100px) {
+  .facts {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+.fact {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.factLabel {
+  font-family: var(--font-data);
+  font-size: var(--step--2);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+.factValue {
+  font-family: var(--font-data);
+  font-size: var(--step-2);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.factValueAlert {
+  color: var(--destructive);
+}
+
+.factCaption {
+  font-size: var(--step--2);
+  color: var(--muted-foreground);
+}
+
+/* ── Due queue ───────────────────────────────────────────────────────────── */
+
+.queue {
+  display: flex;
+  flex-direction: column;
+  border: var(--rule);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.queueRow {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-2xs) var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+}
+
+.queueRow + .queueRow {
+  border-top: var(--rule);
+}
+
+@media (min-width: 860px) {
+  .queueRow {
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+  }
+}
+
+.queueId {
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--step--1);
+  color: var(--muted-foreground);
+}
+
+.queueTitle {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--foreground);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.queueTitle:hover {
+  color: var(--primary);
+}
+
+.queueDue {
+  grid-column: 2;
+  font-family: var(--font-data);
+  font-size: var(--step--1);
+  color: var(--muted-foreground);
+}
+
+@media (min-width: 860px) {
+  .queueDue {
+    grid-column: auto;
+    justify-self: end;
+  }
+}
+
+.queueDueOverdue {
+  color: var(--destructive);
+}
+
+.queueActions {
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 860px) {
+  .queueActions {
+    grid-column: auto;
+    width: 19rem;
+  }
+}
+
+.queueFoot {
+  padding: var(--space-sm) var(--space-md);
+  border-top: var(--rule);
+  background: color-mix(in oklch, var(--muted) 40%, transparent);
+  font-size: var(--step--1);
+  color: var(--muted-foreground);
+}
+
+.queueClear {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+  align-items: flex-start;
+  padding: var(--space-lg) var(--space-md);
+}
+
+.queueClearTitle {
+  font-family: var(--font-display);
+  font-size: var(--step-1);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.queueClearBody {
+  font-size: var(--step--1);
+  color: var(--muted-foreground);
+}
+
+/* ── Sections ────────────────────────────────────────────────────────────── */
+
+.sectionHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+}
+
+.sectionTitle {
+  font-family: var(--font-display);
+  font-size: var(--step-1);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.sectionNote {
+  font-family: var(--font-data);
+  font-size: var(--step--2);
+  color: var(--muted-foreground);
+}
+
+/* ── Breakdowns ──────────────────────────────────────────────────────────── */
+
+.breakdowns {
+  display: grid;
+  gap: var(--space-lg);
+}
+
+@media (min-width: 700px) {
+  .breakdowns {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1100px) {
+  .breakdowns {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.bars {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.bar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.barHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-xs);
+  font-size: var(--step--1);
+}
+
+.barLabel {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--muted-foreground);
+}
+
+.barValue {
+  flex-shrink: 0;
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.barOf {
+  font-weight: 400;
+  color: var(--muted-foreground);
+}
+
+.barTrack {
+  height: 0.4rem;
+  overflow: hidden;
+  border-radius: 9999px;
+  background: var(--muted);
+}
+
+.barFill {
+  height: 100%;
+  border-radius: 9999px;
+  background: var(--primary);
+}
+
+.barFillAlert {
+  background: var(--destructive);
+}
+
+.empty {
+  font-size: var(--step--1);
+  line-height: 1.55;
+  color: var(--muted-foreground);
+}
+
+/* ── Skeleton ────────────────────────────────────────────────────────────── */
+
+.skeletonTitle {
+  height: 4rem;
+  max-width: 28rem;
+}
+
+.skeletonQueue {
+  height: 16rem;
+}
+
+.skeletonFacts {
+  height: 4.5rem;
+}
+
+.skeletonHeatmap {
+  height: 17rem;
+}
+
+.skeletonBars {
+  height: 9rem;
+}

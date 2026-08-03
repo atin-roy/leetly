@@ -1,0 +1,301 @@
+/*
+ * App shell navigation. The visual idea is a ruled margin rather than a
+ * floating panel: flat surface, hairline rules, and an active row marked the
+ * way you'd mark a line in a notebook — a solid bar in the margin.
+ */
+
+/* ── Shared nav rows ─────────────────────────────────────────────────────── */
+
+.navList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.navLink {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 0.55rem var(--space-sm);
+  font-size: var(--step--1);
+  color: var(--muted-foreground);
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+  transition: color 120ms ease, background-color 120ms ease;
+}
+
+.navLink:hover {
+  color: var(--sidebar-foreground);
+  background: var(--sidebar-accent);
+}
+
+.navLink:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: -2px;
+}
+
+/*
+ * The marker sits in the padding, not in flow, so collapsing the sidebar
+ * doesn't shift the icons.
+ */
+.navLink[data-active="true"] {
+  color: var(--sidebar-foreground);
+  font-weight: 500;
+  background: var(--sidebar-accent);
+}
+
+.navLink[data-active="true"]::before {
+  content: "";
+  position: absolute;
+  inset-block: 0.35rem;
+  left: 0;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--sidebar-primary);
+}
+
+.navIcon {
+  flex-shrink: 0;
+}
+
+.collapsedLink {
+  justify-content: center;
+  padding-inline: var(--space-2xs);
+}
+
+/* ── Search ──────────────────────────────────────────────────────────────── */
+
+/*
+ * Reads as a field rather than a nav row, because it opens the palette instead
+ * of navigating — and because a keyboard shortcut nobody can see is a shortcut
+ * nobody uses.
+ */
+.searchTrigger {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  width: 100%;
+  margin-bottom: var(--space-sm);
+  padding: 0.55rem var(--space-sm);
+  border: var(--rule);
+  border-radius: var(--radius-sm);
+  background: color-mix(in oklch, var(--sidebar-accent) 55%, transparent);
+  color: var(--muted-foreground);
+  font-family: inherit;
+  font-size: var(--step--1);
+  text-align: left;
+  cursor: pointer;
+  transition: color 120ms ease, background-color 120ms ease;
+}
+
+.searchTrigger:hover {
+  color: var(--sidebar-foreground);
+  background: var(--sidebar-accent);
+}
+
+.searchTrigger:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: -2px;
+}
+
+.searchHint {
+  margin-left: auto;
+  font-family: var(--font-data);
+  font-size: var(--step--1);
+  opacity: 0.7;
+}
+
+/* ── Wordmark ────────────────────────────────────────────────────────────── */
+
+.brand {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--space-2xs);
+  color: var(--sidebar-foreground);
+  text-decoration: none;
+}
+
+.brandMark {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: var(--radius-sm);
+  background: var(--sidebar-primary);
+  color: var(--sidebar-primary-foreground);
+}
+
+.brandName {
+  font-family: var(--font-display);
+  font-size: var(--step-1);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Mobile bar ──────────────────────────────────────────────────────────── */
+
+.mobileBar {
+  border-bottom: var(--rule);
+  background: var(--sidebar);
+  color: var(--sidebar-foreground);
+  padding: var(--space-xs) var(--space-sm);
+}
+
+@media (min-width: 768px) {
+  .mobileBar {
+    display: none;
+  }
+}
+
+.mobileBarInner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+
+.menuButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  color: var(--sidebar-foreground);
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.menuButton:hover {
+  background: var(--sidebar-accent);
+}
+
+.menuButton:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* ── Mobile sheet contents ───────────────────────────────────────────────── */
+
+.sheetPanel {
+  width: 86vw;
+  max-width: 22rem;
+  padding: 0;
+  background: var(--sidebar);
+  color: var(--sidebar-foreground);
+  border-color: var(--sidebar-border);
+}
+
+.sheetHeader {
+  padding: var(--space-md) var(--space-md);
+  border-bottom: var(--rule);
+  text-align: left;
+}
+
+.sheetTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  color: var(--sidebar-foreground);
+}
+
+.sheetDescription {
+  color: var(--muted-foreground);
+}
+
+.sheetNav {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-sm);
+}
+
+/* ── Desktop rail ────────────────────────────────────────────────────────── */
+
+.rail {
+  display: none;
+  height: 100svh;
+  flex-shrink: 0;
+  flex-direction: column;
+  background: var(--sidebar);
+  color: var(--sidebar-foreground);
+  border-right: var(--rule);
+  transition: width 180ms ease;
+}
+
+@media (min-width: 768px) {
+  .rail {
+    display: flex;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rail {
+    transition: none;
+  }
+}
+
+.railExpanded {
+  width: 14rem;
+}
+
+.railCollapsed {
+  width: 3.5rem;
+}
+
+.railHead {
+  display: flex;
+  height: 3.5rem;
+  flex-shrink: 0;
+  align-items: center;
+  padding-inline: var(--space-sm);
+  border-bottom: var(--rule);
+}
+
+.railHeadCollapsed {
+  justify-content: center;
+}
+
+.railNav {
+  flex: 1;
+  overflow: hidden;
+  padding: var(--space-sm);
+}
+
+.railFoot {
+  padding: var(--space-sm);
+  border-top: var(--rule);
+}
+
+.collapseButton {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 0.5rem var(--space-sm);
+  font: inherit;
+  font-size: var(--step--1);
+  color: var(--muted-foreground);
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: color 120ms ease, background-color 120ms ease;
+}
+
+.collapseButton:hover {
+  color: var(--sidebar-foreground);
+  background: var(--sidebar-accent);
+}
+
+.collapseButton:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: -2px;
+}
