@@ -18,7 +18,6 @@ public record LogAttemptRequest(
         List<Mistake> mistakes,
         String timeComplexity,
         String spaceComplexity,
-        String aiReview,
         String learned,
         String takeaways,
         String notes,

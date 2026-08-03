@@ -9,6 +9,5 @@ public record CreateProblemRequest(
         @Positive long leetcodeId,
         @NotBlank String title,
         @NotBlank String url,
-        @NotNull Difficulty difficulty,
-        String aiReview
+        @NotNull Difficulty difficulty
 ) {}
