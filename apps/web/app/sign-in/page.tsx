@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
+import styles from "@/app/auth.module.css"
 import { AuthForm } from "@/components/auth/auth-form"
 import { readRefreshCookie } from "@/lib/session"
 
@@ -17,13 +18,13 @@ export default async function SignInPage({
   const { callbackUrl } = await searchParams
 
   return (
-    <main className="flex min-h-svh items-center justify-center p-6">
-      <div className="w-full max-w-sm space-y-6">
-        <div className="space-y-1.5 text-center">
-          <Link href="/" className="text-xl font-semibold tracking-tight">
+    <main className={styles.page}>
+      <div className={styles.panel}>
+        <div className={styles.head}>
+          <Link href="/" className={styles.wordmark}>
             Leetly
           </Link>
-          <p className="text-sm text-muted-foreground">
+          <p className={styles.tagline}>
             Welcome back. Pick up where you left off.
           </p>
         </div>

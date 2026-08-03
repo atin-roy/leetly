@@ -1,0 +1,152 @@
+/*
+ * Sign-in and sign-up. One module because the two pages differ only by the
+ * fields shown, and the form component is shared between them.
+ */
+
+.page {
+  display: grid;
+  place-items: center;
+  min-height: 100svh;
+  padding: var(--space-lg) var(--space-md);
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-body);
+}
+
+.panel {
+  width: 100%;
+  max-width: 24rem;
+}
+
+.head {
+  padding-bottom: var(--space-md);
+  margin-bottom: var(--space-lg);
+  border-bottom: var(--rule);
+  text-align: center;
+}
+
+.wordmark {
+  font-family: var(--font-display);
+  font-size: var(--step-2);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: var(--foreground);
+  text-decoration: none;
+}
+
+.tagline {
+  margin-top: var(--space-2xs);
+  font-size: var(--step--1);
+  color: var(--muted-foreground);
+  text-wrap: pretty;
+}
+
+/* ── Form ────────────────────────────────────────────────────────────────── */
+
+.form {
+  display: grid;
+  gap: var(--space-md);
+}
+
+.field {
+  display: grid;
+  gap: var(--space-2xs);
+}
+
+.label {
+  font-family: var(--font-data);
+  font-size: var(--step--1);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+.input {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  font: inherit;
+  font-size: var(--step-0);
+  color: var(--foreground);
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm, 0.375rem);
+  outline: none;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.input::placeholder {
+  color: var(--muted-foreground);
+}
+
+.input:focus-visible {
+  border-color: var(--ring);
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 30%, transparent);
+}
+
+.submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2xs);
+  width: 100%;
+  padding: 0.65rem 1rem;
+  font: inherit;
+  font-size: var(--step-0);
+  font-weight: 500;
+  color: var(--primary-foreground);
+  background: var(--primary);
+  border: none;
+  border-radius: var(--radius-sm, 0.375rem);
+  cursor: pointer;
+  transition: opacity 120ms ease;
+}
+
+.submit:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.submit:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: none;
+  }
+}
+
+.error {
+  margin: 0;
+  font-size: var(--step--1);
+  color: var(--destructive);
+}
+
+.switch {
+  margin: 0;
+  text-align: center;
+  font-size: var(--step--1);
+  color: var(--muted-foreground);
+}
+
+.switchLink {
+  color: var(--foreground);
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

@@ -4,9 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Loader2 } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import styles from "@/app/auth.module.css"
 
 type Mode = "login" | "register"
 
@@ -51,10 +49,11 @@ export function AuthForm({ mode, callbackUrl }: { mode: Mode; callbackUrl: strin
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-1.5">
-        <Label htmlFor="email">Email</Label>
-        <Input
+    <form onSubmit={handleSubmit} className={styles.form}>
+      <div className={styles.field}>
+        <label className={styles.label} htmlFor="email">Email</label>
+        <input
+          className={styles.input}
           id="email"
           type="email"
           autoComplete="email"
@@ -66,9 +65,10 @@ export function AuthForm({ mode, callbackUrl }: { mode: Mode; callbackUrl: strin
       </div>
 
       {isRegister && (
-        <div className="space-y-1.5">
-          <Label htmlFor="username">Display name</Label>
-          <Input
+        <div className={styles.field}>
+          <label className={styles.label} htmlFor="username">Display name</label>
+          <input
+            className={styles.input}
             id="username"
             autoComplete="nickname"
             value={username}
@@ -78,9 +78,10 @@ export function AuthForm({ mode, callbackUrl }: { mode: Mode; callbackUrl: strin
         </div>
       )}
 
-      <div className="space-y-1.5">
-        <Label htmlFor="password">Password</Label>
-        <Input
+      <div className={styles.field}>
+        <label className={styles.label} htmlFor="password">Password</label>
+        <input
+          className={styles.input}
           id="password"
           type="password"
           autoComplete={isRegister ? "new-password" : "current-password"}
@@ -93,21 +94,21 @@ export function AuthForm({ mode, callbackUrl }: { mode: Mode; callbackUrl: strin
       </div>
 
       {error && (
-        <p role="alert" className="text-sm text-destructive">
+        <p role="alert" className={styles.error}>
           {error}
         </p>
       )}
 
-      <Button type="submit" className="w-full" disabled={pending}>
-        {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+      <button type="submit" className={styles.submit} disabled={pending}>
+        {pending && <Loader2 size={16} className={styles.spinner} aria-hidden="true" />}
         {isRegister ? "Create account" : "Sign in"}
-      </Button>
+      </button>
 
-      <p className="text-center text-sm text-muted-foreground">
+      <p className={styles.switch}>
         {isRegister ? "Already have an account? " : "New to Leetly? "}
         <Link
           href={isRegister ? "/sign-in" : "/sign-up"}
-          className="font-medium text-foreground underline underline-offset-4"
+          className={styles.switchLink}
         >
           {isRegister ? "Sign in" : "Create one"}
         </Link>
