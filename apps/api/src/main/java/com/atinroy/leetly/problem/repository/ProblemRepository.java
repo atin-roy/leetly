@@ -30,6 +30,13 @@ public interface ProblemRepository extends JpaRepository<Problem, Long>, JpaSpec
             """)
     List<ProblemRefDto> findRefsByUser(@Param("user") User user);
 
+    @Query("""
+            SELECT p.difficulty, p.status, COUNT(p)
+            FROM Problem p WHERE p.user = :user
+            GROUP BY p.difficulty, p.status
+            """)
+    List<Object[]> countByDifficultyAndStatus(@Param("user") User user);
+
     /**
      * Acquires a pessimistic write lock on the problem row before the caller
      * counts and inserts an attempt. This serialises concurrent attempt creation

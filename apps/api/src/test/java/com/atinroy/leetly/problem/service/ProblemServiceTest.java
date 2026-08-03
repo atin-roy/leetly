@@ -22,8 +22,10 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import com.atinroy.leetly.problem.dto.CreateProblemRequest;
+import com.atinroy.leetly.problem.dto.ProblemCountsDto;
 import com.atinroy.leetly.problem.model.Difficulty;
 import com.atinroy.leetly.problem.model.Problem;
+import com.atinroy.leetly.problem.model.ProblemStatus;
 import com.atinroy.leetly.problem.repository.AttemptRepository;
 import com.atinroy.leetly.problem.repository.ProblemRepository;
 import com.atinroy.leetly.review.repository.ReviewCardRepository;
@@ -129,5 +131,53 @@ class ProblemServiceTest {
         Sort.Order appliedOrder = pageableCaptor.getValue().getSort().getOrderFor("lastAttemptedAt");
         assertThat(appliedOrder).isNotNull();
         assertThat(appliedOrder.getNullHandling()).isEqualTo(Sort.NullHandling.NULLS_LAST);
+    }
+
+    @Test
+    void findCounts_sumsAcrossStatusesAndReportsZeroForUnusedEnums() {
+        User user = new User();
+        user.setId(1L);
+
+        when(problemRepository.countByDifficultyAndStatus(user)).thenReturn(java.util.List.of(
+                new Object[]{Difficulty.EASY, ProblemStatus.SOLVED, 4L},
+                new Object[]{Difficulty.EASY, ProblemStatus.ATTEMPTED, 1L},
+                new Object[]{Difficulty.MEDIUM, ProblemStatus.MASTERED, 2L},
+                new Object[]{Difficulty.MEDIUM, ProblemStatus.UNSEEN, 3L}
+        ));
+
+        ProblemCountsDto counts = problemService.findCounts(user);
+
+        assertThat(counts.total()).isEqualTo(10L);
+        assertThat(counts.byDifficulty())
+                .containsEntry("EASY", 5L)
+                .containsEntry("MEDIUM", 5L)
+                .containsEntry("HARD", 0L);
+        assertThat(counts.byStatus())
+                .containsEntry("SOLVED", 4L)
+                .containsEntry("ATTEMPTED", 1L)
+                .containsEntry("MASTERED", 2L)
+                .containsEntry("UNSEEN", 3L)
+                .containsEntry("SOLVED_WITH_HELP", 0L);
+    }
+
+    @Test
+    void findCounts_treatsMasteredAndSolvedWithHelpAsSolved() {
+        User user = new User();
+        user.setId(1L);
+
+        when(problemRepository.countByDifficultyAndStatus(user)).thenReturn(java.util.List.of(
+                new Object[]{Difficulty.HARD, ProblemStatus.SOLVED, 1L},
+                new Object[]{Difficulty.HARD, ProblemStatus.SOLVED_WITH_HELP, 2L},
+                new Object[]{Difficulty.HARD, ProblemStatus.MASTERED, 3L},
+                new Object[]{Difficulty.HARD, ProblemStatus.ATTEMPTED, 4L},
+                new Object[]{Difficulty.HARD, ProblemStatus.UNSEEN, 5L}
+        ));
+
+        ProblemCountsDto counts = problemService.findCounts(user);
+
+        assertThat(counts.byDifficulty()).containsEntry("HARD", 15L);
+        assertThat(counts.solvedByDifficulty())
+                .containsEntry("HARD", 6L)
+                .containsEntry("EASY", 0L);
     }
 }

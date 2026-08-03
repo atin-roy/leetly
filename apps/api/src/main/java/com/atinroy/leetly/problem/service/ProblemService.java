@@ -1,6 +1,7 @@
 package com.atinroy.leetly.problem.service;
 
 import com.atinroy.leetly.common.exception.ResourceNotFoundException;
+import com.atinroy.leetly.problem.dto.ProblemCountsDto;
 import com.atinroy.leetly.problem.dto.ProblemRefDto;
 import com.atinroy.leetly.problem.dto.ProblemSummaryDto;
 import com.atinroy.leetly.problem.repository.AttemptRepository;
@@ -18,10 +19,12 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import com.atinroy.leetly.problem.dto.CreateProblemRequest;
+import com.atinroy.leetly.problem.model.Difficulty;
 import com.atinroy.leetly.problem.model.Pattern;
 import com.atinroy.leetly.problem.model.Problem;
 import com.atinroy.leetly.problem.model.ProblemStatus;
@@ -43,6 +46,45 @@ public class ProblemService {
     @Transactional(readOnly = true)
     public List<ProblemRefDto> findRefs(User user) {
         return problemRepository.findRefsByUser(user);
+    }
+
+    /**
+     * Every enum value is present in the returned maps, zero included, so the
+     * client never has to distinguish "no rows" from "key absent".
+     */
+    @Transactional(readOnly = true)
+    public ProblemCountsDto findCounts(User user) {
+        Map<String, Long> byDifficulty = new LinkedHashMap<>();
+        Map<String, Long> solvedByDifficulty = new LinkedHashMap<>();
+        for (Difficulty difficulty : Difficulty.values()) {
+            byDifficulty.put(difficulty.name(), 0L);
+            solvedByDifficulty.put(difficulty.name(), 0L);
+        }
+        Map<String, Long> byStatus = new LinkedHashMap<>();
+        for (ProblemStatus status : ProblemStatus.values()) {
+            byStatus.put(status.name(), 0L);
+        }
+
+        long total = 0;
+        for (Object[] row : problemRepository.countByDifficultyAndStatus(user)) {
+            Difficulty difficulty = (Difficulty) row[0];
+            ProblemStatus status = (ProblemStatus) row[1];
+            long count = (Long) row[2];
+
+            byDifficulty.merge(difficulty.name(), count, Long::sum);
+            byStatus.merge(status.name(), count, Long::sum);
+            if (isSolved(status)) {
+                solvedByDifficulty.merge(difficulty.name(), count, Long::sum);
+            }
+            total += count;
+        }
+        return new ProblemCountsDto(total, byDifficulty, solvedByDifficulty, byStatus);
+    }
+
+    private static boolean isSolved(ProblemStatus status) {
+        return status == ProblemStatus.SOLVED
+                || status == ProblemStatus.SOLVED_WITH_HELP
+                || status == ProblemStatus.MASTERED;
     }
 
     @Transactional(readOnly = true)
