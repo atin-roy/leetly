@@ -16,7 +16,6 @@ import {
   UserCircle2,
   Users,
 } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import {
   Sheet,
   SheetContent,
@@ -24,7 +23,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet"
-import { cn } from "@/lib/utils"
+import styles from "./sidebar.module.css"
 import { useSidebar } from "./sidebar-context"
 
 const navItems = [
@@ -46,25 +45,22 @@ function NavList({
   mobile?: boolean
   pathname: string
 }) {
+  const railCollapsed = !mobile && collapsed
+
   return (
-    <ul className="space-y-1">
+    <ul className={styles.navList}>
       {navItems.map(({ href, label, icon: Icon }) => {
         const active = pathname === href || pathname.startsWith(href + "/")
         return (
           <li key={href}>
             <Link
               href={href}
-              title={!mobile && collapsed ? label : undefined}
-              className={cn(
-                "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
-                active
-                  ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-[0_8px_20px_color-mix(in_oklab,var(--sidebar-primary)_20%,transparent)]"
-                  : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                !mobile && collapsed && "justify-center px-2",
-              )}
+              title={railCollapsed ? label : undefined}
+              data-active={active}
+              className={`${styles.navLink} ${railCollapsed ? styles.collapsedLink : ""}`}
             >
-              <Icon className="h-4 w-4 shrink-0" />
-              {(mobile || !collapsed) && label}
+              <Icon size={16} className={styles.navIcon} aria-hidden="true" />
+              {!railCollapsed && label}
             </Link>
           </li>
         )
@@ -73,9 +69,21 @@ function NavList({
   )
 }
 
+function Wordmark({ showName }: { showName: boolean }) {
+  return (
+    <>
+      <span className={styles.brandMark}>
+        <BookOpen size={15} aria-hidden="true" />
+      </span>
+      {showName && <span className={styles.brandName}>Leetly</span>}
+    </>
+  )
+}
+
 export function AppSidebar() {
   const pathname = usePathname()
-  const { collapsed, mobileOpen, toggle, toggleMobile, closeMobile, setMobileOpen } = useSidebar()
+  const { collapsed, mobileOpen, toggle, toggleMobile, closeMobile, setMobileOpen } =
+    useSidebar()
 
   useEffect(() => {
     closeMobile()
@@ -83,97 +91,70 @@ export function AppSidebar() {
 
   return (
     <>
-      <div className="border-b border-sidebar-border/70 bg-sidebar/90 px-3 py-3 text-sidebar-foreground shadow-[0_10px_30px_-24px_color-mix(in_oklab,var(--foreground)_18%,transparent)] backdrop-blur-xl md:hidden">
-        <div className="flex items-center justify-between gap-3">
-          <Link
-            href="/dashboard"
-            className="flex min-w-0 items-center gap-2 font-black tracking-tight text-sidebar-foreground"
-          >
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-sidebar-primary text-sidebar-primary-foreground shadow-[0_8px_20px_color-mix(in_oklab,var(--sidebar-primary)_20%,transparent)]">
-              <BookOpen className="h-4 w-4" />
-            </span>
-            <span className="truncate text-lg">Leetly</span>
+      <div className={styles.mobileBar}>
+        <div className={styles.mobileBarInner}>
+          <Link href="/dashboard" className={styles.brand}>
+            <Wordmark showName />
           </Link>
 
-          <Button
-            variant="ghost"
-            size="icon-sm"
+          <button
+            type="button"
             onClick={toggleMobile}
-            className="rounded-xl text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+            className={styles.menuButton}
             aria-label="Open navigation"
           >
-            <Menu className="h-4 w-4" />
-          </Button>
+            <Menu size={16} aria-hidden="true" />
+          </button>
         </div>
       </div>
 
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-        <SheetContent
-          side="left"
-          className="w-[86vw] max-w-[22rem] border-sidebar-border bg-sidebar/96 p-0 text-sidebar-foreground"
-        >
-          <SheetHeader className="border-b border-sidebar-border px-4 py-4 text-left">
-            <SheetTitle className="flex items-center gap-2 text-sidebar-foreground">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-sidebar-primary text-sidebar-primary-foreground shadow-[0_8px_20px_color-mix(in_oklab,var(--sidebar-primary)_20%,transparent)]">
-                <BookOpen className="h-4 w-4" />
-              </span>
-              <span className="text-lg font-black tracking-tight">Leetly</span>
+        <SheetContent side="left" className={styles.sheetPanel}>
+          <SheetHeader className={styles.sheetHeader}>
+            <SheetTitle className={styles.sheetTitle}>
+              <Wordmark showName />
             </SheetTitle>
-            <SheetDescription className="text-sidebar-foreground/70">
+            <SheetDescription className={styles.sheetDescription}>
               Move between dashboard, backlog, review, notes, and account.
             </SheetDescription>
           </SheetHeader>
 
-          <nav className="flex-1 overflow-y-auto p-4">
+          <nav className={styles.sheetNav}>
             <NavList mobile collapsed={collapsed} pathname={pathname} />
           </nav>
         </SheetContent>
       </Sheet>
 
       <aside
-        className={cn(
-          "hidden h-svh shrink-0 flex-col border-r border-sidebar-border bg-sidebar/92 text-sidebar-foreground shadow-[8px_0_30px_color-mix(in_oklab,var(--foreground)_8%,transparent)] backdrop-blur-xl transition-all duration-200 md:flex",
-          collapsed ? "w-14" : "w-56",
-        )}
+        className={`${styles.rail} ${collapsed ? styles.railCollapsed : styles.railExpanded}`}
       >
         <div
-          className={cn(
-            "flex h-14 shrink-0 items-center border-b border-sidebar-border px-3",
-            collapsed ? "justify-center" : "justify-start",
-          )}
+          className={`${styles.railHead} ${collapsed ? styles.railHeadCollapsed : ""}`}
         >
           <Link
             href="/dashboard"
             title={collapsed ? "Leetly" : undefined}
-            className={cn(
-              "flex min-w-0 items-center gap-2 font-black tracking-tight text-sidebar-foreground",
-              collapsed && "justify-center",
-            )}
+            className={styles.brand}
           >
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground shadow-[0_8px_20px_color-mix(in_oklab,var(--sidebar-primary)_20%,transparent)]">
-              <BookOpen className="h-4 w-4" />
-            </span>
-            {!collapsed && <span className="truncate text-lg">Leetly</span>}
+            <Wordmark showName={!collapsed} />
           </Link>
         </div>
 
-        <nav className="flex-1 overflow-hidden p-3 pt-4">
+        <nav className={styles.railNav}>
           <NavList collapsed={collapsed} pathname={pathname} />
         </nav>
 
-        <div className="border-t border-sidebar-border p-3">
+        <div className={styles.railFoot}>
           <button
+            type="button"
             onClick={toggle}
             title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-            className={cn(
-              "flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-              collapsed && "justify-center px-2",
-            )}
+            className={`${styles.collapseButton} ${collapsed ? styles.collapsedLink : ""}`}
           >
             {collapsed ? (
-              <ChevronRight className="h-4 w-4 shrink-0" />
+              <ChevronRight size={16} aria-hidden="true" />
             ) : (
-              <ChevronLeft className="h-4 w-4 shrink-0" />
+              <ChevronLeft size={16} aria-hidden="true" />
             )}
             {!collapsed && <span>Collapse</span>}
           </button>

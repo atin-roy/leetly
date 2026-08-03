@@ -1,3 +1,4 @@
+import styles from "./shell.module.css"
 import { AppProviders } from "@/components/app-providers"
 import { AppSidebar } from "@/components/layout/app-sidebar"
 import { SidebarProvider } from "@/components/layout/sidebar-context"
@@ -15,10 +16,10 @@ export default async function AppLayout({
   return (
     <AppProviders session={session}>
       <SidebarProvider>
-        <div className="flex h-svh flex-col overflow-hidden md:flex-row">
+        <div className={styles.shell}>
           <AppSidebar />
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-            <main className="aesthetic-background min-h-0 flex-1 overflow-y-auto p-4 sm:p-5 md:p-6">{children}</main>
+          <div className={styles.content}>
+            <main className={`aesthetic-background ${styles.main}`}>{children}</main>
           </div>
         </div>
       </SidebarProvider>
