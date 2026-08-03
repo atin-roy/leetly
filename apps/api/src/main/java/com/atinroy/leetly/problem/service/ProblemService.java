@@ -145,6 +145,26 @@ public class ProblemService {
                 .orElseGet(() -> createNewProblem(request, user));
     }
 
+    /**
+     * Problems are scoped per user, so importing another user's list/note needs
+     * an equivalent row on the importer's side. Matches by leetcodeId first;
+     * clones a fresh, independent row (not added to the importer's default list)
+     * only if the importer doesn't already track that problem.
+     */
+    public Problem findOrCloneForUser(Problem source, User targetUser) {
+        return problemRepository.findByUserAndLeetcodeId(targetUser, source.getLeetcodeId())
+                .orElseGet(() -> {
+                    Problem clone = new Problem();
+                    clone.setUser(targetUser);
+                    clone.setLeetcodeId(source.getLeetcodeId());
+                    clone.setTitle(source.getTitle());
+                    clone.setUrl(source.getUrl());
+                    clone.setDifficulty(source.getDifficulty());
+                    clone.setStatus(ProblemStatus.UNSEEN);
+                    return problemRepository.save(clone);
+                });
+    }
+
     private Problem createNewProblem(CreateProblemRequest request, User user) {
         Problem problem = new Problem();
         problem.setUser(user);

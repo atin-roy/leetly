@@ -2,15 +2,20 @@
 
 import { use } from "react"
 import Link from "next/link"
-import { ArrowLeft, ExternalLink, Flame, FolderKanban, NotebookPen, Trophy, Users } from "lucide-react"
+import { toast } from "sonner"
+import { ArrowLeft, Download, ExternalLink, Flame, FolderKanban, Lock, NotebookPen, Trophy, Users } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { FriendActionButton } from "@/components/social/friend-action-button"
-import { usePublicProfile } from "@/hooks/use-social"
+import { useImportFriendList, useImportFriendNote, usePublicProfile } from "@/hooks/use-social"
 import type { PublicUserProfileDto, SocialUserDto } from "@/lib/types"
 import styles from "./profile.module.css"
+
+function errorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message.replace(/^\d+:\s*/, "") : fallback
+}
 
 function getInitials(name: string) {
   return name
@@ -42,6 +47,8 @@ export default function PublicProfilePage({
   const { id: rawId } = use(params)
   const id = Number(rawId)
   const { data: profile, isLoading, isError, error } = usePublicProfile(id)
+  const importList = useImportFriendList(id)
+  const importNote = useImportFriendNote(id)
 
   if (!Number.isFinite(id)) {
     return <p className={styles.notice}>Invalid profile id.</p>
@@ -66,6 +73,21 @@ export default function PublicProfilePage({
   }
 
   const socialUser = toSocialUser(profile)
+  const isFriend = profile.friendshipState === "FRIENDS"
+
+  function handleImportList(listId: number, name: string) {
+    importList.mutate(listId, {
+      onSuccess: () => toast.success(`Imported "${name}" into your lists`),
+      onError: (err) => toast.error(errorMessage(err, "Failed to import list")),
+    })
+  }
+
+  function handleImportNote(noteId: number, title: string) {
+    importNote.mutate(noteId, {
+      onSuccess: () => toast.success(`Imported "${title}" into your notes`),
+      onError: (err) => toast.error(errorMessage(err, "Failed to import note")),
+    })
+  }
   const statCards = profile.stats
     ? [
         { label: "Solved", value: profile.stats.totalSolved, icon: <Trophy size={16} /> },
@@ -184,7 +206,20 @@ export default function PublicProfilePage({
                             {list.remainingProblems} remaining
                           </p>
                         </div>
-                        {list.isDefault ? <Badge variant="secondary">Default</Badge> : null}
+                        <div className={styles.rowActions}>
+                          {list.isDefault ? <Badge variant="secondary">Default</Badge> : null}
+                          {isFriend ? (
+                            <Button
+                              variant="outline"
+                              size="xs"
+                              disabled={importList.isPending}
+                              onClick={() => handleImportList(list.id, list.name)}
+                            >
+                              <Download size={14} />
+                              Import
+                            </Button>
+                          ) : null}
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -214,11 +249,27 @@ export default function PublicProfilePage({
                       <p className={styles.rowTitle}>{note.title}</p>
                       <Badge variant="outline">{note.tag}</Badge>
                     </div>
-                    <p className={styles.rowBody}>{note.content}</p>
-                    <p className={styles.rowMeta}>
-                      <NotebookPen size={14} />
-                      {new Date(note.dateTime).toLocaleDateString()}
+                    <p className={styles.rowBody}>
+                      <Lock size={14} />
+                      Content is private. Import it to read the full note.
                     </p>
+                    <div className={styles.rowMeta}>
+                      <span className={styles.rowMetaDate}>
+                        <NotebookPen size={14} />
+                        {new Date(note.dateTime).toLocaleDateString()}
+                      </span>
+                      {isFriend ? (
+                        <Button
+                          variant="outline"
+                          size="xs"
+                          disabled={importNote.isPending}
+                          onClick={() => handleImportNote(note.id, note.title)}
+                        >
+                          <Download size={14} />
+                          Import
+                        </Button>
+                      ) : null}
+                    </div>
                   </div>
                 ))}
               </div>

@@ -497,6 +497,26 @@ export function sendFriendRequest(
   })
 }
 
+export function importFriendList(
+  token: string | undefined,
+  userId: number,
+  listId: number,
+): Promise<ProblemListDto> {
+  return apiFetch(`/api/users/${userId}/lists/${listId}/import`, token, {
+    method: "POST",
+  })
+}
+
+export function importFriendNote(
+  token: string | undefined,
+  userId: number,
+  noteId: number,
+): Promise<NoteDto> {
+  return apiFetch(`/api/users/${userId}/notes/${noteId}/import`, token, {
+    method: "POST",
+  })
+}
+
 export function acceptFriendRequest(
   token: string | undefined,
   requestId: number,

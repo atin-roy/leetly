@@ -121,8 +121,7 @@ public class PublicProfileService {
                 note.getProblem() != null ? note.getProblem().getId() : null,
                 note.getDateTime(),
                 note.getTag(),
-                note.getTitle(),
-                note.getContent()
+                note.getTitle()
         );
     }
 

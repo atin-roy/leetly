@@ -340,7 +340,6 @@ export interface PublicNoteDto {
   dateTime: string
   tag: NoteTag
   title: string
-  content: string
 }
 
 export interface PublicUserProfileDto {

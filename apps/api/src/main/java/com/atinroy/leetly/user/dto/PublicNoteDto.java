@@ -9,6 +9,5 @@ public record PublicNoteDto(
         Long problemId,
         LocalDateTime dateTime,
         NoteTag tag,
-        String title,
-        String content
+        String title
 ) {}

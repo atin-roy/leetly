@@ -1,10 +1,15 @@
 package com.atinroy.leetly.user.controller;
 
 import com.atinroy.leetly.common.model.PagedResponse;
+import com.atinroy.leetly.note.dto.NoteDto;
+import com.atinroy.leetly.note.mapper.NoteMapper;
+import com.atinroy.leetly.user.dto.ProblemListDto;
 import com.atinroy.leetly.user.dto.PublicUserProfileDto;
 import com.atinroy.leetly.user.dto.SocialUserDto;
+import com.atinroy.leetly.user.mapper.ProblemListMapper;
 import com.atinroy.leetly.user.model.User;
 import com.atinroy.leetly.user.service.FriendshipService;
+import com.atinroy.leetly.user.service.ImportService;
 import com.atinroy.leetly.user.service.PublicProfileService;
 import com.atinroy.leetly.user.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +28,9 @@ public class PublicUserController {
     private final UserService userService;
     private final FriendshipService friendshipService;
     private final PublicProfileService publicProfileService;
+    private final ImportService importService;
+    private final ProblemListMapper problemListMapper;
+    private final NoteMapper noteMapper;
 
     @GetMapping
     public PagedResponse<SocialUserDto> discover(
@@ -58,5 +66,19 @@ public class PublicUserController {
                 view.state(),
                 view.requestId()
         );
+    }
+
+    @PostMapping("/{id}/lists/{listId}/import")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ProblemListDto importList(@AuthenticationPrincipal Jwt jwt, @PathVariable long id, @PathVariable long listId) {
+        User viewer = userService.requireBySubject(jwt);
+        return problemListMapper.toDto(importService.importList(viewer, id, listId));
+    }
+
+    @PostMapping("/{id}/notes/{noteId}/import")
+    @ResponseStatus(HttpStatus.CREATED)
+    public NoteDto importNote(@AuthenticationPrincipal Jwt jwt, @PathVariable long id, @PathVariable long noteId) {
+        User viewer = userService.requireBySubject(jwt);
+        return noteMapper.toDto(importService.importNote(viewer, id, noteId));
     }
 }

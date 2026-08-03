@@ -9,6 +9,8 @@ import {
   discoverUsers,
   getFriendOverview,
   getPublicUserProfile,
+  importFriendList,
+  importFriendNote,
   sendFriendRequest,
   unfriend,
 } from "@/lib/api"
@@ -88,5 +90,23 @@ export function useUnfriend() {
   return useMutation({
     mutationFn: (userId: number) => unfriend(session?.accessToken, userId),
     onSuccess: () => invalidateSocial(qc),
+  })
+}
+
+export function useImportFriendList(userId: number) {
+  const { session } = useAuth()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (listId: number) => importFriendList(session?.accessToken, userId, listId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["lists"] }),
+  })
+}
+
+export function useImportFriendNote(userId: number) {
+  const { session } = useAuth()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (noteId: number) => importFriendNote(session?.accessToken, userId, noteId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["notes"] }),
   })
 }
