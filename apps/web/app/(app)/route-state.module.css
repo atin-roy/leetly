@@ -1,0 +1,66 @@
+/* Shared by the shell's error and loading states. */
+
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2xs);
+  max-width: var(--measure);
+  padding-block: var(--space-xl);
+}
+
+.eyebrow {
+  font-family: var(--font-data);
+  font-size: var(--step--1);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: var(--step-3);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.body {
+  font-size: var(--step-0);
+  line-height: 1.55;
+  color: var(--muted-foreground);
+  text-wrap: pretty;
+}
+
+.digest {
+  font-family: var(--font-data);
+  font-size: var(--step--1);
+  color: var(--muted-foreground);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  margin-top: var(--space-sm);
+}
+
+/* ── Loading ─────────────────────────────────────────────────────────────── */
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.loadingHeader {
+  height: 5rem;
+}
+
+.loadingBlock {
+  height: 16rem;
+}
+
+.loadingStrip {
+  height: 4.5rem;
+}
