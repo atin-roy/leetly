@@ -1,0 +1,66 @@
+/*
+ * The colour theme for the tokens lives in globals.css under
+ * `.code-highlight`, shared with the markdown renderer. Only the frame is
+ * defined here.
+ */
+
+.block {
+  overflow: hidden;
+  border: var(--rule);
+  border-radius: var(--radius);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: var(--space-2xs) var(--space-sm);
+  border-bottom: var(--rule);
+}
+
+.language {
+  font-family: var(--font-data);
+  font-size: var(--step--2, 0.75rem);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+.copy {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font: inherit;
+  font-size: var(--step--2, 0.75rem);
+  color: var(--muted-foreground);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 120ms ease;
+}
+
+.copy:hover {
+  color: var(--foreground);
+}
+
+.pre {
+  overflow-x: auto;
+  padding: var(--space-xs) var(--space-md);
+  font-size: var(--step--1);
+  line-height: 1.6;
+}
+
+.code {
+  display: block;
+  min-width: 100%;
+  padding: 0;
+  background: transparent;
+  font-family: var(--font-data);
+  font-size: 0.8125rem;
+}
+
+.tableWrap {
+  margin-block: var(--space-lg);
+  overflow-x: auto;
+}
