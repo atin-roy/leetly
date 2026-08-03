@@ -1,0 +1,328 @@
+/*
+ * Notes. Same header + facts + filter-bar + library spine as problems and
+ * lists. The previous version opened with a gradient hero, an "explorer"
+ * card describing its own controls, and a footer restating total/page counts
+ * the facts and pager already carry.
+ */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  padding-bottom: var(--space-md);
+}
+
+/* ── Header ──────────────────────────────────────────────────────────────── */
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+@media (min-width: 900px) {
+  .header {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+}
+
+.eyebrow {
+  font-family: var(--font-data);
+  font-size: var(--step--2);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+.title {
+  margin-top: var(--space-2xs);
+  font-family: var(--font-display);
+  font-size: var(--step-3);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.lede {
+  margin-top: var(--space-2xs);
+  max-width: 44ch;
+  font-size: var(--step--1);
+  line-height: 1.55;
+  color: var(--muted-foreground);
+  text-wrap: pretty;
+}
+
+.actions {
+  display: flex;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  gap: var(--space-2xs);
+}
+
+/* ── Fact strip ──────────────────────────────────────────────────────────── */
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-md) var(--space-lg);
+  padding-block: var(--space-md);
+  border-block: var(--rule);
+}
+
+@media (min-width: 640px) {
+  .facts {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.fact {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.factLabel {
+  font-family: var(--font-data);
+  font-size: var(--step--2);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+.factValue {
+  font-family: var(--font-data);
+  font-size: var(--step-2);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+/* ── Filter bar ──────────────────────────────────────────────────────────── */
+
+.bar {
+  display: grid;
+  gap: var(--space-sm);
+}
+
+@media (min-width: 720px) {
+  .bar {
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) auto;
+    align-items: end;
+  }
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+  min-width: 0;
+}
+
+.label {
+  font-family: var(--font-data);
+  font-size: var(--step--2);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+.searchWrap {
+  position: relative;
+}
+
+.searchIcon {
+  position: absolute;
+  top: 50%;
+  left: var(--space-sm);
+  translate: 0 -50%;
+  color: var(--muted-foreground);
+  pointer-events: none;
+}
+
+.search {
+  height: var(--control-h-lg);
+  padding-left: 2.25rem;
+  border-radius: var(--radius-md);
+  box-shadow: none;
+}
+
+.select {
+  height: var(--control-h-lg);
+  border-radius: var(--radius-md);
+  box-shadow: none;
+}
+
+.clear {
+  height: var(--control-h-lg);
+  justify-self: start;
+}
+
+/* ── Library shell ───────────────────────────────────────────────────────── */
+
+.libraryShell {
+  overflow: hidden;
+  border: var(--rule);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-panel);
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  min-height: 16rem;
+  padding: var(--space-xl) var(--space-lg);
+  text-align: center;
+  color: var(--muted-foreground);
+}
+
+/* ── Table shell ──────────────────────────────────────────────────────────── */
+
+.cardActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2xs);
+}
+
+.iconButton {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 9999px;
+  color: var(--muted-foreground);
+}
+
+.iconButton:hover:not(:disabled) {
+  background: var(--accent);
+  color: var(--foreground);
+}
+
+.iconButtonDanger:hover:not(:disabled) {
+  color: var(--destructive);
+}
+
+.tag {
+  border-radius: 9999px;
+}
+
+/* ── Desktop table ───────────────────────────────────────────────────────── */
+
+.table {
+  display: none;
+}
+
+@media (min-width: 900px) {
+  .cards {
+    display: none;
+  }
+
+  .table {
+    display: table;
+  }
+}
+
+.headRow {
+  border-bottom: var(--rule);
+  background: color-mix(in oklch, var(--background) 65%, transparent);
+}
+
+.headCell {
+  padding-block: var(--cell-pad-y);
+}
+
+.row {
+  height: var(--row-h-compact);
+  border-bottom: var(--rule);
+  cursor: pointer;
+  transition: background-color 120ms ease;
+}
+
+.row:hover {
+  background: color-mix(in oklch, var(--accent) 25%, transparent);
+}
+
+.cell {
+  padding-block: var(--cell-pad-y);
+}
+
+.rowTitle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--step-0);
+  font-weight: 600;
+}
+
+.rowExcerpt {
+  margin-top: 0.125rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 32rem;
+  font-size: var(--step--1);
+  color: var(--muted-foreground);
+}
+
+/* ── Pagination ──────────────────────────────────────────────────────────── */
+
+.pager {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+@media (min-width: 640px) {
+  .pager {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.pagerStatus {
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--step--1);
+  color: var(--muted-foreground);
+}
+
+.pagerButtons {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-xs);
+}
+
+@media (min-width: 640px) {
+  .pagerButtons {
+    display: flex;
+  }
+}
+
+/* ── Skeleton ────────────────────────────────────────────────────────────── */
+
+.skeletonPage {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.skeletonHeader {
+  height: 5rem;
+}
+
+.skeletonFacts {
+  height: 4.5rem;
+}
+
+.skeletonBar {
+  height: 3.25rem;
+}
+
+.skeletonLibrary {
+  height: 30rem;
+}

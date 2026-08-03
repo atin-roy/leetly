@@ -1,5 +1,8 @@
 import { Clock, Check, AlertCircle } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { cn } from "@/lib/utils"
+import tones from "@/components/ui/tone.module.css"
+import styles from "./review-indicator.module.css"
 import type { ReviewCardSummary } from "@/lib/types"
 
 interface Props {
@@ -16,26 +19,26 @@ export function ReviewIndicator({ reviewCard }: Props) {
 
   let icon: React.ReactNode
   let tooltip: string
-  let colorClass: string
+  let tone: string
 
   if (isOverdue) {
-    icon = <AlertCircle className="h-4 w-4" />
+    icon = <AlertCircle size={16} />
     tooltip = "Overdue for review"
-    colorClass = "text-red-500"
+    tone = tones.red
   } else if (isDueToday) {
-    icon = <Clock className="h-4 w-4" />
+    icon = <Clock size={16} />
     tooltip = "Due for review today"
-    colorClass = "text-orange-500"
+    tone = tones.amber
   } else {
-    icon = <Check className="h-4 w-4" />
+    icon = <Check size={16} />
     tooltip = `Next review: ${due.toLocaleDateString()}`
-    colorClass = "text-green-500"
+    tone = tones.green
   }
 
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <span className={`inline-flex ${colorClass}`}>{icon}</span>
+        <span className={cn(styles.icon, tones.toneText, tone)}>{icon}</span>
       </TooltipTrigger>
       <TooltipContent>{tooltip}</TooltipContent>
     </Tooltip>

@@ -6,6 +6,7 @@ import tone from "@/components/ui/tone.module.css"
 import { useQuickReview } from "@/hooks/use-reviews"
 import type { Rating } from "@/lib/types"
 import { cn } from "@/lib/utils"
+import styles from "./quick-review-buttons.module.css"
 
 const RATINGS: { value: Rating; label: string; className: string }[] = [
   { value: "AGAIN", label: "Again", className: cn(tone.toneButton, tone.red) },
@@ -39,7 +40,7 @@ export function QuickReviewButtons({
   }
 
   return (
-    <div className={cn("flex flex-wrap gap-2", className)}>
+    <div className={cn(styles.row, className)}>
       {RATINGS.map(({ value, label, className: toneClassName }) => (
         <Button
           key={value}
@@ -47,7 +48,7 @@ export function QuickReviewButtons({
           size={size}
           disabled={reviewMutation.isPending}
           onClick={() => handleReview(value)}
-          className={cn("min-w-0 flex-1", toneClassName, buttonClassName)}
+          className={cn(styles.button, toneClassName, buttonClassName)}
         >
           {label}
         </Button>

@@ -1,7 +1,6 @@
 "use client"
 
 import Link from "next/link"
-import type { ComponentType } from "react"
 import { useState } from "react"
 import {
   differenceInCalendarDays,
@@ -10,13 +9,7 @@ import {
   parseISO,
   startOfToday,
 } from "date-fns"
-import {
-  ArrowRight,
-  CircleAlert,
-  ExternalLink,
-  Layers3,
-  Sparkles,
-} from "lucide-react"
+import { ArrowRight, ExternalLink } from "lucide-react"
 import { AttemptForm } from "@/components/problems/attempt-form"
 import { DifficultyBadge } from "@/components/problems/difficulty-badge"
 import { QuickReviewButtons } from "@/components/review/quick-review-buttons"
@@ -130,29 +123,6 @@ export default function ReviewPage() {
                 ))}
               </div>
             )}
-          </section>
-
-          <section>
-            <div className={styles.sectionHead}>
-              <h2 className={styles.sectionTitle}>How to work the queue</h2>
-            </div>
-            <div className={styles.guide}>
-              <GuideRow
-                icon={CircleAlert}
-                title="Clear overdue first"
-                body="Oldest first. The longer a card sits past due, the less its schedule means."
-              />
-              <GuideRow
-                icon={Sparkles}
-                title="Use quick ratings for recall"
-                body="If you can explain the approach and the edge cases without opening it, rate it and move on."
-              />
-              <GuideRow
-                icon={Layers3}
-                title="Log full attempts selectively"
-                body="Only when you could not recall it, could not code it, or made the same mistake again."
-              />
-            </div>
           </section>
         </div>
       </div>
@@ -271,26 +241,6 @@ function ReviewCardRow({
   )
 }
 
-function GuideRow({
-  icon: Icon,
-  title,
-  body,
-}: {
-  icon: ComponentType<{ size?: number; className?: string }>
-  title: string
-  body: string
-}) {
-  return (
-    <div className={styles.guideRow}>
-      <Icon size={16} className={styles.guideIcon} aria-hidden="true" />
-      <div>
-        <p className={styles.guideTitle}>{title}</p>
-        <p className={styles.guideBody}>{body}</p>
-      </div>
-    </div>
-  )
-}
-
 function EmptyReviewState() {
   return (
     <div className={styles.empty}>
@@ -315,7 +265,6 @@ function ReviewPageSkeleton() {
       <Skeleton className={styles.skeletonFacts} />
       <div className={styles.skeletonBody}>
         <Skeleton className={styles.skeletonList} />
-        <Skeleton className={styles.skeletonAside} />
       </div>
     </div>
   )

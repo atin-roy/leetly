@@ -7,7 +7,6 @@ import { format } from "date-fns"
 import { ChevronDown } from "lucide-react"
 import { z } from "zod"
 import { toast } from "sonner"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -19,7 +18,6 @@ import {
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -39,7 +37,9 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Textarea } from "@/components/ui/textarea"
 import { useLogAttempt, useMistakeOptions, useUpdateAttempt } from "@/hooks/use-attempts"
 import { useSettings } from "@/hooks/use-settings"
+import { cn } from "@/lib/utils"
 import type { AttemptDto, Language, MistakeType } from "@/lib/types"
+import styles from "./attempt-form.module.css"
 
 const LANGUAGES = [
   "JAVA",
@@ -350,11 +350,8 @@ function ComplexityPicker({
   )
 
   return (
-    <div className="grid gap-2">
-      <div className="space-y-1">
-        <FormLabel className="text-sm font-semibold">{label}</FormLabel>
-        <FormDescription>{description}</FormDescription>
-      </div>
+    <div className={styles.field}>
+      <FormLabel className={styles.fieldLabel}>{label}</FormLabel>
 
       <Popover
         open={open}
@@ -366,37 +363,29 @@ function ComplexityPicker({
         }}
       >
         <PopoverTrigger asChild>
-          <button
-            type="button"
-            className="flex h-11 w-full items-center justify-between rounded-md border border-input bg-background px-3 text-left font-mono text-sm shadow-sm outline-none transition-all hover:border-primary/35 focus-visible:ring-2 focus-visible:ring-ring/40"
-          >
-            <span className={value ? "text-foreground" : "text-muted-foreground"}>
+          <button type="button" className={styles.complexityTrigger}>
+            <span className={value ? styles.complexityValue : styles.complexityPlaceholder}>
               {value || placeholder}
             </span>
-            <ChevronDown className="size-4 text-muted-foreground" />
+            <ChevronDown size={16} />
           </button>
         </PopoverTrigger>
-        <PopoverContent
-          align="start"
-          className="w-[min(32rem,calc(100vw-4rem))] rounded-2xl border-border/70 bg-background/98 p-4"
-        >
-          <div className="mb-3 space-y-1">
-            <p className="text-sm font-semibold">{label}</p>
-            <p className="text-sm text-muted-foreground">
-              Search with `n^2`, `n^3`, `v^2`, or pick the closest shorthand.
-            </p>
+        <PopoverContent align="start" className={styles.complexityPopover}>
+          <div>
+            <p className={styles.complexityPopoverTitle}>{label}</p>
+            <p className={styles.complexityPopoverNote}>{description}</p>
           </div>
           <Input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Search complexity, e.g. O(n^2)"
-            className="mb-3 h-10 bg-background font-mono text-sm"
+            className={styles.complexitySearch}
             autoCapitalize="off"
             autoCorrect="off"
             spellCheck={false}
           />
-          <ScrollArea className="h-72 pr-3">
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+          <ScrollArea className={styles.complexityScroll}>
+            <div className={styles.complexityGrid}>
               {filteredOptions.map((option) => {
                 const active = value === option
                 return (
@@ -410,16 +399,14 @@ function ComplexityPicker({
                       setOpen(false)
                       setQuery("")
                     }}
-                    className="h-10 justify-center rounded-xl px-3 font-mono text-xs"
+                    className={styles.complexityOption}
                   >
                     {option}
                   </Button>
                 )
               })}
               {filteredOptions.length === 0 ? (
-                <p className="col-span-full py-4 text-center text-sm text-muted-foreground">
-                  No complexity matches that search.
-                </p>
+                <p className={styles.complexityEmpty}>No complexity matches that search.</p>
               ) : null}
             </div>
           </ScrollArea>
@@ -548,493 +535,349 @@ export function AttemptForm({ open, onOpenChange, problemId, attempt }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex h-[92vh] w-[96vw] max-w-[1180px] flex-col gap-0 overflow-hidden rounded-[32px] border border-border/70 bg-background p-0 shadow-(--shadow-float) sm:max-w-[1180px] [&>[data-slot=dialog-close]]:top-6 [&>[data-slot=dialog-close]]:right-6 [&>[data-slot=dialog-close]]:rounded-full [&>[data-slot=dialog-close]]:border [&>[data-slot=dialog-close]]:border-border/70 [&>[data-slot=dialog-close]]:bg-background/95 [&>[data-slot=dialog-close]]:p-2 [&>[data-slot=dialog-close]]:text-foreground/70 [&>[data-slot=dialog-close]]:shadow-sm">
-        <DialogHeader className="border-b border-border/70 bg-[linear-gradient(180deg,color-mix(in_oklab,var(--card)_92%,white_8%),var(--background))] px-6 py-6 sm:px-8">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div className="max-w-3xl space-y-3">
-              <div className="flex flex-wrap items-center gap-2">
-                <Badge variant="secondary" className="rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.18em]">
-                  Attempt Log
-                </Badge>
-                <Badge variant="outline" className="rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.18em]">
-                  {isEdit ? "Editing Existing Entry" : "New Solve Reflection"}
-                </Badge>
-              </div>
-              <div className="space-y-2">
-                <DialogTitle className="text-2xl font-semibold tracking-tight sm:text-[2rem]">
-                  {isEdit ? "Refine your attempt" : "Capture the attempt while it is still fresh"}
-                </DialogTitle>
-                <DialogDescription className="max-w-2xl text-sm leading-6 text-muted-foreground sm:text-[15px]">
-                  Record the core outcome first, then add timing, implementation notes, and the one or two lessons worth keeping.
-                </DialogDescription>
-              </div>
-            </div>
-
-            <div className="grid min-w-[220px] gap-2 rounded-2xl border border-border/70 bg-background/90 px-4 py-3 shadow-sm">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                Suggested order
-              </p>
-              <p className="text-sm text-foreground">Summary, timer, implementation notes, then retrospective.</p>
-            </div>
-          </div>
+      <DialogContent className={styles.dialog}>
+        <DialogHeader className={styles.head}>
+          <DialogTitle className={styles.headTitle}>
+            {isEdit ? "Edit attempt" : "Log an attempt"}
+          </DialogTitle>
+          <DialogDescription className={styles.headDescription}>
+            Capture the result, then whatever is still worth remembering next time.
+          </DialogDescription>
         </DialogHeader>
 
-        <div className="border-b border-border/70 bg-muted/20 px-6 py-3 text-sm text-muted-foreground sm:px-8">
-          Optional fields can stay blank. If you use both timer stamps and manual time, captured timestamps take priority.
-        </div>
-
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="flex min-h-0 flex-1 flex-col overflow-hidden">
-            <div className="min-h-0 flex-1 overflow-y-auto">
-              <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-6 sm:px-8 sm:py-8">
-                <section className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_320px]">
-                  <div className="rounded-3xl border border-border/70 bg-card/70 p-6 shadow-sm">
-                    <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
-                      <div className="space-y-2">
-                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                          Step 1
-                        </p>
-                        <div className="space-y-1">
-                          <h2 className="text-lg font-semibold tracking-tight">Core attempt details</h2>
-                          <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
-                            Start with the facts you will want later: language, result, and rough complexity.
-                          </p>
-                        </div>
-                      </div>
-                      <Badge variant="outline" className="rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.18em]">
-                        Primary details
-                      </Badge>
-                    </div>
-
-                    <div className="grid gap-5 md:grid-cols-2">
-                      <FormField
-                        control={form.control}
-                        name="language"
-                        render={({ field }) => (
-                          <FormItem className="rounded-2xl border border-border/70 bg-background/80 p-4">
-                            <FormLabel className="text-sm font-semibold">Language</FormLabel>
-                            <FormDescription>Which language you used for the solve.</FormDescription>
-                            <Select onValueChange={field.onChange} value={field.value}>
-                              <FormControl>
-                                <SelectTrigger className="h-11 bg-background">
-                                  <SelectValue />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {LANGUAGE_OPTIONS.map((language) => (
-                                  <SelectItem key={language.value} value={language.value}>
-                                    {language.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="outcome"
-                        render={({ field }) => (
-                          <FormItem className="rounded-2xl border border-border/70 bg-background/80 p-4">
-                            <FormLabel className="text-sm font-semibold">Outcome</FormLabel>
-                            <FormDescription>How the attempt finished.</FormDescription>
-                            <Select onValueChange={field.onChange} value={field.value}>
-                              <FormControl>
-                                <SelectTrigger className="h-11 bg-background">
-                                  <SelectValue />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {OUTCOMES.map((outcome) => (
-                                  <SelectItem key={outcome.value} value={outcome.value}>
-                                    {outcome.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="timeComplexity"
-                        render={({ field }) => (
-                          <FormItem className="rounded-2xl border border-border/70 bg-background/80 p-4">
-                            <ComplexityPicker
-                              label="Time complexity"
-                              description="Use a shorthand estimate if exact analysis is not the point."
-                              value={field.value ?? ""}
-                              options={TIME_COMPLEXITY_OPTIONS}
-                              placeholder="Choose a time complexity"
-                              onSelect={field.onChange}
-                            />
+          <form onSubmit={form.handleSubmit(onSubmit)} className={styles.form}>
+            <div className={styles.scroll}>
+              <div className={styles.scrollInner}>
+                <div className={styles.group}>
+                  <div className={styles.row}>
+                    <FormField
+                      control={form.control}
+                      name="language"
+                      render={({ field }) => (
+                        <FormItem className={styles.field}>
+                          <FormLabel className={styles.fieldLabel}>Language</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
-                              <input type="hidden" value={field.value ?? ""} onChange={field.onChange} />
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
                             </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                            <SelectContent>
+                              {LANGUAGE_OPTIONS.map((language) => (
+                                <SelectItem key={language.value} value={language.value}>
+                                  {language.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                      <FormField
-                        control={form.control}
-                        name="spaceComplexity"
-                        render={({ field }) => (
-                          <FormItem className="rounded-2xl border border-border/70 bg-background/80 p-4">
-                            <ComplexityPicker
-                              label="Space complexity"
-                              description="Only add what materially helps future review."
-                              value={field.value ?? ""}
-                              options={SPACE_COMPLEXITY_OPTIONS}
-                              placeholder="Choose a space complexity"
-                              onSelect={field.onChange}
-                            />
+                    <FormField
+                      control={form.control}
+                      name="outcome"
+                      render={({ field }) => (
+                        <FormItem className={styles.field}>
+                          <FormLabel className={styles.fieldLabel}>Outcome</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
-                              <input type="hidden" value={field.value ?? ""} onChange={field.onChange} />
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
                             </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="mistakes"
-                        render={({ field }) => {
-                          const selectedMistakes = field.value ?? []
-
-                          function toggleMistake(mistake: string) {
-                            const nextValue = selectedMistakes.includes(mistake)
-                              ? selectedMistakes.filter((value) => value !== mistake)
-                              : [...selectedMistakes, mistake]
-                            field.onChange(nextValue)
-                          }
-
-                          return (
-                            <FormItem className="rounded-2xl border border-border/70 bg-background/80 p-4 md:col-span-2">
-                              <div className="flex flex-wrap items-center justify-between gap-3">
-                                <div>
-                                  <FormLabel className="text-sm font-semibold">Mistakes that mattered</FormLabel>
-                                  <FormDescription>
-                                    Tag the mistakes that explain the result so the top section carries the important context.
-                                  </FormDescription>
-                                </div>
-                                <Badge variant="secondary" className="rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.18em]">
-                                  {selectedMistakes.length} selected
-                                </Badge>
-                              </div>
-                              <FormControl>
-                                <div className="mt-2 rounded-2xl border border-dashed border-border/80 bg-muted/15 p-3">
-                                  {mistakesLoading ? (
-                                    <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                                      {Array.from({ length: 8 }).map((_, index) => (
-                                        <Skeleton key={index} className="h-10 w-full rounded-full" />
-                                      ))}
-                                    </div>
-                                  ) : mistakeOptions?.length ? (
-                                    <div className="flex flex-wrap gap-2">
-                                      {mistakeOptions.map((mistake) => {
-                                        const active = selectedMistakes.includes(mistake.value)
-                                        return (
-                                          <Button
-                                            key={mistake.value}
-                                            type="button"
-                                            size="sm"
-                                            variant={active ? "default" : "outline"}
-                                            aria-pressed={active}
-                                            onClick={() => toggleMistake(mistake.value)}
-                                            className="min-h-9 rounded-full px-4 text-xs"
-                                          >
-                                            {mistake.label || MISTAKE_LABELS[mistake.value]}
-                                          </Button>
-                                        )
-                                      })}
-                                    </div>
-                                  ) : (
-                                    <p className="text-sm text-muted-foreground">No mistake options available.</p>
-                                  )}
-                                </div>
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )
-                        }}
-                      />
-                    </div>
+                            <SelectContent>
+                              {OUTCOMES.map((outcome) => (
+                                <SelectItem key={outcome.value} value={outcome.value}>
+                                  {outcome.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </div>
 
-                  <aside className="rounded-3xl border border-border/70 bg-[linear-gradient(180deg,color-mix(in_oklab,var(--card)_86%,white_14%),var(--card))] p-6 shadow-sm">
-                    <div className="space-y-5">
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between gap-3">
-                          <div>
-                            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                              Step 2
-                            </p>
-                            <h2 className="mt-1 text-lg font-semibold tracking-tight">Solve timer</h2>
-                          </div>
-                          <Badge
-                            variant={timerStatus === "Live" ? "default" : "outline"}
-                            className="rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.18em]"
-                          >
-                            {timerStatus}
-                          </Badge>
-                        </div>
-                        <p className="text-sm leading-6 text-muted-foreground">
-                          Use the live timer or enter a manual duration if you only need a rough number.
-                        </p>
-                      </div>
+                  <div className={cn(styles.row, styles.rowGap)}>
+                    <FormField
+                      control={form.control}
+                      name="timeComplexity"
+                      render={({ field }) => (
+                        <FormItem>
+                          <ComplexityPicker
+                            label="Time complexity"
+                            description="Search with n^2, v^2, or pick the closest shorthand."
+                            value={field.value ?? ""}
+                            options={TIME_COMPLEXITY_OPTIONS}
+                            placeholder="Optional"
+                            onSelect={field.onChange}
+                          />
+                          <FormControl>
+                            <input type="hidden" value={field.value ?? ""} onChange={field.onChange} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                      <div className="rounded-2xl border border-border/70 bg-background/90 p-5">
-                        <p className="text-4xl font-semibold tabular-nums tracking-tight sm:text-5xl">
-                          {formatElapsed(elapsedSeconds)}
-                        </p>
-                        <p className="mt-2 text-sm text-muted-foreground">
-                          {timerActive
-                            ? "Timer is running now."
-                            : startedAt && endedAt
-                              ? "Captured from recorded start and end times."
-                              : "No live timer running yet."}
-                        </p>
-                      </div>
+                    <FormField
+                      control={form.control}
+                      name="spaceComplexity"
+                      render={({ field }) => (
+                        <FormItem>
+                          <ComplexityPicker
+                            label="Space complexity"
+                            description="Only add what materially helps future review."
+                            value={field.value ?? ""}
+                            options={SPACE_COMPLEXITY_OPTIONS}
+                            placeholder="Optional"
+                            onSelect={field.onChange}
+                          />
+                          <FormControl>
+                            <input type="hidden" value={field.value ?? ""} onChange={field.onChange} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
 
-                      <div className="grid gap-2 sm:grid-cols-3 xl:grid-cols-1">
-                        <Button type="button" className="h-11" onClick={handleStartSolving}>
-                          Start timer
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          className="h-11"
-                          onClick={handleEndSolving}
-                          disabled={!startedAt || Boolean(endedAt)}
-                        >
-                          Stop timer
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          className="h-11"
-                          onClick={handleResetTimer}
-                          disabled={!startedAt && !endedAt}
-                        >
-                          Clear timer
-                        </Button>
-                      </div>
-
-                      <FormField
-                        control={form.control}
-                        name="durationMinutes"
-                        render={({ field }) => (
-                          <FormItem className="rounded-2xl border border-border/70 bg-background/80 p-4">
-                            <FormLabel className="text-sm font-semibold">Manual duration</FormLabel>
-                            <FormDescription>Entering minutes clears existing start and end timestamps.</FormDescription>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                min={0}
-                                step={1}
-                                value={field.value ?? ""}
-                                onChange={(e) => handleManualDurationChange(e.target.value, field.onChange)}
-                                placeholder="Minutes spent"
-                                className="h-11 bg-background"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <div className="grid gap-3">
-                        <div className="rounded-2xl border border-border/70 bg-background/80 p-4">
-                          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                            Started
-                          </p>
-                          <p className="mt-2 text-sm text-foreground">{formatTimestamp(startedAt)}</p>
-                        </div>
-                        <div className="rounded-2xl border border-border/70 bg-background/80 p-4">
-                          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                            Ended
-                          </p>
-                          <p className="mt-2 text-sm text-foreground">{formatTimestamp(endedAt)}</p>
-                        </div>
-                      </div>
-                    </div>
-                  </aside>
-                </section>
-
-                <section className="rounded-3xl border border-border/70 bg-card/70 p-6 shadow-sm">
-                  <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
-                    <div className="space-y-2">
-                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                        Step 3
+                <div className={styles.group}>
+                  <p className={styles.groupLabel}>Timer</p>
+                  <div className={styles.timerRow}>
+                    <div className={styles.timerReadout}>
+                      <p className={styles.timerValue}>{formatElapsed(elapsedSeconds)}</p>
+                      <p className={styles.timerCaption}>
+                        {timerActive ? "Running" : timerStatus === "Captured" ? "Captured" : "Idle"}
                       </p>
-                      <div className="space-y-1">
-                        <h2 className="text-lg font-semibold tracking-tight">Implementation snapshot</h2>
-                        <p className="max-w-3xl text-sm leading-6 text-muted-foreground">
-                          Keep this concise. Capture the strategy you took and the smallest useful code snippet or fragment.
-                        </p>
-                      </div>
                     </div>
-                    <Badge variant="outline" className="rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.18em]">
-                      Concise notes
-                    </Badge>
+                    <div className={styles.timerActions}>
+                      <Button type="button" size="sm" onClick={handleStartSolving}>
+                        Start
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="secondary"
+                        onClick={handleEndSolving}
+                        disabled={!startedAt || Boolean(endedAt)}
+                      >
+                        Stop
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={handleResetTimer}
+                        disabled={!startedAt && !endedAt}
+                      >
+                        Clear
+                      </Button>
+                    </div>
                   </div>
 
-                  <div className="grid gap-5 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
-                    <FormField
-                      control={form.control}
-                      name="approach"
-                      render={({ field }) => (
-                        <FormItem className="rounded-2xl border border-border/70 bg-background/80 p-4">
-                          <FormLabel className="text-sm font-semibold">Approach</FormLabel>
-                          <FormDescription>
-                            High-level strategy, tradeoffs, edge cases, or where the plan broke down.
-                          </FormDescription>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              value={field.value ?? ""}
-                              placeholder="Binary search on answer, then validate with a greedy pass."
-                              className="h-11 bg-background"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                  <FormField
+                    control={form.control}
+                    name="durationMinutes"
+                    render={({ field }) => (
+                      <FormItem className={styles.timerManual}>
+                        <FormLabel className={styles.timerManualLabel}>or minutes</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min={0}
+                            step={1}
+                            value={field.value ?? ""}
+                            onChange={(e) => handleManualDurationChange(e.target.value, field.onChange)}
+                            placeholder="e.g. 18"
+                            className={styles.timerManualInput}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                    <FormField
-                      control={form.control}
-                      name="code"
-                      render={({ field }) => (
-                        <FormItem className="rounded-2xl border border-border/70 bg-background/80 p-4">
-                          <FormLabel className="text-sm font-semibold">Code snapshot</FormLabel>
-                          <FormDescription>
-                            Paste only the most useful excerpt, not the entire submission.
-                          </FormDescription>
-                          <FormControl>
-                            <Textarea
-                              {...field}
-                              value={field.value ?? ""}
-                              placeholder="if (freq.get(char) > 1) { left++; }"
-                              rows={1}
-                              className="min-h-11 resize-y bg-background font-mono text-sm leading-6 whitespace-pre"
-                              autoCapitalize="off"
-                              autoCorrect="off"
-                              spellCheck={false}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </section>
-
-                <section className="rounded-3xl border border-border/70 bg-card/70 p-6 shadow-sm">
-                  <div className="mb-6 space-y-2">
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                      Step 4
+                  {startedAt ? (
+                    <p className={styles.fieldHint}>
+                      {formatTimestamp(startedAt)} &rarr; {endedAt ? formatTimestamp(endedAt) : "now"}
                     </p>
-                    <div className="space-y-1">
-                      <h2 className="text-lg font-semibold tracking-tight">Retrospective</h2>
-                      <p className="max-w-3xl text-sm leading-6 text-muted-foreground">
-                        Select the mistakes that actually mattered, then keep the written takeaways short enough to reread later.
-                      </p>
-                    </div>
-                  </div>
+                  ) : null}
+                </div>
 
-                  <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-                    <div className="grid gap-5 md:col-span-2 xl:col-span-3 xl:grid-cols-3">
-                      <FormField
-                        control={form.control}
-                        name="learned"
-                        render={({ field }) => (
-                          <FormItem className="rounded-2xl border border-border/70 bg-background/80 p-4">
-                          <FormLabel className="text-sm font-semibold">Key insight</FormLabel>
-                          <FormDescription>The single lesson most worth revisiting.</FormDescription>
+                <div className={styles.group}>
+                  <FormField
+                    control={form.control}
+                    name="mistakes"
+                    render={({ field }) => {
+                      const selectedMistakes = field.value ?? []
+
+                      function toggleMistake(mistake: string) {
+                        const nextValue = selectedMistakes.includes(mistake)
+                          ? selectedMistakes.filter((value) => value !== mistake)
+                          : [...selectedMistakes, mistake]
+                        field.onChange(nextValue)
+                      }
+
+                      return (
+                        <FormItem>
+                          <div className={styles.mistakesHead}>
+                            <FormLabel className={styles.fieldLabel}>What went wrong</FormLabel>
+                            {selectedMistakes.length > 0 ? (
+                              <span className={styles.mistakesCount}>{selectedMistakes.length} selected</span>
+                            ) : null}
+                          </div>
                           <FormControl>
-                            <Input
-                              {...field}
-                              value={field.value ?? ""}
-                              placeholder="The invariant mattered more than the final loop structure."
-                              className="h-11 bg-background"
-                            />
+                            <div>
+                              {mistakesLoading ? (
+                                <div className={styles.mistakesSkeletonGrid}>
+                                  {Array.from({ length: 6 }).map((_, index) => (
+                                    <Skeleton key={index} className={styles.mistakesSkeletonPill} />
+                                  ))}
+                                </div>
+                              ) : mistakeOptions?.length ? (
+                                <div className={styles.mistakesRow}>
+                                  {mistakeOptions.map((mistake) => {
+                                    const active = selectedMistakes.includes(mistake.value)
+                                    return (
+                                      <Button
+                                        key={mistake.value}
+                                        type="button"
+                                        size="sm"
+                                        variant={active ? "default" : "outline"}
+                                        aria-pressed={active}
+                                        onClick={() => toggleMistake(mistake.value)}
+                                        className={styles.mistakeChip}
+                                      >
+                                        {mistake.label || MISTAKE_LABELS[mistake.value]}
+                                      </Button>
+                                    )
+                                  })}
+                                </div>
+                              ) : (
+                                <p className={styles.mistakesEmpty}>No mistake options available.</p>
+                              )}
+                            </div>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
-                      )}
-                    />
+                      )
+                    }}
+                  />
+                </div>
 
-                      <FormField
-                        control={form.control}
-                        name="takeaways"
-                        render={({ field }) => (
-                          <FormItem className="rounded-2xl border border-border/70 bg-background/80 p-4">
-                          <FormLabel className="text-sm font-semibold">Pattern to remember</FormLabel>
-                          <FormDescription>A reusable rule, trigger, or heuristic for next time.</FormDescription>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              value={field.value ?? ""}
-                              placeholder="If the answer is monotonic, test binary search on the answer."
-                              className="h-11 bg-background"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                <div className={styles.group}>
+                  <FormField
+                    control={form.control}
+                    name="approach"
+                    render={({ field }) => (
+                      <FormItem className={styles.field}>
+                        <FormLabel className={styles.fieldLabel}>Approach</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            value={field.value ?? ""}
+                            placeholder="Binary search on answer, then validate with a greedy pass."
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                      <FormField
-                        control={form.control}
-                        name="notes"
-                        render={({ field }) => (
-                          <FormItem className="rounded-2xl border border-border/70 bg-background/80 p-4">
-                          <FormLabel className="text-sm font-semibold">Anything worth preserving</FormLabel>
-                          <FormDescription>Small follow-ups, reminders, or context that does not fit above.</FormDescription>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              value={field.value ?? ""}
-                              placeholder="Retry once without looking at the editorial."
-                              className="h-11 bg-background"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    </div>
-                  </div>
-                </section>
+                  <FormField
+                    control={form.control}
+                    name="code"
+                    render={({ field }) => (
+                      <FormItem className={styles.field}>
+                        <FormLabel className={styles.fieldLabel}>Code snapshot</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            {...field}
+                            value={field.value ?? ""}
+                            placeholder="if (freq.get(char) > 1) { left++; }"
+                            rows={3}
+                            autoCapitalize="off"
+                            autoCorrect="off"
+                            spellCheck={false}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className={styles.group}>
+                  <FormField
+                    control={form.control}
+                    name="learned"
+                    render={({ field }) => (
+                      <FormItem className={styles.field}>
+                        <FormLabel className={styles.fieldLabel}>Key insight</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            value={field.value ?? ""}
+                            placeholder="The invariant mattered more than the final loop structure."
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="takeaways"
+                    render={({ field }) => (
+                      <FormItem className={styles.field}>
+                        <FormLabel className={styles.fieldLabel}>Pattern to remember</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            value={field.value ?? ""}
+                            placeholder="If the answer is monotonic, test binary search on the answer."
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="notes"
+                    render={({ field }) => (
+                      <FormItem className={styles.field}>
+                        <FormLabel className={styles.fieldLabel}>Anything else</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            value={field.value ?? ""}
+                            placeholder="Retry once without looking at the editorial."
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
               </div>
             </div>
 
-            <div className="flex shrink-0 flex-col gap-4 border-t border-border/70 bg-card/95 px-6 py-4 sm:px-8 lg:flex-row lg:items-center lg:justify-between">
-              <div className="space-y-1">
-                <p className="text-sm font-semibold text-foreground">Review for signal, not completeness.</p>
-                <p className="text-sm text-muted-foreground">
-                  The best attempt logs stay compact enough to scan quickly before a future retry.
-                </p>
-              </div>
-              <div className="flex flex-col-reverse gap-3 sm:flex-row">
-                <Button type="button" variant="outline" className="h-11 min-w-28" onClick={() => onOpenChange(false)}>
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  className="h-11 min-w-36"
-                  disabled={logMutation.isPending || updateMutation.isPending}
-                >
-                  {isEdit ? "Save Changes" : "Log Attempt"}
-                </Button>
-              </div>
+            <div className={styles.footer}>
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={logMutation.isPending || updateMutation.isPending}>
+                {isEdit ? "Save changes" : "Log attempt"}
+              </Button>
             </div>
           </form>
         </Form>
