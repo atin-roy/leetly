@@ -1,5 +1,6 @@
 export type ThemeId =
   | "default"
+  | "daylight"
   | "void"
   | "ember"
   | "arctic"
@@ -37,16 +38,16 @@ export interface Theme {
 export const THEMES: Theme[] = [
   {
     id: "default",
-    name: "Default",
-    description: "Clean neutral grayscale",
-    mode: "light",
+    name: "Instrument",
+    description: "Dark slate with a teal readout — the default",
+    mode: "dark",
     preview: {
-      bg: "oklch(1 0 0)",
-      sidebar: "oklch(0.985 0 0)",
-      card: "oklch(1 0 0)",
-      primary: "oklch(0.205 0 0)",
-      fg: "oklch(0.145 0 0)",
-      border: "oklch(0.922 0 0)",
+      bg: "oklch(0.17 0.008 200)",
+      sidebar: "oklch(0.14 0.008 200)",
+      card: "oklch(0.215 0.009 200)",
+      primary: "oklch(0.76 0.13 178)",
+      fg: "oklch(0.94 0.008 195)",
+      border: "oklch(0.3 0.011 200)",
     },
   },
   {
@@ -285,6 +286,20 @@ export const THEMES: Theme[] = [
       primary: "oklch(0.67 0.15 55)",
       fg: "oklch(0.31 0.03 58)",
       border: "oklch(0.88 0.025 92)",
+    },
+  },
+  {
+    id: "daylight",
+    name: "Daylight",
+    description: "The same palette read in daylight",
+    mode: "light",
+    preview: {
+      bg: "oklch(0.985 0.012 178)",
+      sidebar: "oklch(0.955 0.02 177)",
+      card: "oklch(0.997 0.006 178)",
+      primary: "oklch(0.56 0.13 174)",
+      fg: "oklch(0.19 0.035 182)",
+      border: "oklch(0.86 0.025 178)",
     },
   },
 ]

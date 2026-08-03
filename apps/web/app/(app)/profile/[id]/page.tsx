@@ -86,7 +86,7 @@ export default function PublicProfilePage({
         </Link>
       </Button>
 
-      <section className="overflow-hidden rounded-[2rem] border border-border/70 bg-[linear-gradient(135deg,color-mix(in_oklab,var(--background)_88%,var(--primary)_12%),color-mix(in_oklab,var(--background)_94%,var(--accent)_6%))] px-6 py-6 shadow-[0_24px_70px_rgba(0,0,0,0.08)]">
+      <section className="overflow-hidden rounded-[2rem] border border-border/70 bg-[linear-gradient(135deg,color-mix(in_oklab,var(--background)_88%,var(--primary)_12%),color-mix(in_oklab,var(--background)_94%,var(--accent)_6%))] px-6 py-6 shadow-(--shadow-float)">
         <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
           <div className="flex min-w-0 items-start gap-4">
             <Avatar className="h-20 w-20 border border-border/70 shadow-sm">

@@ -99,7 +99,7 @@
 .shortcut {
   margin-left: auto;
   font-family: var(--font-data);
-  font-size: var(--step--2, 0.75rem);
+  font-size: var(--step--2);
   letter-spacing: 0.1em;
   color: var(--muted-foreground);
 }

@@ -29,7 +29,7 @@
 
 .eyebrow {
   font-family: var(--font-data);
-  font-size: var(--step--2, 0.75rem);
+  font-size: var(--step--2);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--muted-foreground);
@@ -95,7 +95,7 @@
 
 .factLabel {
   font-family: var(--font-data);
-  font-size: var(--step--2, 0.75rem);
+  font-size: var(--step--2);
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--muted-foreground);
@@ -115,7 +115,7 @@
 }
 
 .factCaption {
-  font-size: var(--step--2, 0.75rem);
+  font-size: var(--step--2);
   color: var(--muted-foreground);
 }
 
@@ -150,7 +150,7 @@
 
 .sectionNote {
   font-family: var(--font-data);
-  font-size: var(--step--2, 0.75rem);
+  font-size: var(--step--2);
   color: var(--muted-foreground);
 }
 
@@ -183,14 +183,14 @@
 
 .queueIndex {
   font-family: var(--font-data);
-  font-size: var(--step--2, 0.75rem);
+  font-size: var(--step--2);
   font-variant-numeric: tabular-nums;
   color: var(--muted-foreground);
 }
 
 .problemId {
   font-family: var(--font-data);
-  font-size: var(--step--2, 0.75rem);
+  font-size: var(--step--2);
   color: var(--muted-foreground);
 }
 
@@ -242,7 +242,7 @@
   flex-wrap: wrap;
   gap: var(--space-2xs) var(--space-md);
   font-family: var(--font-data);
-  font-size: var(--step--2, 0.75rem);
+  font-size: var(--step--2);
   font-variant-numeric: tabular-nums;
   color: var(--muted-foreground);
 }

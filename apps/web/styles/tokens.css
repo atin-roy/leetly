@@ -8,12 +8,23 @@
  */
 
 :root {
-  /* Type roles */
-  --font-display: "Space Grotesk", "Avenir Next", ui-sans-serif, system-ui, sans-serif;
-  --font-body: "Inter", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
-  --font-data: "JetBrains Mono", "SFMono-Regular", ui-monospace, Menlo, Consolas, monospace;
+  /*
+   * Three roles, not three fonts for their own sake:
+   *   display — headings and page titles
+   *   body    — prose and labels, on the system stack (see app/layout.tsx)
+   *   data    — anything you'd compare between rows: ids, counts, durations,
+   *             code. This is the one that carries Direction B's instrument
+   *             feel, so it is a real typeface rather than a fallback chain.
+   *
+   * The *-loaded vars are set by next/font on <html>; the fallbacks after them
+   * are what renders if the font request fails, not the normal path.
+   */
+  --font-display: var(--font-display-loaded), "Avenir Next", ui-sans-serif, system-ui, sans-serif;
+  --font-body: ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+  --font-data: var(--font-data-loaded), "SFMono-Regular", ui-monospace, Menlo, Consolas, monospace;
 
   /* Type scale — 1.25 ratio, capped so long headings stay readable on phones */
+  --step--2: clamp(0.7rem, 0.69rem + 0.05vw, 0.74rem);
   --step--1: clamp(0.78rem, 0.76rem + 0.1vw, 0.83rem);
   --step-0: clamp(0.94rem, 0.92rem + 0.12vw, 1rem);
   --step-1: clamp(1.13rem, 1.06rem + 0.35vw, 1.33rem);
@@ -35,13 +46,56 @@
   --page-max: 72rem;
 
   --rule: 1px solid color-mix(in oklch, var(--border) 80%, transparent);
+
+  /*
+   * Elevation. Neutral black at low alpha, never a tinted one: the pages still
+   * on utility classes hardcode rgba(15,23,42,0.35), a slate-900 tint that
+   * casts a visibly blue shadow on the dark themes. Migrate those to these.
+   */
   --shadow-raised: 0 1px 2px oklch(0 0 0 / 0.04), 0 8px 24px oklch(0 0 0 / 0.06);
+  --shadow-panel: 0 18px 50px -36px oklch(0 0 0 / 0.45);
+  --shadow-float: 0 24px 70px -40px oklch(0 0 0 / 0.5);
+
+  /*
+   * Density. Direction B is a dense panel, but "dense" has to be one number
+   * used everywhere rather than a feeling applied per component — otherwise
+   * two tables built a month apart disagree by three pixels and the whole app
+   * reads as slightly untidy without it being obvious why.
+   *
+   * --row-h is generous because a problem row stacks an id line over a title.
+   * Anything showing a single line of data uses --row-h-compact.
+   */
+  --row-h: 6.75rem;
+  --row-h-compact: 2.75rem;
+  --cell-pad-y: var(--space-md);
+  --cell-pad-x: var(--space-sm);
+  --control-h: 2.25rem;
+  --control-h-lg: 2.75rem;
+
+  /* Overlay panels: command palette, popovers, dialogs. */
+  --overlay-w: 38rem;
+  --overlay-max-h: 60vh;
+  --overlay-top: 12vh;
 }
 
 /*
- * Tabular numerals everywhere data is shown. Problem ids, attempt counts and
- * streaks change constantly; proportional figures make columns twitch as the
- * numbers update.
+ * THE NUMERIC RULE
+ *
+ * Any figure the user might compare against another figure — problem ids,
+ * attempt counts, streaks, stability days, durations — is set in --font-data
+ * with tabular-nums. Always both, never one:
+ *
+ *   font-family: var(--font-data);
+ *   font-variant-numeric: tabular-nums;
+ *
+ * The mono face is what makes a column of numbers scan as data rather than as
+ * prose; tabular-nums is what stops the column twitching sideways when a 1
+ * becomes an 8 on the next poll. Modules declare the pair inline rather than
+ * composing this class, because most of them also set a size and weight and
+ * a two-line rule is cheaper to read than an import.
+ *
+ * Prose that merely contains a number (“3 problems left”) is not data and
+ * stays in the body face.
  */
 .dataFigure {
   font-family: var(--font-data);

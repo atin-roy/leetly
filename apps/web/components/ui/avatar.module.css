@@ -39,7 +39,7 @@
 }
 
 .avatar[data-size="sm"] .fallback {
-  font-size: var(--step--2, 0.75rem);
+  font-size: var(--step--2);
 }
 
 .badge {

@@ -1,10 +1,12 @@
 import { Badge } from "@/components/ui/badge"
+import tone from "@/components/ui/tone.module.css"
+import { cn } from "@/lib/utils"
 import type { Difficulty } from "@/lib/types"
 
-const styles: Record<Difficulty, string> = {
-  EASY: "bg-green-100 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-400",
-  MEDIUM: "bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400",
-  HARD: "bg-red-100 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-400",
+const tones: Record<Difficulty, string> = {
+  EASY: cn(tone.tone, tone.green),
+  MEDIUM: cn(tone.tone, tone.amber),
+  HARD: cn(tone.tone, tone.red),
 }
 
 const labels: Record<Difficulty, string> = {
@@ -13,9 +15,17 @@ const labels: Record<Difficulty, string> = {
   HARD: "Hard",
 }
 
-export function DifficultyBadge({ difficulty }: { difficulty: Difficulty }) {
+export { tones as difficultyTones, labels as difficultyLabels }
+
+export function DifficultyBadge({
+  difficulty,
+  className,
+}: {
+  difficulty: Difficulty
+  className?: string
+}) {
   return (
-    <Badge variant="outline" className={styles[difficulty]}>
+    <Badge variant="outline" className={cn(tones[difficulty], className)}>
       {labels[difficulty]}
     </Badge>
   )

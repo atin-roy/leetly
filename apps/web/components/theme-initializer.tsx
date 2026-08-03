@@ -5,7 +5,15 @@ import { useAuth } from "@/components/auth-provider"
 import { getUserSettings } from "@/lib/api"
 import { THEMES, THEME_STORAGE_KEY, type ThemeId } from "@/lib/themes"
 
-/** Reads saved theme from localStorage and applies it before first paint. */
+/*
+ * Resolves which theme this user should see, after hydration.
+ *
+ * The pre-paint work is done by the inline script in app/layout.tsx, which can
+ * only read the global key because it runs before the session is known. This
+ * component's job is to reconcile that guess with the per-user preference, and
+ * — importantly — to write the result back to the global key so the next load's
+ * inline script guesses right and there is nothing to correct.
+ */
 export function ThemeInitializer() {
   const { session } = useAuth()
 
@@ -49,6 +57,10 @@ export function ThemeInitializer() {
             ? THEMES[themeId - 1].id
             : "default"
         localStorage.setItem(perUserStorageKey, resolved)
+        // Without this the global key stays unset on a fresh device, so the
+        // inline script falls back to the default theme on every subsequent
+        // load and the correct one only appears once this request returns.
+        localStorage.setItem(THEME_STORAGE_KEY, resolved)
         document.documentElement.setAttribute("data-theme", resolved)
       })
       .catch(() => {

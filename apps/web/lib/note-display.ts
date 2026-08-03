@@ -1,12 +1,19 @@
 import { format } from "date-fns"
+import tone from "@/components/ui/tone.module.css"
+import { cn } from "@/lib/utils"
 import type { NoteTag } from "@/lib/types"
 
+/*
+ * Theme-derived, not fixed palette classes. These used to be light-mode chips
+ * (bg-gray-100 text-gray-700) that rendered as pale pills on the dark themes.
+ * See components/ui/tone.module.css for how the tones adapt.
+ */
 export const NOTE_TAG_COLORS: Record<NoteTag, string> = {
-  GENERAL: "bg-gray-100 text-gray-700",
-  INTERVIEW: "bg-blue-100 text-blue-700",
-  LEARNING: "bg-green-100 text-green-700",
-  REVIEW: "bg-orange-100 text-orange-700",
-  STRATEGY: "bg-purple-100 text-purple-700",
+  GENERAL: cn(tone.tone, tone.neutral),
+  INTERVIEW: cn(tone.tone, tone.blue),
+  LEARNING: cn(tone.tone, tone.green),
+  REVIEW: cn(tone.tone, tone.amber),
+  STRATEGY: cn(tone.tone, tone.violet),
 }
 
 export const NOTE_TAGS: { value: NoteTag; label: string }[] = [

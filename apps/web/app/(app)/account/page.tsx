@@ -1,6 +1,7 @@
 "use client"
 
 import { type ChangeEvent, type ReactNode, useEffect, useState } from "react"
+import Link from "next/link"
 import { useAuth } from "@/components/auth-provider"
 import { useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -21,6 +22,7 @@ import {
   Target,
   Trash2,
   User,
+  Users,
 } from "lucide-react"
 import { toast } from "sonner"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -747,6 +749,13 @@ function ProfileSection({
                   </div>
                 </div>
               </div>
+              <Link
+                href="/people"
+                className="flex items-center gap-2 rounded-[1.6rem] border border-border/70 bg-muted/[0.28] p-4 text-sm font-medium text-foreground transition-colors hover:bg-muted/[0.45]"
+              >
+                <Users className="h-4 w-4 text-primary" />
+                Friends and people you follow
+              </Link>
             </div>
           </div>
         </CardContent>
@@ -1235,7 +1244,7 @@ export default function AccountPage() {
 
   return (
     <div className="space-y-6 pb-8">
-      <section className="relative overflow-hidden rounded-[2rem] border border-border/70 bg-[linear-gradient(135deg,color-mix(in_oklab,var(--background)_90%,var(--primary)_10%),color-mix(in_oklab,var(--background)_84%,var(--accent)_16%))] px-6 py-6 shadow-[0_28px_80px_rgba(0,0,0,0.08)]">
+      <section className="relative overflow-hidden rounded-[2rem] border border-border/70 bg-[linear-gradient(135deg,color-mix(in_oklab,var(--background)_90%,var(--primary)_10%),color-mix(in_oklab,var(--background)_84%,var(--accent)_16%))] px-6 py-6 shadow-(--shadow-float)">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,hsl(var(--primary)/0.22),transparent_34%),radial-gradient(circle_at_80%_20%,hsl(var(--accent)/0.16),transparent_30%),radial-gradient(circle_at_bottom_right,hsl(var(--primary)/0.1),transparent_34%)]" />
         <div className="relative flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
           <div className="max-w-3xl">

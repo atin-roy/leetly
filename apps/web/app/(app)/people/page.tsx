@@ -24,7 +24,7 @@ export default function PeoplePage() {
 
   return (
     <div className="space-y-6 pb-8">
-      <section className="overflow-hidden rounded-[2rem] border border-border/70 bg-[linear-gradient(135deg,color-mix(in_oklab,var(--background)_88%,var(--primary)_12%),color-mix(in_oklab,var(--background)_94%,var(--accent)_6%))] px-5 py-5 shadow-[0_24px_70px_rgba(0,0,0,0.08)] sm:px-6 sm:py-6">
+      <section className="overflow-hidden rounded-[2rem] border border-border/70 bg-[linear-gradient(135deg,color-mix(in_oklab,var(--background)_88%,var(--primary)_12%),color-mix(in_oklab,var(--background)_94%,var(--accent)_6%))] px-5 py-5 shadow-(--shadow-float) sm:px-6 sm:py-6">
         <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
           <div className="max-w-3xl">
             <Badge variant="outline" className="border-white/20 bg-background/70">
