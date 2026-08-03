@@ -96,7 +96,7 @@ export default function ReviewPage() {
   const nextDueCard = [...cards]
     .sort((a, b) => parseISO(a.due).getTime() - parseISO(b.due).getTime())[0] ?? null
   const dailyCapacity =
-    dueNow === 0 ? "Cruise" : dueNow <= 3 ? "Light" : dueNow <= 8 ? "Focused" : "Recovery"
+    dueNow === 0 ? "Clear" : dueNow <= 3 ? "Light" : dueNow <= 8 ? "Steady" : "Heavy"
   const estimatedSweepMinutes = Math.max(cards.length * 3, dueNow * 4)
 
   return (
@@ -105,20 +105,21 @@ export default function ReviewPage() {
         <section className="grid gap-6 xl:grid-cols-[1.55fr_1fr]">
           <Card className="overflow-hidden rounded-[30px] border-border/70 bg-[radial-gradient(circle_at_top_left,color-mix(in_oklab,var(--primary)_26%,transparent),transparent_32%),radial-gradient(circle_at_78%_18%,color-mix(in_oklab,var(--accent)_18%,transparent),transparent_24%),linear-gradient(180deg,color-mix(in_oklab,var(--card)_92%,var(--background)_8%),color-mix(in_oklab,var(--background)_84%,black_16%))] shadow-[0_30px_90px_color-mix(in_oklab,var(--foreground)_12%,transparent)]">
             <CardContent className="relative px-6 py-6 sm:px-7 sm:py-7">
-              <div className="absolute inset-0 bg-[linear-gradient(135deg,color-mix(in_oklab,var(--foreground)_5%,transparent),transparent_28%,transparent_70%,color-mix(in_oklab,var(--foreground)_3%,transparent))]" />
               <div className="relative space-y-6">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                   <div className="max-w-2xl space-y-3">
                     <Badge className="w-fit border-border/70 bg-background/55 text-[11px] uppercase tracking-[0.24em] text-primary hover:bg-background/55">
-                      Review rhythm
+                      Review
                     </Badge>
                     <div className="space-y-2">
                       <h1 className="text-3xl font-semibold tracking-[-0.03em] sm:text-4xl">
-                        Keep recall sharp before drift turns into relearning.
+                        {dueNow === 0
+                          ? "Nothing due today."
+                          : `${dueNow} ${dueNow === 1 ? "card" : "cards"} due today.`}
                       </h1>
                       <p className="max-w-xl text-sm leading-6 text-muted-foreground sm:text-[15px]">
-                        Clear today&apos;s highest-friction cards, preserve spaced repetition
-                        momentum, and decide where a full attempt is worth the extra time.
+                        Rate from memory where you can. Open a full attempt where you
+                        can&apos;t.
                       </p>
                     </div>
                   </div>
@@ -128,49 +129,49 @@ export default function ReviewPage() {
                       icon={AlarmClockCheck}
                       label="Due now"
                       value={dueNow}
-                      detail={dueNow > 0 ? `${overdueCards.length} already overdue` : "Queue is calm"}
+                      detail={dueNow > 0 ? `${overdueCards.length} already overdue` : "Nothing waiting"}
                     />
                     <HeroMetric
                       icon={Orbit}
                       label="Enrolled"
                       value={totalEnrolled}
-                      detail={`${cards.length} currently surfaced`}
+                      detail={`${cards.length} showing now`}
                     />
                     <HeroMetric
                       icon={BrainCircuit}
                       label="Learning"
                       value={learningCards.length}
-                      detail="Higher-touch cards need closer follow-up"
+                      detail="Still being learned"
                     />
                     <HeroMetric
                       icon={TimerReset}
-                      label="Sweep time"
+                      label="Est. time"
                       value={`${estimatedSweepMinutes}m`}
-                      detail={`${dailyCapacity} session intensity`}
+                      detail="At about 3 minutes a card"
                     />
                   </div>
                 </div>
 
                 <div className="grid gap-3 md:grid-cols-4">
                   <MiniSignal
-                    label="Priority load"
+                    label="Overdue"
                     value={overdueCards.length}
-                    caption="Cards already past due"
+                    caption="Past their due date"
                   />
                   <MiniSignal
                     label="Next 72h"
                     value={urgentWindowCount}
-                    caption="Due soon enough to plan around"
+                    caption="Due in the next 3 days"
                   />
                   <MiniSignal
                     label="Mature cards"
                     value={matureCards.length}
-                    caption="Stability at 14 days or more"
+                    caption="Holding 14 days or more"
                   />
                   <MiniSignal
                     label="Avg stability"
                     value={`${averageStability.toFixed(1)}d`}
-                    caption="Current retention buffer"
+                    caption="Average gap before the next review"
                   />
                 </div>
 
@@ -187,7 +188,7 @@ export default function ReviewPage() {
                   size="lg"
                   className="h-11 rounded-full border-border/70 bg-background/55 px-5 text-sm text-foreground hover:bg-background/80 hover:text-foreground"
                 >
-                  <Link href="/problems">Browse all problems</Link>
+                  <Link href="/problems">All problems</Link>
                 </Button>
                 </div>
               </div>
@@ -198,9 +199,9 @@ export default function ReviewPage() {
             <CardHeader className="gap-3 border-b border-border/70 pb-4">
               <div className="flex items-center justify-between gap-4">
                 <div>
-                  <CardTitle className="text-xl tracking-tight">Queue health</CardTitle>
+                  <CardTitle className="text-xl tracking-tight">The queue</CardTitle>
                   <CardDescription className="mt-1">
-                    Read the pressure level before you choose between quick ratings and full attempts.
+                    How much is waiting, and what is coming.
                   </CardDescription>
                 </div>
                 <div
@@ -213,7 +214,7 @@ export default function ReviewPage() {
                         : "border border-emerald-400/25 bg-emerald-400/[0.12] text-emerald-700 dark:text-emerald-200"
                   )}
                 >
-                  {dailyCapacity} load
+                  {dailyCapacity}
                 </div>
               </div>
             </CardHeader>
@@ -228,12 +229,12 @@ export default function ReviewPage() {
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                      Next checkpoint
+                      Next card
                     </p>
                     <p className="mt-2 text-sm leading-6 text-muted-foreground">
                       {nextDueCard ? (
                         <>
-                          The next card opens{" "}
+                          Due{" "}
                           <span className="font-medium text-foreground">
                             {formatDistanceToNowStrict(parseISO(nextDueCard.due), {
                               addSuffix: true,
@@ -246,7 +247,7 @@ export default function ReviewPage() {
                           .
                         </>
                       ) : (
-                        "No review card is waiting right now. You can spend the block on fresh problems or full attempts."
+                        "Nothing scheduled. A good time for new problems."
                       )}
                     </p>
                   </div>
@@ -283,14 +284,14 @@ export default function ReviewPage() {
             <CardHeader className="gap-3 border-b border-border/70 pb-4">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                  <CardTitle className="text-xl tracking-tight">Today&apos;s review stack</CardTitle>
+                  <CardTitle className="text-xl tracking-tight">Due today</CardTitle>
                   <CardDescription className="mt-1">
-                    Prioritized cards with enough context to decide whether to rate quickly or re-attempt.
+                    Oldest first.
                   </CardDescription>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <Pill label="Visible now" value={`${cards.length}`} />
-                  <Pill label="Needs action" value={`${Math.max(dueNow, overdueCards.length)}`} />
+                  <Pill label="Showing" value={`${cards.length}`} />
+                  <Pill label="Due" value={`${Math.max(dueNow, overdueCards.length)}`} />
                 </div>
               </div>
             </CardHeader>
@@ -315,55 +316,55 @@ export default function ReviewPage() {
           <div className="space-y-6">
             <Card className="rounded-[30px]">
               <CardHeader className="gap-3 border-b border-border/70 pb-4">
-                <CardTitle className="text-xl tracking-tight">Session guide</CardTitle>
+                <CardTitle className="text-xl tracking-tight">How to work the queue</CardTitle>
                 <CardDescription>
-                  A cleaner review flow keeps the queue useful instead of noisy.
+                  Three rules that keep it worth reviewing.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 pt-5">
                 <GuideRow
                   icon={CircleAlert}
                   title="Clear overdue first"
-                  body="Handle the oldest cards before taking on soon-due ones so interval drift does not compound."
+                  body="Oldest first. The longer a card sits past due, the less its schedule means."
                 />
                 <GuideRow
                   icon={Sparkles}
                   title="Use quick ratings for recall"
-                  body="If you can explain the idea and key edge cases from memory, rate directly and keep moving."
+                  body="If you can explain the approach and the edge cases without opening it, rate it and move on."
                 />
                 <GuideRow
                   icon={Layers3}
                   title="Log full attempts selectively"
-                  body="Open a full attempt only when recall is fuzzy, the implementation path feels weak, or the mistake pattern is repeating."
+                  body="Only when you could not recall it, could not code it, or made the same mistake again."
                 />
               </CardContent>
             </Card>
 
             <Card className="rounded-[30px]">
               <CardHeader className="gap-3 border-b border-border/70 pb-4">
-                <CardTitle className="text-xl tracking-tight">Queue snapshot</CardTitle>
+                <CardTitle className="text-xl tracking-tight">At a glance</CardTitle>
                 <CardDescription>
-                  Short signals to help you choose the shape of this study block.
+                  Where the queue stands right now.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 pt-5">
                 <SnapshotTile
-                  label="Immediate pressure"
-                  value={dueNow > 0 ? `${dueNow} due now` : "No urgent cards"}
-                  detail={dueNow > 0 ? "Start with quick assessments to reduce drag." : "This is a good window for fresh problems."}
+                  label="Due now"
+                  value={dueNow > 0 ? `${dueNow} waiting` : "Clear"}
+                  detail={dueNow > 0 ? "Rate the easy ones first to cut the pile down." : "A good time for new problems."}
                 />
                 <SnapshotTile
-                  label="Upcoming wave"
-                  value={`${upcoming} in 7 days`}
-                  detail="A larger upcoming wave means today is a good day to get ahead of the queue."
+                  label="Next 7 days"
+                  value={`${upcoming} coming`}
+                  detail="Clear some early if this is more than you want in one sitting."
                 />
                 <SnapshotTile
-                  label="Retention base"
-                  value={`${matureCards.length} mature cards`}
+                  label="Mature"
+                  value={`${matureCards.length} cards`}
                   detail={
                     matureCards.length > 0
-                      ? "Longer intervals are forming; avoid letting overdue cards chip away at them."
-                      : "Most cards are still young, so consistency matters more than volume."
+                      ? "Holding 14 days or more. Letting these go overdue undoes the gain."
+                      : "Nothing has reached 14 days yet. Reviewing regularly is what gets them there."
                   }
                 />
               </CardContent>
