@@ -4,6 +4,7 @@ import * as React from "react"
 import { Popover as PopoverPrimitive } from "radix-ui"
 
 import { cn } from "@/lib/utils"
+import styles from "./popover.module.css"
 
 function Popover({
   ...props
@@ -29,10 +30,7 @@ function PopoverContent({
         data-slot="popover-content"
         align={align}
         sideOffset={sideOffset}
-        className={cn(
-          "surface-panel z-50 w-72 rounded-lg border p-4 text-popover-foreground outline-hidden",
-          className
-        )}
+        className={cn(styles.content, className)}
         {...props}
       />
     </PopoverPrimitive.Portal>
@@ -49,7 +47,7 @@ function PopoverHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="popover-header"
-      className={cn("flex flex-col gap-1 text-sm", className)}
+      className={cn(styles.header, className)}
       {...props}
     />
   )
@@ -59,7 +57,7 @@ function PopoverTitle({ className, ...props }: React.ComponentProps<"h2">) {
   return (
     <div
       data-slot="popover-title"
-      className={cn("font-medium", className)}
+      className={cn(styles.title, className)}
       {...props}
     />
   )
@@ -72,7 +70,7 @@ function PopoverDescription({
   return (
     <p
       data-slot="popover-description"
-      className={cn("text-muted-foreground", className)}
+      className={cn(styles.description, className)}
       {...props}
     />
   )

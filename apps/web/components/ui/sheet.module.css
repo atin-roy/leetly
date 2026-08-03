@@ -1,0 +1,107 @@
+/* Edge-anchored panel. Geometry differs by side; everything else is shared. */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: color-mix(in oklch, var(--foreground) 35%, transparent);
+  backdrop-filter: blur(2px);
+}
+
+.content {
+  position: fixed;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  background: var(--card);
+  color: var(--card-foreground);
+  border: var(--rule);
+}
+
+.right,
+.left {
+  inset-block: 0;
+  height: 100%;
+  width: 75%;
+}
+
+@media (min-width: 640px) {
+  .right,
+  .left {
+    max-width: 24rem;
+  }
+}
+
+.right {
+  right: 0;
+}
+
+.left {
+  left: 0;
+}
+
+.top,
+.bottom {
+  inset-inline: 0;
+  height: auto;
+}
+
+.top {
+  top: 0;
+}
+
+.bottom {
+  bottom: 0;
+}
+
+.close {
+  position: absolute;
+  top: var(--space-md);
+  right: var(--space-md);
+  display: inline-flex;
+  padding: 0.25rem;
+  color: var(--muted-foreground);
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: color 120ms ease, background-color 120ms ease;
+}
+
+.close:hover {
+  background: var(--accent);
+  color: var(--foreground);
+}
+
+.close:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+  padding: var(--space-md);
+}
+
+.footer {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+  padding: var(--space-md);
+}
+
+.title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--foreground);
+}
+
+.description {
+  font-size: var(--step--1);
+  color: var(--muted-foreground);
+}
