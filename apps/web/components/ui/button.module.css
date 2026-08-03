@@ -43,55 +43,55 @@
 
 /* ── Variants ────────────────────────────────────────────────────────────── */
 
-.default {
+.button.default {
   background: var(--primary);
   color: var(--primary-foreground);
   border-color: var(--primary);
 }
 
-.default:hover {
+.button.default:hover {
   background: color-mix(in oklch, var(--primary) 88%, var(--foreground));
 }
 
 /* Near-white, but tinted from the token rather than a raw hex, so nothing in
    the styling layer sits outside the theme system. */
-.destructive {
+.button.destructive {
   background: var(--destructive);
   color: color-mix(in oklch, white 92%, var(--destructive));
   border-color: var(--destructive);
 }
 
-.destructive:hover {
+.button.destructive:hover {
   background: color-mix(in oklch, var(--destructive) 88%, black);
 }
 
-.outline {
+.button.outline {
   background: var(--card);
   color: var(--foreground);
   border-color: var(--border);
 }
 
-.outline:hover {
+.button.outline:hover {
   border-color: var(--primary);
   color: var(--primary);
 }
 
-.secondary {
+.button.secondary {
   background: var(--secondary);
   color: var(--secondary-foreground);
   border-color: var(--border);
 }
 
-.secondary:hover {
+.button.secondary:hover {
   background: color-mix(in oklch, var(--secondary) 88%, var(--foreground));
 }
 
-.ghost {
+.button.ghost {
   background: none;
   color: var(--muted-foreground);
 }
 
-.ghost:hover {
+.button.ghost:hover {
   background: var(--accent);
   color: var(--foreground);
 }
